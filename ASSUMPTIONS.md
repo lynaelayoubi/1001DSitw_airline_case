@@ -358,3 +358,82 @@ Ranked by how much the output moves. **Be ready to name the top three unprompted
 > barely moves — only the total does. The two things that would actually change the
 > recommendation are time-on-wing and the hours-to-cycles ratio, and those I took from a
 > published appraiser handbook and an airline's own 20-F."**
+
+---
+
+## 13 · Declared in the build — Saturday 3 October
+
+Numbers that appear in `engine/constants.ts` or `data/generate.ts` and are not in §§0–12
+above. Each is a declared assumption or a derivation from one, not a sourced figure.
+
+### Engines
+
+| item | value | basis |
+|---|---|---|
+| LLP certified life, limiting part | **20,000 FC** narrowbody (LEAP-1A, CFM56-7B) · **15,000 FC** widebody (Trent XWB, GEnx, GE90) | inside the 15,000–30,000 FC range in §2; CFM56 HPT 14,300–20,000 |
+| Build-for-cash bucket | 8,000 FC × (certified life ÷ 20,000) | §2 is a narrowbody figure; scaled so a widebody stack does not get half its life from the cheap visit |
+| Lessor markup over pure accrual | **1.54** = $228 ÷ ($5.1M ÷ (12,500 FC × 2.75)) | calibrated so the model reproduces the executed lease's $228/EFH for a V2527 at 10% derate, temperate, first-run |
+| Reference FH:FC for TOW tables | 2.75 narrowbody · 7.0 widebody | Ackert App. A conventions (2.0 NB in 2018; grid base band is 2.5–3.0) |
+| Reserve rate, any engine | accrual at reference FH:FC × 1.54 × grid shape (grid rate at actual FH:FC ÷ grid rate at reference) × derate column | §6 grid used as a *shape*, the base level set by each engine's own cost and time-on-wing |
+| Derate 5% | ×1.133 (midpoint of 0% ×1.266 and 10% ×1.0) | §10 gives the end points only |
+| Environment harsh-mild | cost +6.5%, time-on-wing −18% (midpoint) | §10 gives temperate and harsh-high only |
+| Engine removal point | 85–100% of min(time-on-wing, LLP bucket) | engines rarely run to the exact limit |
+| Share of engines swapped from another tail | 20% | customer: "components get swapped constantly" |
+| Derate mix | narrowbody 10%/5%/0% at 70/20/10 · widebody 0%/5%/10% at 50/30/20 | long-haul widebodies at MTOW rarely derate |
+
+### Other components
+
+| item | value |
+|---|---|
+| Gear or APU not original to the tail | 10% |
+| Workscope on gear, APU, airframe | one tier (`build-for-interval`); the two-tier distinction is an engine matter |
+| Derate field on non-engines | 0, meaning not applicable |
+
+### QME incidence (components with at least one recorded event)
+
+| component | not-evidenced |
+|---|---|
+| engine | 12% |
+| landing gear, APU | 8% |
+| airframe | 4% |
+
+Declared. The customer described the failure; he did not give a rate. The alternative
+position (`asLeaseAllows`) withdraws the credit of the unevidenced event: cycles since the
+previous verified event, LLP life net of the last run.
+
+### Return conditions
+
+| architecture | engine FH | engine FC | LLP FC | gear months | gear FC | airframe months | APU hours |
+|---|---|---|---|---|---|---|---|
+| reserve (thin) | 100–500 | 50–250 | 50–500 | 2–6 | 200–1,000 | 2–6 | 100–300 |
+| no-reserve (fat) | 2,500–5,000 | 1,000–2,500 | 2,500–5,000 | 12–36 | 2,000–6,000 | 12–36 | 1,000–2,000 |
+
+Thin anchors on the executed lease's return condition (§7); fat anchors on the same contract's
+*delivery* condition. Drawn once per lessor, rounded to 50 units (1 month), then jittered
+0.9–1.2 per tail. Negotiation multiplier drawn per lessor in 1.0–1.5 in steps of 0.05.
+Lessors alternate architecture: four reserve, three no-reserve.
+
+### Fleet
+
+| item | value |
+|---|---|
+| Composition | A320neo 90 · A321neo 60 · B737-8 40 · A350-900 32 · B787-9 28 · B777-300ER 20 = 270; 29.6% widebody |
+| Returning inside 24 months | 10, spread 4–23 months out, across all six types and all seven lessors |
+| Bases and environment | DXB, AUH harsh-high · MLA harsh-mild · VIE, LGW temperate |
+| Lease term | 8–12 years, all leased from new |
+| Maximum age by type | neo 10 / 9 yrs · MAX 9 · A350 11 · 787 12 · 777 15 — entry into service |
+| Utilisation noise | ±10% on hours and on cycles independently, so FH:FC also varies |
+| Spare pool | 7 engines, 4 gear, 3 APU — 14 units |
+
+### Reconciliation (§11, as built)
+
+| item | value | basis |
+|---|---|---|
+| Coverage of total MRO by the four components | **55.9%** = 0.50 ÷ 0.85 × 0.95 | engines 50% of spend (IATA) and ~85% of DMC (Ackert, §11); four components ~95% of DMC |
+| Per-class panel cost | $3.68M narrowbody · $10.45M widebody per aircraft-year | $5.05M split by 20.3% of fleet / 42% of cost |
+| Normalisation to panel conditions | every tail temperate; hours and cycles × (9.06 ÷ fleet FH/day) | Ackert tables are temperate; panel is a global average at 9.06 FH/day |
+| Pass band, panel-equivalent | 0.65–1.35 of expected | the fleet lands at **1.09** |
+| As-generated bound | 1.0–2.0 of expected | lands at 1.55: harsh-high environment and short-dense cycles, both deliberate |
+| Widebody ÷ narrowbody cost ratio | 0.6–1.4 of the panel's 2.84 | lands at 0.65 — young A350/787 arm on first-run engines; short-dense narrowbodies |
+| Engine share of modelled cost | 0.75–0.95 | expected ≈ 0.50 ÷ 0.559 = 89%; lands at 87% |
+| Utilisation | 0.75–1.25 of 9.06 FH/day | lands at 1.13 |

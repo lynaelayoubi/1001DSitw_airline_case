@@ -146,3 +146,100 @@ industry envelope, and landing inside it turns "plausible" into "validated".
 ---
 
 <!-- APPEND BELOW AS YOU BUILD -->
+
+## Step 1 · the dataset — Saturday 3 October
+
+**Top-level `data/`, `engine/`, `ui/` folders, no `src/`.** · Rejected: SPEC's `src/engine/`.
+· Because CLAUDE.md's three-folders-three-answers rule is the thing I want to point at in the
+room, and Vite does not care where the code lives.
+
+**The generator imports engine functions; nothing in `engine/` imports data.** · Rejected: the
+generator computing its own compensation rates. · Because the rate stamped on a return
+condition and the rate the pricing uses must be one formula with one trace, or "where did
+that number come from" has two answers.
+
+**Four route profiles, adding `ultra-long` for the 777-300ER.** · Rejected: SPEC's three, with
+the 777 folded into long-haul. · Because ASSUMPTIONS §9 has a separately sourced row for it
+and the hours-to-cycles ratio is the master variable — I am not going to blur it to save an
+enum value.
+
+**Every tail leased from new; no owned aircraft in the dataset.** · Rejected: ~15% owned, to
+mirror "most leased". · Because an owned tail carries no return condition and adds nothing
+the model can say; the full-fleet toggle still shows 270.
+
+**A Gulf/Europe group with two AOCs: A6- registrations out of DXB and AUH (harsh-high), 9H-
+out of MLA (harsh-mild), VIE and LGW (temperate). 190 narrowbody, 80 widebody.** · Rejected:
+a single-registry European operator in one environment. · Because the environment multiplier
+only shows up if the fleet spans environments, and a widebody arm is what makes the
+narrowbody/widebody mix adjustment in the reconciliation mean something.
+
+**Engine reserve rate for every type derived as pure accrual at the appraiser's reference
+FH:FC × a markup calibrated on the executed lease (1.54), then shaped by the lease's FH:FC
+grid and derate column.** · Rejected: scaling the V2500 grid by the ratio of PR costs. ·
+Because widebody time-on-wing in cycles is a quarter of narrowbody; a cost ratio alone gets
+the per-cycle number wrong by about 4×.
+
+**Shop-visit history walked forward from new, with the engine coming off at whichever is
+shorter: time-on-wing or the LLP bucket the last workscope bought.** · Rejected: sampling
+TSO/CSO at random. · Because a build-for-cash engine then comes off at LLP expiry rather than
+at its restoration interval — the bucket model is visible in the data, not only in the engine.
+
+**Build-for-cash bucket scaled to the engine's certified life: 8,000 × (certified life ÷
+20,000).** · Rejected: a flat 8,000 cycles for widebody engines too. · Because the Ackert
+figure is a narrowbody figure and a 15,000-cycle widebody stack would otherwise get more than
+half its life from the cheap visit.
+
+**QME modelled as one alternative position per component (`asLeaseAllows`), measured from the
+previous verified event.** · Rejected: a full maintenance event history per component. ·
+Because §2.5 needs exactly one other number and a history would be invented detail I could
+not defend.
+
+**Metric `monthsRemaining` added for landing gear and airframe calendar limits.** · Rejected:
+expressing them as `timeSinceOverhaul`. · Because every requirement then reads as "remaining
+at return" and `gap = threshold − remaining` holds for all of them without a sign flip.
+
+**Seven return conditions per tail, thresholds drawn once per lessor from the range for its
+lease architecture, then jittered 0.9–1.2 per tail.** · Rejected: identical thresholds per
+lessor. · Because two leases from the same lessor differ by negotiation, but should cluster —
+and the between-lessor difference is the product.
+
+**QME clause text stored once per lessor, not on every return condition.** · Rejected: the
+text on each of the 1,890 rows, which is what the SPEC schema implies. · Because it cut
+`fleet.json` from 4.5MB to 3MB and the definition is a property of the lease, not of the
+condition; the row keeps the clause reference.
+
+**Ten returning tails placed by hand-spread across types and round-robin across lessors.** ·
+Rejected: letting the random lease dates decide. · Because ten draws will not cover six types
+and seven lessors, and the fleet screen needs the variety to make its point.
+
+## Step 2 · the reconciliation test — Saturday 3 October
+
+**Reconciled on a cost basis — event cost ÷ interval × usage — not on reserve rates.** ·
+Rejected: summing the reserve rates. · Because reserves carry the lessor's markup (1.54 on
+engines) and the IATA panel is airline cost.
+
+**Four-component accrual compared against the panel × a derived coverage share (≈56%), not
+against the full $5.05M.** · Rejected: comparing to the whole figure. · Because the model does
+not carry line maintenance, rotables or overhead, and a test that rewards a 44%
+understatement validates nothing. Derivation: engines are 50% of total spend (IATA) and ~85%
+of direct maintenance cost (Ackert), so DMC ≈ 59% of total; the four components are ~95% of
+DMC.
+
+**Mix-adjusted through the panel's own 20.3%-of-fleet / 42%-of-cost split, giving $3.68M per
+narrowbody and $10.45M per widebody.** · Rejected: three independent checks per aircraft, per
+FH and per FC. · Because the panel does not publish hours or cycles by body class, so the
+per-FH and per-FC ratios are the same test in different currencies. The test says so.
+
+**Two views: panel-equivalent (every tail temperate, utilisation scaled to the panel's 9.06
+FH/day) asserted inside 0.65–1.35, and as-generated reported with its deviation explained and
+bounded 1.0–2.0.** · Rejected: asserting the raw fleet and widening the band until it passed —
+it first landed at 1.55. · Because ASSUMPTIONS §11 says the check exists to catch errors in
+the cost tables, and the two things that put the fleet above the panel are deliberate: 122
+tails in a harsh-high environment (+78% on engine $/FH) and 100 narrowbodies on a short-dense
+profile (41% more cycles a year than the panel average). Panel-equivalent lands at 1.09.
+
+**Widebody-to-narrowbody cost ratio band set to 0.6–1.4 of the panel's 2.84; the fleet lands
+at 0.65.** · Rejected: reshaping the fleet until it hit 2.84. · Because the gap has two named
+causes that are fleet traits — the short-dense narrowbodies accrue engine cost per cycle, and
+the widebody arm is young A350/787 metal on first-run engines where the panel's is older
+A330/777 on mature ones — and I would rather show the gap than hide it.
