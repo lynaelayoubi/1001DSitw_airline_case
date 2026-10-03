@@ -17,8 +17,8 @@ in one sentence:
 2. **Assumed** — a rate or cost from a public source. Everything below.
 3. **Computed** — produced by the engine from 1 and 2. Has a `trace`. Never typed by hand.
 
-> Default answer to "where did that number come from": **"It's computed — from the fleet
-> data I generated and this rate here, and I can show you the arithmetic."** Then show it.
+> The default answer to "where did that number come from": **it's computed — from the
+> generated fleet data and a rate in this file, and the arithmetic is in its trace.**
 
 ---
 
@@ -40,8 +40,8 @@ So every 2018 figure is escalated to **2026 USD** by an explicit factor:
 | APU | **×1.45** | 4.5–6.5%/yr |
 | Airframe heavy check | **×1.40** | 2.5–3.5%/yr, labour-driven |
 
-**Say this if asked about any cost figure.** "The source is 2018, I escalated it to 2026 at
-the published escalation rate for that event type, and the factor is in the file." Using a
+**This holds for any cost figure:** the source is 2018, escalated to 2026 at the published
+escalation rate for that event type, and the factor is in the table above. Using a
 2018 engine figure as a 2026 figure understates by 45–70% — a bigger error than any
 cross-engine distinction in the dataset.
 
@@ -58,8 +58,8 @@ cross-engine distinction in the dataset.
 | Analyst time per aircraft | days to a week, by hand |
 | Components carrying the compensation | engines, landing gear, airframe, APU |
 
-Matching these reads as *she listened*. Round numbers invented from nothing read as a
-template.
+Matching these shows the model is built on what the customer said. Round numbers invented
+from nothing read as a template.
 
 ---
 
@@ -100,7 +100,7 @@ usually the limiter (CFM56: 14,300–20,000 FC; V2500-A5: 20,000 FC).
 
 **Do not price individual discs.** No credible public figure exists for a single HPT disc
 list price, and it does not matter: LLPs are replaced in groups, and only the stack total
-and the shortest life affect cash. If asked, say exactly that.
+and the shortest life affect cash.
 
 ---
 
@@ -189,8 +189,8 @@ Same engine. Only flight length changes. 10% derate column:
 | > 4.0 | **$184.64** |
 
 **A 3.9× swing on the same engine, driven purely by how long the flights are.** Use this
-grid directly in the model. If you show one thing in the demo that proves the model
-understands the domain, it is this.
+grid directly in the model. If one thing in the demo proves the model understands the
+domain, it is this.
 
 **Reserves reclaim:** model as a percentage of qualifying maintenance spend, default 100%
 for work that qualifies and **0% where the QME test fails** — that is the mechanism, not a
@@ -235,9 +235,9 @@ compensationRate = reserveRate(component, FH:FC, derate) × negotiationMultiplie
 negotiationMultiplier default 1.25, range 1.0–1.5, per lessor
 ```
 
-**This is a strength in the second half, not a weakness.** "There's no public rate, so I
-anchored it on the reserve rate — which is what the parties actually negotiate against — and
-exposed the multiplier as an assumption."
+**The derivation is declared, not hidden.** There is no public rate, so the rate is anchored
+on the reserve rate — which is what the parties actually negotiate against — and the
+multiplier is exposed as an assumption.
 
 ### Scale checks
 
@@ -311,7 +311,7 @@ count that drives its phase.
 
 ---
 
-## 13 · Downtime — his explicit ask, and a declared assumption
+## 13 · Downtime — the customer's explicit ask, and a declared assumption
 
 > *"Versus the maintenance cost, **but also the downtime costs.** So the aircraft will be out
 > of service depending on the level of work. It could just be like a couple of hours, which
@@ -321,7 +321,7 @@ count that drives its phase.
 **Model aircraft downtime, not component shop turnaround.** They are wildly different numbers
 and conflating them is the easy mistake: a narrowbody engine currently sits in the shop for
 **180–200 days** (Oliver Wyman, 2025), but the *aircraft* only waits if there is no spare
-engine to hang on it. His own range — hours to a week or two — is aircraft downtime.
+engine to hang on it. The customer's own range — hours to a week or two — is aircraft downtime.
 
 | action | aircraft days down | why |
 |---|---|---|
@@ -341,12 +341,12 @@ engine to hang on it. His own range — hours to a week or two — is aircraft d
 | Widebody | **$130,000** |
 
 This is lost *contribution*, not revenue, and it is a modelling assumption rather than a
-published figure. **That is the right way to present it** — he said he wants to put his own
+published figure. **That is the right way to present it** — the customer said they want to put their own
 assumptions in, so it is a slider on the scenario panel, not a constant in the code.
 
-> Say in the demo: *"That's my number, not yours — change it and see whether it moves the
-> recommendation."* Handing him the dial on the one input he asked to control is worth more
-> than getting the number right.
+> The default is a starting point, not a claim: change it and see whether it moves the
+> recommendation. Handing the customer the dial on the one input they asked to control is
+> worth more than getting the number right.
 
 **Why it matters:** on a narrowbody, two weeks down is **$630,000** — enough to flip a tail
 from "do the work" to "retime the shop visit", which is exactly the kind of decision the
@@ -368,7 +368,7 @@ age 10.6 years, 9.06 flight hours/day:
 | Maintenance cost per aircraft per year | **$5.05M** |
 
 If the generated fleet lands far outside that envelope once mix-adjusted, something in
-§§2–6 is wrong. **Make this an automated test, and mention it in the second half** — it is
+§§2–6 is wrong. **Make this an automated test** — it is
 the difference between "I made the numbers plausible" and "I validated them against a
 published industry panel."
 
@@ -380,7 +380,7 @@ and **>90% on a 777-300ER**; within that, performance restoration is 35–40% an
 
 ## 12 · Sensitivity — the column that matters most
 
-Ranked by how much the output moves. **Be ready to name the top three unprompted.**
+Ranked by how much the output moves. **The top three dominate everything below them.**
 
 | # | factor | effect if wrong | matters? |
 |---|---|---|---|
@@ -398,10 +398,10 @@ Ranked by how much the output moves. **Be ready to name the top three unprompted
 | 12 | Removal and install labour | **nil** — rounding error against a $5–18M visit | barely |
 | 13 | Workscope tiers beyond two | **nil** — false precision | barely |
 
-> The answer to give: **"If the shop visit cost is out by half, the ranking of the ten tails
-> barely moves — only the total does. The two things that would actually change the
-> recommendation are time-on-wing and the hours-to-cycles ratio, and those I took from a
-> published appraiser handbook and an airline's own 20-F."**
+> In one line: **if the shop visit cost is out by half, the ranking of the ten tails barely
+> moves — only the total does. The two things that would actually change the recommendation
+> are time-on-wing and the hours-to-cycles ratio, and both come from a published appraiser
+> handbook and an airline's own 20-F.**
 
 ---
 
@@ -441,7 +441,7 @@ above. Each is a declared assumption or a derivation from one, not a sourced fig
 | landing gear, APU | 8% |
 | airframe | 4% |
 
-Declared. The customer described the failure; he did not give a rate. The alternative
+Declared. The customer described the failure but did not give a rate. The alternative
 position (`asLeaseAllows`) withdraws the credit of the unevidenced event: cycles since the
 previous verified event, LLP life net of the last run.
 

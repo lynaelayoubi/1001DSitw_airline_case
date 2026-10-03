@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "End-of-lease compensation exposure, eighteen months out. Interview demo.",
+  "description": "End-of-lease compensation exposure, eighteen months out. Client prototype.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

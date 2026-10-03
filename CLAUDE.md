@@ -4,7 +4,7 @@ Read this first in every session. It is the domain, not the task.
 
 ## What this is
 
-A demo built for an interview: a tool that tells an airline, eighteen months before an
+A prototype built for a client engagement: a tool that tells an airline, eighteen months before an
 aircraft goes back to its lessor, how much end-of-lease compensation it is on track to
 pay — and what to do about it.
 

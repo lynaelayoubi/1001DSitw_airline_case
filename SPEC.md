@@ -62,7 +62,7 @@ should land in different places. That difference is the product.
 
 `maintenanceCostMultiplier` · `utilisationMultiplier` · `leaseExtensionMonths` (per tail)
 · `shopSlotLeadTimeMonths` (default 4, range 3–6) · `countOverDeliveryAsLoss` (default true)
-· `reservesReclaimPct` · **`downtimeCostPerDay`** (per body class — he asked to set this himself)
+· `reservesReclaimPct` · **`downtimeCostPerDay`** (per body class — the customer asked to set this one)
 
 ---
 
@@ -102,7 +102,7 @@ compensation     = shortfallUnits × compensationRate
 > **No public market tariff exists for return-condition shortfalls** — it is negotiated deal
 > by deal. So the rate is *derived* from the reserve rate, which is what the parties actually
 > negotiate against, with the multiplier exposed as an assumption (default 1.25, per lessor).
-> See ASSUMPTIONS §7. Say this before being asked; it is a strength, not a gap.
+> See ASSUMPTIONS §7.
 
 A component normally has **two live requirements, one in hours and one in cycles.**
 Compute both. **The binding one is whichever produces the larger compensation** — that is
@@ -121,7 +121,7 @@ $5.50M buys 8,000 FC = $688/FC**. The cheap visit costs nearly twice as much per
 life it buys — that is the bucket model in four numbers, and it is why workscope and timing
 have to be decided together.
 
-This is the finding the customer worked out himself mid-conversation. It must be a column,
+This is the finding the customer worked out during the discovery call. It must be a column,
 not a footnote.
 
 ### 2.5 The QME adjustment
@@ -137,7 +137,7 @@ airline has already spent and legally does not own.
 
 Each returns `{ label, cost, downtimeDays, downtimeCost, newExposure, saving, feasible, deadline, trace }`.
 
-> **Downtime is a cost, and he asked for it by name.** *"Versus the maintenance cost, but also
+> **Downtime is a cost, and the customer asked for it by name.** *"Versus the maintenance cost, but also
 > the downtime costs. So the aircraft will be out of service depending on the level of work.
 > It could just be like a couple of hours, which is fine. But it could be a week or two. So
 > that's something that we want to be able to put some assumptions in for those costs."*
@@ -160,13 +160,13 @@ the routing team.** Never a schedule, never a revenue number.
 
 **L3 · Move a component**
 Search the spare pool and the rest of the fleet for the unit whose remaining life sits
-**just above** this contract's threshold. Score candidates by *tightness of fit*, not by
+**just above** this contract's threshold. Score units by *tightness of fit*, not by
 most life. Cost = removal + install + the exposure this creates on the receiving tail
 (compute it — a swap that moves the problem is not a saving).
 
 **L4 · Time the shop visit**
 Sweep the shop visit date month by month from `today + shopSlotLeadTime` to `leaseEnd`.
-For each candidate date compute `compensation + overDelivery`. Return the minimum, and
+For each date in the sweep compute `compensation + overDelivery`. Return the minimum, and
 return the whole curve so the UI can draw it.
 > The curve is the best single visual in the demo: compensation falling, over-delivery
 > rising, and a visible floor between them.
@@ -181,7 +181,7 @@ recommendation = argmin(totalCost) over feasible options
 ```
 
 Show `downtimeCost` as its own line on every option, never buried in the total. It is the
-term most likely to change which lever wins, and it is the one he will want to argue with.
+term most likely to change which lever wins, and it is the one the customer will want to argue with.
 Return the winner, **the runner-up and the delta between them**, and:
 ```
 decisionDeadline = min(option.deadline)   // usually leaseEnd − shopSlotLeadTime
@@ -196,7 +196,7 @@ unavoidable = exposure under the best feasible option
 avoidable   = doNothingExposure − unavoidable
 ```
 This is the number the customer could not give (*"hard to tell"*). Supply it with the
-assumptions visible, then ask him whether the split looks right.
+assumptions visible, then ask the customer whether the split looks right.
 
 ### 2.9 Reconcile the fleet against a published benchmark — write this as a test
 
@@ -206,7 +206,7 @@ $3,758 per flight cycle, $5.05M per aircraft per year.** Mix-adjust for the narr
 widebody split, then assert the generated fleet lands inside a sensible band.
 
 > This converts "I made the numbers plausible" into "I validated them against a published
-> industry panel", which is a different sentence entirely in the second half.
+> industry panel", which is a different sentence entirely.
 
 ---
 
@@ -234,12 +234,12 @@ ranked, with the chosen one marked and the runner-up visible. The shop-visit cur
 §2.6 L4. The decision deadline, prominent.
 
 ### 3.4 Scenarios
-Four controls, **all four named by him**: maintenance cost · utilisation · extend this
+Four controls, **all four named by the customer**: maintenance cost · utilisation · extend this
 lease by N months · **downtime cost per day**. The headline numbers move live. Add a reset.
 
-Downtime cost is the one he explicitly said he wants to set the assumption for, so make it
-an input rather than a constant — and when the demo reaches this screen, hand him the number
-to disagree with.
+Downtime cost is the one the customer explicitly said they want to set the assumption for,
+so make it an input rather than a constant — the default is a number to disagree with, not
+one to accept.
 
 ### 3.5 Lease view
 For one tail: the extracted return conditions as a table, each row showing the clause
@@ -260,7 +260,7 @@ Named here so they are visible choices, not gaps:
 
 - Full route optimisation — no passenger loads, no revenue, no schedule generation.
 - Reading actual PDFs. The lease extraction is **hand-written synthetic data**, not an LLM
-  pipeline. Say so before being asked.
+  pipeline, and `WHATS-FAKE.md` says so.
 - Authentication, multi-user, persistence, audit trail.
 - Components beyond the four. They live in the checklist.
 - Any real or anonymised customer data from any source.

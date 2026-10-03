@@ -1,7 +1,7 @@
 # Build log
 
 One line per decision that had a real alternative. Written *as it happens* — this cannot be
-reconstructed on Wednesday night, which is exactly why it is worth keeping.
+reconstructed after the fact, which is exactly why it is worth keeping.
 
 Format: **what I chose** · what I rejected · why.
 
@@ -17,8 +17,8 @@ engine can be tested without a browser.
 
 **No backend, no database, no network calls. Dataset generated once into a JSON file in the
 repo.** · Rejected: a small API, which would look more like real software. · Because the
-demo must run offline. Nothing in the room should be able to fail for a reason that is not
-my fault, and a 30-minute slot has no room for a reconnect.
+demo must run offline. Nothing in a live demo should be able to fail for a reason outside
+the build, and a short demo slot has no room for a reconnect.
 
 **Every result object carries a `trace` string describing its own arithmetic.** · Rejected:
 returning bare numbers. · Because a number I cannot derive on the spot is worse than no
@@ -37,12 +37,12 @@ components run out of different clocks, and whichever runs out first is the one 
 you. A model with one clock cannot show that.
 
 **Over-delivery modelled as a cost, not just a neutral surplus.** · Rejected: showing only
-shortfalls. · Because the customer worked this out himself during the discovery call: the
+shortfalls. · Because the customer worked this out during the discovery call: the
 cost of a shop visit is essentially fixed, so handing back unused life is money spent and
 given away.
 
 **QME status as a field on every component, with exposure shown both ways.** · Rejected:
-assuming all recorded maintenance legally counts. · Because he described exactly this
+assuming all recorded maintenance legally counts. · Because the customer described exactly this
 failure — work performed, paperwork not meeting the lease definition, life not legally
 reset. It is the gap no dashboard would show today.
 
@@ -55,7 +55,7 @@ only between in-service aircraft. · Because without a pool, lever 3 has nothing
 from and the recommendation engine quietly collapses to three levers.
 
 **The route lever outputs a flag with a number attached to it, addressed to the routing
-team.** · Rejected: generating a revised schedule. · Because he was explicit that this is
+team.** · Rejected: generating a revised schedule. · Because the customer was explicit that this is
 not route optimisation — they will factor it into their own route models. An output they
 cannot action is worthless, and an output that oversteps gets rejected by the team that
 owns it.
@@ -73,7 +73,7 @@ that arrives too late to use.
 ## Scope
 
 **Four components only: engines, landing gear, airframe, APU. Everything else in the
-readiness checklist.** · Rejected: modelling the full component tree. · Because he named
+readiness checklist.** · Rejected: modelling the full component tree. · Because the customer named
 these four as the most expensive and the ones carrying the most compensation, and because
 the long tail is a completeness problem rather than a money problem.
 
@@ -145,7 +145,7 @@ industry envelope, and landing inside it turns "plausible" into "validated".
 
 **Downtime modelled as a separate cost line on every option, priced on *aircraft* days out
 of service rather than component shop turnaround.** · Rejected: leaving downtime out, and
-(worse) pricing it on the 180–200 day engine shop turnaround. · Because he asked for it by
+(worse) pricing it on the 180–200 day engine shop turnaround. · Because the customer asked for it by
 name — *"but also the downtime costs… that's something that we want to be able to put some
 assumptions in for"* — and because the two numbers are not the same: an engine swap with a
 spare grounds the aircraft for a day while the engine sits in a shop for months. Two weeks
@@ -153,8 +153,9 @@ down on a narrowbody is $630K, enough to flip which lever wins.
 
 **Downtime cost per day exposed as a scenario control rather than a constant.** · Rejected:
 picking a defensible figure and hard-coding it. · Because it is a declared assumption with no
-public source, and he said explicitly that he wants to set it. Handing him the dial on the
-one input he asked to control is worth more than getting the number right.
+public source, and the customer said explicitly that they want to set it. Handing the
+customer the dial on the one input they asked to control is worth more than getting the
+number right.
 
 ---
 
@@ -163,8 +164,8 @@ one input he asked to control is worth more than getting the number right.
 ## Step 1 · the dataset — Saturday 3 October
 
 **Top-level `data/`, `engine/`, `ui/` folders, no `src/`.** · Rejected: SPEC's `src/engine/`.
-· Because CLAUDE.md's three-folders-three-answers rule is the thing I want to point at in the
-room, and Vite does not care where the code lives.
+· Because CLAUDE.md's three-folders-three-answers rule is the thing I want to point at in a code
+walkthrough, and Vite does not care where the code lives.
 
 **The generator imports engine functions; nothing in `engine/` imports data.** · Rejected: the
 generator computing its own compensation rates. · Because the rate stamped on a return
@@ -257,7 +258,7 @@ causes that are fleet traits — the short-dense narrowbodies accrue engine cost
 the widebody arm is young A350/787 metal on first-run engines where the panel's is older
 A330/777 on mature ones — and I would rather show the gap than hide it.
 
-**Renamed `engine/` to `calc/`.** · Rejected: keeping `engine/`, which SPEC and CLAUDE.md both used. · Because "engine" collides with jet engines in this domain, and a folder named `engine/` next to a `kind: engine` component is a question I do not want to answer in the room. Earlier entries above keep the old name as written.
+**Renamed `engine/` to `calc/`.** · Rejected: keeping `engine/`, which SPEC and CLAUDE.md both used. · Because "engine" collides with jet engines in this domain, and a folder named `engine/` next to a `kind: engine` component is a question I do not want to answer in a code walkthrough. Earlier entries above keep the old name as written.
 
 ## Step 3 · the exposure calc and the fleet table — Saturday 3 October
 
@@ -313,4 +314,4 @@ a date with a formula, and it already tells someone which Monday matters.
 
 **Tailwind via the Vite plugin; Recharts not installed until a chart exists.** · Rejected:
 pulling in the whole stack up front. · Because the fleet table has no chart, and an unused
-dependency is a question in the room with no good answer.
+dependency is a question in review with no good answer.

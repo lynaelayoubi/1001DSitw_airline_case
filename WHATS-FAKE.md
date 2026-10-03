@@ -1,14 +1,14 @@
 # What's real and what's faked
 
-Say this **before being asked.** Naming it first is the difference between a candidate who
-knows what she built and a candidate who is being caught out.
+Stated up front, not left to be discovered. Naming it first is the difference between a
+prototype whose limits are known and one whose limits are found out.
 
-The one-sentence version, for the top of the second half:
+The one-sentence version:
 
-> "Everything you've seen runs on synthetic data I generated from the figures you gave me.
-> The calculation engine is real — every number on screen is computed, nothing is typed in.
-> The two things I deliberately faked are the lease extraction and the component pool, and
-> I can tell you why for both."
+> Everything in the prototype runs on synthetic data generated from the figures the customer
+> gave. The calculation engine is real — every number on screen is computed, nothing is typed
+> in. The two things deliberately faked are the lease extraction and the component pool, and
+> the reasoning for both is below.
 
 ---
 
@@ -35,18 +35,18 @@ The one-sentence version, for the top of the second half:
 - Every return condition, threshold, compensation rate and clause.
 - Every cost: shop visits by workscope, LLP replacement, removal and install, reserves rates.
 
-Built to match the figures he gave: ~270 aircraft, ~10 returning in two years, 3–6 month
+Built to match the figures from the discovery call: ~270 aircraft, ~10 returning in two years, 3–6 month
 shop slot lead time, reconciliation inside the last six months. Orders of magnitude for
 costs from public sources — see `ASSUMPTIONS.md`.
 
-> If asked where the data came from: **"I built it from what you told me, plus public
-> figures for shop visit and LLP costs."** Nothing else. Do not mention any other source.
+> Where the data came from, in one line: **what the customer described, plus public figures
+> for shop visit and LLP costs.**
 
 ## Faked on purpose — and here is the reasoning
 
 **1 · The lease extraction.**
 In the demo the return conditions are already structured, with clause references. In reality
-they start as prose in a contract, and he said the real data would arrive as maintenance
+they start as prose in a contract, and the customer said the real data would arrive as maintenance
 system records plus MRO extracts including PDF reports.
 Why faked: it is the longest part of the build and the least informative about the question
 the demo answers. **And in the real system I would not build it fully automated** — I would
