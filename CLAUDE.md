@@ -1,0 +1,98 @@
+# Handback — project context
+
+Read this first in every session. It is the domain, not the task.
+
+## What this is
+
+A demo built for an interview: a tool that tells an airline, eighteen months before an
+aircraft goes back to its lessor, how much end-of-lease compensation it is on track to
+pay — and what to do about it.
+
+It is **not** a product. It is the thing that gets a bigger build approved. It must look
+like functional software and be plausible. It does not need to be deployable, and it does
+not need to be beautiful.
+
+Audience for the demo: a Head of Fleet (the customer) and a CEO (the builder).
+
+## The domain, in the words the customer uses
+
+- **Lease** — the aircraft is rented. At the end it is **handed back** (redelivery).
+- **Return conditions** — the contractual state the aircraft and its major components must
+  be in at handback. Highly prescriptive: exact life remaining on engines, airframe, key
+  components, plus clauses and restrictions. Then a long tail — cabin condition, manuals,
+  extra checks.
+- **End-of-lease compensation** — cash paid to the lessor when return conditions are not met.
+- **Hours and cycles.** One **cycle** = one take-off and landing (= one **sector**). Short
+  sectors burn cycles; long sectors burn hours. Different components are limited by
+  different currencies. **Whichever clock runs out first is the one that costs you.**
+- **Shop visit** — a component goes to an **MRO** (maintenance, repair, overhaul provider)
+  and comes back with life restored. A shop visit buys a *bucket* of life. The question is
+  how much of that bucket you drink before handing it over.
+- **Workscope** — how much is done in the shop visit. Minimum workscope (replace the one
+  weak link) vs full restoration is roughly a 5x price difference.
+- **LLPs — life-limited parts.** Discs, shafts, hubs with a hard cycle-based retirement
+  life. The HPT disc is usually the most limiting. **A component's remaining life is its
+  worst part.**
+- **TSN / CSN** — time / cycles since new. **TSO / CSO** — since overhaul.
+- **Green time** — usable life left on a component before it must go to shop.
+- **Maintenance reserves (supplemental rent)** — usage-based payments held by the lessor,
+  reclaimable against qualifying maintenance. They change the do-vs-pay arithmetic.
+  NOTE: whether a residual balance is refunded at lease expiry **must be negotiated, not
+  assumed**. Do not assert that reserves are non-refundable.
+- **QME — qualified maintenance event.** The lease defines exactly what counts as
+  maintenance that legally resets a component's life. If the paperwork does not meet the
+  definition, the work happened but **the clock does not legally reset.**
+- **Over-delivery** — handing back *more* life than the contract requires. A real loss,
+  because the cost of the shop visit is essentially fixed.
+- **Tail** — an individual aircraft, by registration.
+- **AOG** — aircraft on ground. Unplanned. Today the only reason they swap components or
+  move an aircraft onto a different route.
+
+## The four levers (the whole product, really)
+
+1. **Do the work, or pay.** Compare the cost of the maintenance against the compensation.
+2. **Fly it differently.** Put the tail on a route profile that burns the clock that is not
+   binding. Output is a *flag with a number on it* handed to the routing team — never a
+   schedule.
+3. **Move components.** From the pool, pick the unit whose remaining life sits **just above**
+   what this particular contract demands. Not the best unit — the right-sized one.
+4. **Time the shop visit, and scope it.** The shop visit date is the dial. Too late = empty
+   bucket at handback (compensation). Too early = full bucket you paid for (over-delivery).
+   Constraint: shop slots need **3–6 months** lead time.
+
+## What the customer told us about how it works today
+
+- ~270 aircraft, most leased. **~10 coming back in the next two years.**
+- Return conditions owned by the leasing team, shared with legal because of the wording.
+- Data lives in their maintenance system plus MRO extracts — **including PDF reports.**
+- Reconciliation happens **in the last six months**, by hand: one analyst, one large Excel
+  model, line by line, **days to a week per aircraft.**
+- Components get swapped constantly — for technical need and AOG, **never for lease reasons.**
+- Aircraft get moved onto different routes — **AOG only, never for a return date.**
+- **Maintenance people are not told return dates** until the last couple of months.
+- The provision is carved out at lease signing from historical performance. Paying is not
+  the problem; not seeing it coming is.
+
+## Rules for this repo
+
+- **Three folders, three answers.** `data/` answers "where did the numbers come from".
+  `engine/` answers "what is actually computed". `ui/` answers "why these screens".
+  Keep the engine pure: no UI imports, no data imports, functions in and out.
+- **No real customer data.** Everything in `data/` is synthetic and generated by
+  `data/generate.ts`. Nothing is hand-typed into a component.
+- **No hardcoded numbers in the UI.** Every figure on screen comes from the engine. If a
+  number cannot be traced to a formula, it does not go on screen.
+- **Every rate, cost and assumption lives in `ASSUMPTIONS.md`** with its source, and is
+  imported from one constants file — never inlined.
+- Focus on **four components only: engines, landing gear, airframe, APU.** Everything else
+  belongs in the readiness checklist, not the model.
+- **Not route optimisation.** No passenger loads, no revenue, no schedule building.
+- After any decision with a real alternative, **append one line to `BUILD-LOG.md`**:
+  what was chosen, what was rejected, why. This is a hard requirement, not a nicety.
+- British spelling in UI copy. Use the customer's vocabulary above, not generic SaaS words.
+
+## Stack
+
+Vite + React + TypeScript. Tailwind for styling. Recharts for charts. **No backend, no
+database, no network calls** — the generated dataset is a JSON file in the repo, so the
+demo runs offline. This is deliberate: nothing can fail live.
