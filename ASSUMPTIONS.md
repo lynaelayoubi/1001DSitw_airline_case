@@ -311,6 +311,50 @@ count that drives its phase.
 
 ---
 
+## 13 · Downtime — his explicit ask, and a declared assumption
+
+> *"Versus the maintenance cost, **but also the downtime costs.** So the aircraft will be out
+> of service depending on the level of work. It could just be like a couple of hours, which
+> is fine. But it could be a week or two. **So that's something that we want to be able to
+> put some assumptions in for those costs.**"*
+
+**Model aircraft downtime, not component shop turnaround.** They are wildly different numbers
+and conflating them is the easy mistake: a narrowbody engine currently sits in the shop for
+**180–200 days** (Oliver Wyman, 2025), but the *aircraft* only waits if there is no spare
+engine to hang on it. His own range — hours to a week or two — is aircraft downtime.
+
+| action | aircraft days down | why |
+|---|---|---|
+| Engine swap, spare available | **1** | overnight change, aircraft flies next day |
+| Engine shop visit, no spare cover | **14** | aircraft waits; the 180-day shop TAT sits behind a spare |
+| Landing gear change | **10** | gear exchange, unless folded into a scheduled heavy check |
+| Landing gear, inside a planned check | **0** | marginal — the aircraft was already down |
+| APU change | **1** | |
+| Route reassignment | **0** | |
+| Do nothing | **0** | |
+
+**Cost per day — declared, not sourced, and exposed as a control.**
+
+| body class | lost contribution per day |
+|---|---|
+| Narrowbody | **$45,000** |
+| Widebody | **$130,000** |
+
+This is lost *contribution*, not revenue, and it is a modelling assumption rather than a
+published figure. **That is the right way to present it** — he said he wants to put his own
+assumptions in, so it is a slider on the scenario panel, not a constant in the code.
+
+> Say in the demo: *"That's my number, not yours — change it and see whether it moves the
+> recommendation."* Handing him the dial on the one input he asked to control is worth more
+> than getting the number right.
+
+**Why it matters:** on a narrowbody, two weeks down is **$630,000** — enough to flip a tail
+from "do the work" to "retime the shop visit", which is exactly the kind of decision the
+tool exists to get right. It is also the reason folding gear work into a scheduled check is
+often the whole saving.
+
+---
+
 ## 11 · The reconciliation check — build this as a test
 
 Once the synthetic fleet exists, reconcile its aggregate maintenance cost against the
@@ -363,7 +407,7 @@ Ranked by how much the output moves. **Be ready to name the top three unprompted
 
 ## 13 · Declared in the build — Saturday 3 October
 
-Numbers that appear in `engine/constants.ts` or `data/generate.ts` and are not in §§0–12
+Numbers that appear in `calc/constants.ts` or `data/generate.ts` and are not in §§0–12
 above. Each is a declared assumption or a derivation from one, not a sourced figure.
 
 ### Engines
@@ -424,6 +468,26 @@ Lessors alternate architecture: four reserve, three no-reserve.
 | Maximum age by type | neo 10 / 9 yrs · MAX 9 · A350 11 · 787 12 · 777 15 — entry into service |
 | Utilisation noise | ±10% on hours and on cycles independently, so FH:FC also varies |
 | Spare pool | 7 engines, 4 gear, 3 APU — 14 units |
+
+### Exposure calculation (SPEC §2.1–§2.5, as built)
+
+| item | value | basis |
+|---|---|---|
+| Month length | 30.4375 days | 365.25 ÷ 12; every months↔days conversion uses it |
+| Engine interval clock | time on wing for the engine's phase and environment (§2, §10), in FC; in hours, the same interval × the appraiser's reference FH:FC (2.75 narrowbody, 7.0 widebody), not the tail's own | the interval is quoted at a reference flight leg; a tail on shorter legs burns the cycle clock faster, on longer legs the hours clock — the two clocks can only diverge if the hours limit is not re-derived from the current route |
+| Months since overhaul (gear, airframe) | cycles since overhaul ÷ the tail's cycles per month | one formula on both QME bases; exact for components original to the tail, ±20% on the 10% that are not |
+| Engine cycle thresholds on widebodies | × (2.75 ÷ engine reference FH:FC) = × 0.39 | the executed lease is an A320; a cycle clause carried unscaled onto a 7 FH:FC engine demands more cycles than a mature engine has between visits |
+| Binding clock | of the hours / cycles / months clauses on one component, the one producing the larger compensation; if none is short, the one that runs out first | SPEC §2.3; the lease's own "the greater of the two amounts shall be payable" |
+| LLP clause | counted on top of the binding clock | a part-life limit, not the shop-visit interval |
+| Over-delivery unit cost, engine | restoration cost ÷ time on wing it buys (interval clocks); LLP cost ÷ bucket cycles (LLP clause) | the two halves of the visit buy two different kinds of life; pricing both at the visit total would count it twice |
+| Over-delivery unit cost, others | overhaul or check cost ÷ its interval | §3–§5 |
+| Over-delivery with no shop visit in the lease | **$0** | the life came with the aircraft; nothing was paid for it |
+| **Compensation cap** | per component, min(linear compensation, cost of the rectifying shop visit: build-for-interval engine visit, gear overhaul + exchange fee, next structural check, APU overhaul) | §7: the executed lease's remedy is rectification or indemnity at commercial rates, so no clause can cost more than doing the work |
+| QME basis and over-delivery | the lease basis moves compensation only; over-delivery stays at the recorded figure | the visit was paid for whether or not the lease credits it, so the QME delta is purely what the lease would claim on top |
+| Horizon | 24 months | beyond the returning window a projection with no intervening shop visit is not a forecast; computed, not shown as one |
+| Shop slot lead time | **4 months** default, 3–6 | §1, customer |
+| Reserves reclaimable | 1.0 of a qualifying balance | placeholder until lever 1; must be negotiated, not assumed |
+| Decision deadline, before levers | lease end − shop slot lead time | SPEC §2.7's usual case; the levers refine it |
 
 ### Reconciliation (§11, as built)
 

@@ -1,5 +1,5 @@
 // Data model. See SPEC.md §1. The engine is pure: these types are shared by data/ and ui/,
-// but nothing in engine/ imports from either.
+// but nothing in calc/ imports from either.
 
 export type AircraftType =
   | 'A320neo'
@@ -145,6 +145,8 @@ export interface Assumptions {
   shopSlotLeadTimeMonths: number;
   countOverDeliveryAsLoss: boolean;
   reservesReclaimPct: number;
+  /** Lost contribution per aircraft day out of service, by body class. ASSUMPTIONS §13. */
+  downtimeCostPerDay: Record<BodyClass, number>;
 }
 
 export interface Dataset {

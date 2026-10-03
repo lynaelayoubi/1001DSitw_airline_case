@@ -57,29 +57,163 @@ discovery call. It also sets the agenda: they spend their questions on what you 
 
 | they ask | you answer from |
 |---|---|
-| What's actually computed vs hardcoded? | `WHATS-FAKE.md`, then open `src/engine/` |
+| What's actually computed vs hardcoded? | `WHATS-FAKE.md`, then open `calc/` |
 | Where did the data come from? | "From what you told me, plus public cost figures" — `ASSUMPTIONS.md` |
 | Where did *that* number come from? | the `trace` on screen, then `ASSUMPTIONS.md` |
 | How does the recommendation get made? | `SPEC.md` §2.7 — four priced options, argmin of total cost, runner-up shown |
 | Why these screens and not others? | his own list, in his order — exposure by tail first because it's what his senior stakeholders asked to see |
 | Why did you build it this way? | `BUILD-LOG.md` |
 | What did you cut, and why? | `SPEC.md` §4 and `WHATS-FAKE.md` |
+| **"How would this actually work for us? Doesn't it need integration?"** | **the section below — say it before being asked** |
 | What breaks at real scale? | the ranked comparison stops being enough once swaps interact across a pool — a solver earns its place there, not at ten aircraft |
 | What's the hardest part of making this real? | the four above |
+| **"Isn't this just our spreadsheet, faster?"** | **the hinge below — expect this one from Bilal** |
 | What would you build next? | below |
 | How long did this take? | say the real number. Do not inflate it and do not apologise for it. |
 | What did you use to build it? | Claude Code, and say what you specified vs what you generated — the spec, the data model and the calculation rules were yours |
 
 ### On the tooling question specifically
 
-He said tooling is your choice and that the real system was built in Cursor. So the question
-is not *did you use AI* — of course you did, they sell AI. The question is **what was yours.**
+He said tooling is your choice, that the real system was built in **Cursor**, and that
+building it inside the Claude app would be fine for something this size. So the question is
+not *did you use AI* — of course you did, they sell AI. The question is **what was yours.**
 
-> "I wrote the spec, the data model and the calculation rules. I used Claude Code to build
-> from it, and I kept a log of every decision where there was a real alternative — because
-> the risk with building this way is ending up with something you can't defend."
+The whole answer, and it is one sentence:
 
-Then offer the build log. **Almost nobody will have one.**
+> "I wrote the spec, the data model and the calculation rules. Claude Code built from those,
+> and I logged every decision where there was a real alternative — because the risk with
+> building this way is ending up with something you can't defend."
+
+Then offer the build log. **Almost nobody will have one.** Twenty-odd decisions, each with
+its rejected alternative and the reason, several of them arguing with the spec.
+
+Three things not to do here:
+
+- **Don't name the editor.** VS Code is where Claude Code ran. Nobody who works in code
+  mentions their editor unless asked — it is like saying which pen you used, and it dilutes
+  a strong answer with a weightless one. "Claude Code, in a repo" is the whole answer.
+- **Don't say "Claude Design".** He appears to mean building inside the Claude app, but the
+  recording is mangled at that point and the phrase may not be a real product name. Name what
+  *you* used and let him map it.
+- **Don't inflate or apologise for the hours.** Say the real number flatly. The build log is
+  the evidence of effort; the clock is not.
+
+If it goes further — *"so how much of this do you actually understand?"* — the honest answer
+is the strong one: you can derive any number on screen, you chose the modelling rules, and
+you can name the three things the output is most sensitive to. **That is a different and
+better claim than having typed the code**, and it is the claim a deployment lead should be
+making.
+
+---
+
+## How it lands in their world — volunteer this at the close of the demo
+
+The most on-role thing you can say, because it *is* the job. About 75 seconds, and it goes
+at the end of the demo rather than waiting for the second half.
+
+### Three inputs, one of them hard
+
+| input | where from | cadence | difficulty |
+|---|---|---|---|
+| Maintenance records — serials, positions, hours, cycles, shop history | their maintenance system (AMOS / TRAX / Ramco class), as an extract | nightly | **boring** — they already run a dozen of these |
+| MRO shop reports | PDFs back from the shop, per event | a few a month | medium — needed for the QME check |
+| **The leases** | contracts held by leasing and legal | changes almost never | **the hard one** |
+
+> The line: *"the maintenance feed is the easy half. The lease side is the half that decides
+> whether this works."* It is the only input that has never been structured, and the only one
+> where being wrong is invisible for eighteen months.
+
+### Three people, three cadences
+
+- **The leasing analyst** — weekly. Confirms extracted lease terms, chases missing QME
+  evidence, owns the numbers. **The one whose job changes most, and the one who has to trust
+  it first.**
+- **Head of Fleet and senior stakeholders** — monthly. First screen only. They never open a
+  tail detail.
+- **Maintenance planning** — the relationship that does not exist today, because they are not
+  told return dates until the last couple of months. They get one line: *this tail needs a
+  February slot, book it by November.*
+
+Plus network planning, occasionally, receiving a flag with a number — never a schedule. And
+finance, who carve the provision at lease signing and can now update it against reality.
+
+**It is not a real-time dashboard.** Data refreshes nightly; decisions are monthly. Getting
+that cadence right is most of what makes a tool get used rather than bookmarked.
+
+### The deployment answer
+
+> **You don't integrate to prove value. You prove value on ten aircraft, then integrate.**
+
+The MVP he described — four to six weeks, to show stakeholders — needs no pipeline. It needs
+**one CSV export and ten lease PDFs**, which a person can assemble in a week. Run the ten
+returning tails, put the number in front of the senior stakeholders, and let that buy the
+integration budget.
+
+Then integration follows the proof, in this order: **lease extraction first** (everything
+inherits from it), **maintenance feed second** (the boring one), **MRO reports third**.
+
+### Careful with his words
+
+He said the automated feeds come later, and sequenced the whole thing himself — synthetic
+data now, MVP in four to six weeks, show stakeholders, then real data via their DS team. But
+**the recording is rough at that point and he trails off mid-sentence, so paraphrase, never
+quote.** "You mentioned the automated feeds would come later" is safe. Reading a mangled
+transcript back to the person who said it is a bad way to find out the transcript is wrong.
+
+### If he pushes
+
+- **"How long would the integration take?"** → Months, and most of it is theirs rather than
+  yours — access, security review, a vendor in the middle. Which is the argument for keeping
+  it off the critical path to the first number.
+- **"What breaks when the data is real?"** → Records are incomplete on second-hand aircraft,
+  so every row needs a confidence level rather than a silent default. Serial-level history
+  lags, because components move for AOG reasons and the paperwork follows later. And an
+  output addressed to nobody gets ignored — which is why every recommendation carries an
+  owner and a date.
+
+---
+
+## The objection to have ready: "isn't this just our spreadsheet?"
+
+The answer is one sentence, and everything else hangs off it:
+
+> **The spreadsheet is organised around what you owe. This is organised around what you can
+> still change.**
+
+Three things that follow, none of them about speed:
+
+1. **No counterfactual.** The Excel model says what you owe. It cannot say what you'd owe
+   with the engine sent in February rather than May — that is not a cell, it is a
+   re-simulation of seventeen months under different assumptions. Ten tails × five
+   components × two clocks × four levers × twelve candidate months is thousands of
+   evaluations. **Nobody does that by hand, which is why the levers are not being pulled** —
+   his own words: they swap components constantly, *never for lease reasons*; they move
+   aircraft onto routes, *AOG only*.
+
+2. **Over-delivery cannot appear in it, structurally.** The spreadsheet exists to compute a
+   liability. Handing back more life than the contract requires generates no invoice, so it
+   produces no row. A real loss with no line item — which is why he worked it out mid-call
+   instead of reading it off a report.
+
+3. **QME is invisible to it.** The model reads the maintenance system, which says the clock
+   reset. The lease says it did not. That gap lives between two documents nobody
+   cross-references.
+
+And underneath all three: **timing changes what the output is for.** The same arithmetic in
+month two is a decision; in month eighteen it is an invoice you cannot contest.
+
+Say it like this:
+
+> "It replaces it, yes — deliberately. Nobody acts on a recommendation built from numbers
+> they can't check, so the first thing it has to do is reproduce what your analyst gets and
+> show its working. **But that's the price of entry, not the product.** The spreadsheet tells
+> you what you owe. This tells you what you can still change — and those are different
+> questions, which is why one of them takes a week and arrives too late to matter."
+
+This is the two-layer sketch he called *"really good"*, restated: **L1 what's promised,
+what's true, what's coming · L2 what's possible, what it costs.** The Excel replacement *is*
+L1, and the reason it comes first is the one you already gave him — *"only once people trust
+the number."*
 
 ---
 

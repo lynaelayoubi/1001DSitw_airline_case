@@ -143,6 +143,19 @@ Rejected: eyeballing whether the totals look sensible. · Because $1,522 per fli
 $3,758 per cycle and $5.05M per aircraft per year across 2,703 aircraft is a published
 industry envelope, and landing inside it turns "plausible" into "validated".
 
+**Downtime modelled as a separate cost line on every option, priced on *aircraft* days out
+of service rather than component shop turnaround.** · Rejected: leaving downtime out, and
+(worse) pricing it on the 180–200 day engine shop turnaround. · Because he asked for it by
+name — *"but also the downtime costs… that's something that we want to be able to put some
+assumptions in for"* — and because the two numbers are not the same: an engine swap with a
+spare grounds the aircraft for a day while the engine sits in a shop for months. Two weeks
+down on a narrowbody is $630K, enough to flip which lever wins.
+
+**Downtime cost per day exposed as a scenario control rather than a constant.** · Rejected:
+picking a defensible figure and hard-coding it. · Because it is a declared assumption with no
+public source, and he said explicitly that he wants to set it. Handing him the dial on the
+one input he asked to control is worth more than getting the number right.
+
 ---
 
 <!-- APPEND BELOW AS YOU BUILD -->
@@ -243,3 +256,61 @@ at 0.65.** · Rejected: reshaping the fleet until it hit 2.84. · Because the ga
 causes that are fleet traits — the short-dense narrowbodies accrue engine cost per cycle, and
 the widebody arm is young A350/787 metal on first-run engines where the panel's is older
 A330/777 on mature ones — and I would rather show the gap than hide it.
+
+**Renamed `engine/` to `calc/`.** · Rejected: keeping `engine/`, which SPEC and CLAUDE.md both used. · Because "engine" collides with jet engines in this domain, and a folder named `engine/` next to a `kind: engine` component is a question I do not want to answer in the room. Earlier entries above keep the old name as written.
+
+## Step 3 · the exposure calc and the fleet table — Saturday 3 October
+
+**Hours, cycles and months on one component compete for one shop-visit interval; the LLP
+clause is counted on top.** · Rejected: pricing every clause independently and adding them
+up. · Because the lease itself says "the greater of the two amounts shall be payable", and a
+component comes off once — summing three clauses on the same interval triples the money.
+
+**The engine's hours interval is the cycle interval at the appraiser's reference flight leg,
+not at the tail's current one.** · Rejected: hours = cycles × this tail's FH:FC, which is how
+the generator wrote the history. · Because that makes hours and cycles the same clock in two
+currencies and they can never diverge. At a reference leg, a short-dense tail burns its cycle
+clock faster and a long-haul tail its hours clock — which is the point of the product.
+
+**Over-delivery priced as restoration ÷ time on wing it bought for the interval clocks and
+LLP cost ÷ bucket cycles for the LLP clause; nothing where no shop visit was paid for during
+the lease.** · Rejected: SPEC's single visit-total ÷ bucket applied to every clause. · Because
+the two halves of a visit buy two different kinds of life, and pricing both at the whole
+visit counts it twice. The headline $388 vs $688 per cycle is still in every engine's trace.
+
+**Compensation per component capped at the cost of the rectifying shop visit.** · Rejected:
+leaving it linear. · Because the executed lease's remedy is rectification or indemnity at
+commercial rates, so no clause can cost more than doing the work — and uncapped, one
+widebody engine the lease does not recognise was showing $48M against a $27M visit.
+
+**The lease basis moves compensation only; over-delivery stays at the recorded figure.** ·
+Rejected: recomputing both on the lease position. · Because the visit was paid for whether or
+not the paperwork satisfies the lease, so the QME delta should be purely what the lease would
+claim on top — and recomputed, it went negative on tails with large surpluses.
+
+**Engine cycle thresholds scaled by (2.75 ÷ the engine's reference FH:FC) in the generator.**
+· Rejected: the data as it was. · Because the ranges anchor on an A320 lease, and carried onto
+a 7 FH:FC engine a 2,050-cycle clause demanded more cycles than a mature widebody engine has
+between visits. Same seed, same draw order: 71 return-condition rows change and nothing else.
+
+**Months since overhaul inferred as cycles since overhaul ÷ the tail's cycles per month.** ·
+Rejected: reading the shop-visit date. · Because the lease position has no date, only a count
+back to the previous verified event, and one formula on both bases is the only way the two
+numbers stay comparable.
+
+**Exposure computed for all 270 tails but shown only inside the 24-month window.** · Rejected:
+a number on every row. · Because a projection with no intervening shop visit across eight
+years is not a forecast, and a figure I would not defend does not go on screen.
+
+**Two headline tiles left visibly pending — after recommendations, avoidable — rather than
+filled with a placeholder.** · Rejected: showing the do-nothing figure twice, or hiding the
+tiles. · Because the levers are the next step and the screen should say so; a number without a
+formula behind it is the exact thing the rules forbid.
+
+**"Book shop slot by" shown as lease end minus the lead time until the levers exist.** ·
+Rejected: an empty decision-deadline column. · Because it is SPEC §2.7's own usual case, it is
+a date with a formula, and it already tells someone which Monday matters.
+
+**Tailwind via the Vite plugin; Recharts not installed until a chart exists.** · Rejected:
+pulling in the whole stack up front. · Because the fleet table has no chart, and an unused
+dependency is a question in the room with no good answer.

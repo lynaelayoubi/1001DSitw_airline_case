@@ -1,7 +1,7 @@
 // SPEC §2.9: the generated fleet's aggregate maintenance cost must land inside a sensible
 // band of the IATA MCX FY2024 panel once mix-adjusted. Run with `npm test`.
 //
-// The test reads the generated dataset. The engine module it exercises does not.
+// The test reads the generated dataset. The calc module it exercises does not.
 
 import { describe, expect, it } from 'vitest';
 

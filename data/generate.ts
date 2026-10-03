@@ -1,7 +1,7 @@
 // The synthetic fleet. Run with `npm run generate`; writes data/fleet.json.
 //
 // Everything here is invented, deterministically, from a seed. No real customer data. Every
-// rate and cost comes from engine/constants.ts (documented in ASSUMPTIONS.md); this file only
+// rate and cost comes from calc/constants.ts (documented in ASSUMPTIONS.md); this file only
 // decides *who* gets *what*. If a figure in fleet.json looks wrong, the fix is here or there.
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -22,9 +22,10 @@ import {
   PROFILES_BY_TYPE,
   RETURNING_WINDOW_MONTHS,
   THRESHOLD_RANGES,
+  THRESHOLD_REFERENCE_FHFC,
   UTILISATION,
   UTILISATION_NOISE,
-} from '../engine/constants';
+} from '../calc/constants';
 import {
   airframeReservePerMonth,
   apuReservePerApuHour,
@@ -34,7 +35,7 @@ import {
   llpReservePerFC,
   phaseOf,
   workscopeBucketCycles,
-} from '../engine/rates';
+} from '../calc/rates';
 import type {
   Aircraft,
   AircraftType,
@@ -49,7 +50,7 @@ import type {
   Metric,
   ReturnCondition,
   Workscope,
-} from '../engine/types';
+} from '../calc/types';
 
 // ---------------------------------------------------------------------------------------
 // Deterministic randomness
@@ -640,7 +641,10 @@ function makeReturnConditions(ac: Aircraft, lessor: Lessor, tpl: LeaseTemplate):
   });
 
   const engHours = th('engineHoursRemaining', 50);
-  const engCycles = th('engineCyclesRemaining', 50);
+  // Engine cycle thresholds anchor on an A320 lease; scale to this engine's flight leg so the
+  // cycle clause is as strict relative to the hours clause as it is on the executed lease.
+  const legScale = THRESHOLD_REFERENCE_FHFC / ENGINE_SPECS[ac.engineModel].referenceFhFc;
+  const engCycles = Math.max(50, roundTo(th('engineCyclesRemaining', 50) * legScale, 50));
   const llp = th('llpCyclesRemaining', 50);
   const gearMonths = th('gearMonthsRemaining', 1);
   const gearCycles = th('gearCyclesRemaining', 50);

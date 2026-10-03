@@ -3,6 +3,7 @@
 
 import type {
   AircraftType,
+  Assumptions,
   BodyClass,
   Derate,
   EngineModel,
@@ -169,6 +170,14 @@ export const OTHER_RESERVE_RATES = {
 export const NEGOTIATION_MULTIPLIER = { default: 1.25, min: 1.0, max: 1.5 } as const;
 
 /**
+ * The executed lease the threshold ranges anchor on is an A320 at the narrowbody reference
+ * flight leg. A cycle threshold carried unscaled onto a widebody at 7 FH:FC would demand more
+ * cycles than a mature engine has between shop visits, so engine cycle thresholds scale by
+ * (this ÷ the engine's own reference FH:FC). ASSUMPTIONS §13.
+ */
+export const THRESHOLD_REFERENCE_FHFC = 2.75;
+
+/**
  * Threshold ranges per lease architecture, in each metric's unit. Reserve-lease figures
  * anchor on the executed lease (engines ≥100 FH / ≥50 FC, LLP ≥50 FC, gear ≥2 months).
  * No-reserve "fat" thresholds anchor on the same contract's *delivery* condition
@@ -300,3 +309,44 @@ export const MODEL_COVERAGE_OF_TOTAL_MRO =
 
 /** The test passes when the generated fleet lands inside this band of the adjusted benchmark. */
 export const RECONCILIATION_BAND = { min: 0.65, max: 1.35 } as const;
+
+// ---------------------------------------------------------------------------------------
+// §13 Downtime — aircraft days out of service, and the declared cost per day.
+// ---------------------------------------------------------------------------------------
+export const DOWNTIME_DAYS = {
+  engineSwapWithSpare: 1,
+  engineShopVisitNoSpare: 14,
+  landingGearChange: 10,
+  landingGearInsidePlannedCheck: 0,
+  apuChange: 1,
+  routeReassignment: 0,
+  doNothing: 0,
+} as const;
+
+/** Lost contribution, not revenue. Declared, exposed as a scenario control. */
+export const DOWNTIME_COST_PER_DAY: Record<BodyClass, number> = {
+  narrowbody: 45_000,
+  widebody: 130_000,
+};
+
+// ---------------------------------------------------------------------------------------
+// Calendar convention and the scenario panel's defaults.
+// ---------------------------------------------------------------------------------------
+
+/** One month, for every months↔days conversion in the model (365.25 ÷ 12). */
+export const DAYS_PER_MONTH = 30.4375;
+
+/** Shop slots need 3–6 months of lead time (customer, ASSUMPTIONS §1). Default the midpoint. */
+export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
+
+/** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
+export const DEFAULT_ASSUMPTIONS: Assumptions = {
+  maintenanceCostMultiplier: 1,
+  utilisationMultiplier: 1,
+  leaseExtensionMonths: {},
+  shopSlotLeadTimeMonths: SHOP_SLOT_LEAD_TIME_MONTHS.default,
+  countOverDeliveryAsLoss: true,
+  /** Share of a reserve balance reclaimable against qualifying work. Must be negotiated, not assumed (CLAUDE.md); 1.0 is the lessee-favourable case until lever 1 exposes it. */
+  reservesReclaimPct: 1,
+  downtimeCostPerDay: DOWNTIME_COST_PER_DAY,
+};

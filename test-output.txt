@@ -1,0 +1,13 @@
+
+> handback@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.3 /Users/lynaelayoubi/Documents/Claude/Projects/Samwise Ventures/handback
+
+
+ Test Files  3 passed (3)
+      Tests  57 passed (57)
+   Start at  16:14:16
+   Duration  1.03s (import 65%, transform 31%, tests 4%)
+

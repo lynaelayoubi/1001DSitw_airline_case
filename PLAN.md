@@ -35,7 +35,7 @@ Thresholds varying by lessor.
 **Evening — screen 1 and the headline.** Exposure by tail, ranked by money. Do-nothing total
 on top. **End of Saturday you have a credible demo even if everything after this fails.**
 
-## Sunday · the engine — the heaviest day
+## Sunday · the calc layer — the heaviest day
 
 Levers 1 to 4, each as a pure function returning the same shape. Then the recommendation:
 argmin of total cost, with the runner-up and the delta. Then the decision deadline.

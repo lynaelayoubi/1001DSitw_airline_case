@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T12:13:24.682Z",
+  "generatedAt": "2026-10-03T14:40:05.993Z",
   "asOf": "2026-10-03",
   "seed": 20261003,
   "lessors": [
@@ -56964,12 +56964,12 @@
       "tail": "9H-NPY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2850,
+      "threshold": 1100,
       "unit": "FC",
       "compensationRate": 5493.71,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 8.18 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $639.80/EFH; × 8.18 FH:FC = $5232.11/FC; × negotiation multiplier 1.05 = $5493.71/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -57055,12 +57055,12 @@
       "tail": "A6-YSD",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 21855.75,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.05 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 8.05 FH:FC = $16189.45/FC; × negotiation multiplier 1.35 = $21855.75/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -57146,12 +57146,12 @@
       "tail": "9H-YEZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2150,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 10807.02,
       "rateTrace": "Trent XWB-84 mature-run, temperate: PR cost $12,300,000 × 1 = $12,300,000; time on wing 3,000 FC × 1 = 3,000 FC (21,000 FH at 7.00 FH:FC); accrual $4,100/FC. At reference 7 FH:FC that is $585.71/EFH; × lessor markup 1.54 = $900.11/EFH; × grid shape 1.000 for 8.15 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1019.74/EFH; × 8.15 FH:FC = $8313.09/FC; × negotiation multiplier 1.30 = $10807.02/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,150 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -57237,12 +57237,12 @@
       "tail": "9H-YHJ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2150,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 6584.65,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 6.73 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $724.83/EFH; × 6.73 FH:FC = $4877.52/FC; × negotiation multiplier 1.35 = $6584.65/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,150 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -57328,12 +57328,12 @@
       "tail": "A6-MVC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 23939.3,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.50 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 8.50 FH:FC = $17099.50/FC; × negotiation multiplier 1.40 = $23939.30/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -57510,12 +57510,12 @@
       "tail": "9H-ETM",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 10051.87,
       "rateTrace": "Trent XWB-84 mature-run, temperate: PR cost $12,300,000 × 1 = $12,300,000; time on wing 3,000 FC × 1 = 3,000 FC (21,000 FH at 7.00 FH:FC); accrual $4,100/FC. At reference 7 FH:FC that is $585.71/EFH; × lessor markup 1.54 = $900.11/EFH; × grid shape 1.000 for 7.98 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $900.11/EFH; × 7.98 FH:FC = $7179.91/FC; × negotiation multiplier 1.40 = $10051.87/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -57601,12 +57601,12 @@
       "tail": "A6-GAL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 13097.34,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 7.87 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1279.78/EFH; × 7.87 FH:FC = $10074.88/FC; × negotiation multiplier 1.30 = $13097.34/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -57692,12 +57692,12 @@
       "tail": "A6-KGU",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 15606.12,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 8.40 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1429.92/EFH; × 8.40 FH:FC = $12004.71/FC; × negotiation multiplier 1.30 = $15606.12/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -57783,12 +57783,12 @@
       "tail": "A6-XKL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 13593.51,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 7.59 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1279.78/EFH; × 7.59 FH:FC = $9709.65/FC; × negotiation multiplier 1.40 = $13593.51/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -57874,12 +57874,12 @@
       "tail": "A6-JLD",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 19948.64,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 7.63 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 7.63 FH:FC = $15345.11/FC; × negotiation multiplier 1.30 = $19948.64/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -57965,12 +57965,12 @@
       "tail": "A6-HBP",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2750,
+      "threshold": 1100,
       "unit": "FC",
       "compensationRate": 9373.25,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 7.90 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1129.64/EFH; × 7.90 FH:FC = $8926.91/FC; × negotiation multiplier 1.05 = $9373.25/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -58056,12 +58056,12 @@
       "tail": "9H-VYA",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1800,
+      "threshold": 700,
       "unit": "FC",
       "compensationRate": 9331.38,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 8.53 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $809.87/EFH; × 8.53 FH:FC = $6912.13/FC; × negotiation multiplier 1.35 = $9331.38/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -58147,12 +58147,12 @@
       "tail": "A6-XFL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 15479.95,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 6.96 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1589.25/EFH; × 6.96 FH:FC = $11057.11/FC; × negotiation multiplier 1.40 = $15479.95/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -58238,12 +58238,12 @@
       "tail": "A6-ZYP",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 20125.81,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 7.70 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 7.70 FH:FC = $15481.39/FC; × negotiation multiplier 1.30 = $20125.81/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -58420,12 +58420,12 @@
       "tail": "9H-XAM",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2000,
+      "threshold": 800,
       "unit": "FC",
       "compensationRate": 9321.39,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 8.85 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $809.87/EFH; × 8.85 FH:FC = $7170.30/FC; × negotiation multiplier 1.30 = $9321.39/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,000 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -58511,12 +58511,12 @@
       "tail": "9H-GZL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 9316.09,
       "rateTrace": "Trent XWB-84 mature-run, temperate: PR cost $12,300,000 × 1 = $12,300,000; time on wing 3,000 FC × 1 = 3,000 FC (21,000 FH at 7.00 FH:FC); accrual $4,100/FC. At reference 7 FH:FC that is $585.71/EFH; × lessor markup 1.54 = $900.11/EFH; × grid shape 1.000 for 7.67 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $900.11/EFH; × 7.67 FH:FC = $6900.81/FC; × negotiation multiplier 1.35 = $9316.09/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -58602,12 +58602,12 @@
       "tail": "A6-KKC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 17490.36,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.15 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1589.25/EFH; × 8.15 FH:FC = $12955.83/FC; × negotiation multiplier 1.35 = $17490.36/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -58693,12 +58693,12 @@
       "tail": "9H-XGZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 8769.84,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 8.02 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $809.87/EFH; × 8.02 FH:FC = $6496.18/FC; × negotiation multiplier 1.35 = $8769.84/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -58784,12 +58784,12 @@
       "tail": "9H-JBF",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2150,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 6703.25,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 7.76 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $639.80/EFH; × 7.76 FH:FC = $4965.37/FC; × negotiation multiplier 1.35 = $6703.25/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,150 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -58875,12 +58875,12 @@
       "tail": "A6-SKZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 15678.59,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 8.12 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1429.92/EFH; × 8.12 FH:FC = $11613.77/FC; × negotiation multiplier 1.35 = $15678.59/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -58966,12 +58966,12 @@
       "tail": "A6-VFY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 16641.59,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 8.95 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1429.92/EFH; × 8.95 FH:FC = $12801.22/FC; × negotiation multiplier 1.30 = $16641.59/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -59057,12 +59057,12 @@
       "tail": "A6-CAY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2700,
+      "threshold": 1050,
       "unit": "FC",
       "compensationRate": 17487.81,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.28 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 8.28 FH:FC = $16655.06/FC; × negotiation multiplier 1.05 = $17487.81/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,050 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -59148,12 +59148,12 @@
       "tail": "A6-XBR",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 18422.76,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 7.04 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 7.04 FH:FC = $14171.35/FC; × negotiation multiplier 1.30 = $18422.76/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -59239,12 +59239,12 @@
       "tail": "A6-DVK",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1900,
+      "threshold": 750,
       "unit": "FC",
       "compensationRate": 12394.79,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 8.13 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1129.64/EFH; × 8.13 FH:FC = $9181.33/FC; × negotiation multiplier 1.35 = $12394.79/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,900 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -59330,12 +59330,12 @@
       "tail": "A6-BLT",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2750,
+      "threshold": 1100,
       "unit": "FC",
       "compensationRate": 16429.35,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.69 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1800.48/EFH; × 8.69 FH:FC = $15647.00/FC; × negotiation multiplier 1.05 = $16429.35/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -59421,12 +59421,12 @@
       "tail": "A6-UKA",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2100,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 16872.52,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 8.17 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1589.25/EFH; × 8.17 FH:FC = $12978.86/FC; × negotiation multiplier 1.30 = $16872.52/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -59512,12 +59512,12 @@
       "tail": "9H-PVP",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2100,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 6944.21,
       "rateTrace": "Trent XWB-84 first-run, temperate: PR cost $10,200,000 × 1 = $10,200,000; time on wing 3,500 FC × 1 = 3,500 FC (24,500 FH at 7.00 FH:FC); accrual $2,914/FC. At reference 7 FH:FC that is $416.33/EFH; × lessor markup 1.54 = $639.80/EFH; × grid shape 1.000 for 7.37 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $724.83/EFH; × 7.37 FH:FC = $5341.70/FC; × negotiation multiplier 1.30 = $6944.21/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -59603,12 +59603,12 @@
       "tail": "A6-NRK",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 23786.03,
       "rateTrace": "Trent XWB-84 mature-run, harsh-high: PR cost $12,300,000 × 1.13 = $13,899,000; time on wing 3,000 FC × 0.64 = 1,920 FC (13,440 FH at 7.00 FH:FC); accrual $7,239/FC. At reference 7 FH:FC that is $1034.15/EFH; × lessor markup 1.54 = $1589.25/EFH; × grid shape 1.000 for 9.10 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2011.71/EFH; × 9.10 FH:FC = $18296.95/FC; × negotiation multiplier 1.30 = $23786.03/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -59694,12 +59694,12 @@
       "tail": "A6-FMY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 12141.59,
       "rateTrace": "Trent XWB-84 first-run, harsh-high: PR cost $10,200,000 × 1.13 = $11,526,000; time on wing 3,500 FC × 0.64 = 2,240 FC (15,680 FH at 7.00 FH:FC); accrual $5,146/FC. At reference 7 FH:FC that is $735.08/EFH; × lessor markup 1.54 = $1129.64/EFH; × grid shape 1.000 for 7.30 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1279.78/EFH; × 7.30 FH:FC = $9339.68/FC; × negotiation multiplier 1.30 = $12141.59/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -59785,12 +59785,12 @@
       "tail": "9H-KBZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 6946.58,
       "rateTrace": "GEnx-1B76 first-run, temperate: PR cost $9,800,000 × 1 = $9,800,000; time on wing 3,400 FC × 1 = 3,400 FC (23,800 FH at 7.00 FH:FC); accrual $2,882/FC. At reference 7 FH:FC that is $411.76/EFH; × lessor markup 1.54 = $632.79/EFH; × grid shape 1.000 for 8.44 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $632.79/EFH; × 8.44 FH:FC = $5343.52/FC; × negotiation multiplier 1.30 = $6946.58/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -59876,12 +59876,12 @@
       "tail": "9H-VBH",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 7771.69,
       "rateTrace": "GEnx-1B76 first-run, temperate: PR cost $9,800,000 × 1 = $9,800,000; time on wing 3,400 FC × 1 = 3,400 FC (23,800 FH at 7.00 FH:FC); accrual $2,882/FC. At reference 7 FH:FC that is $411.76/EFH; × lessor markup 1.54 = $632.79/EFH; × grid shape 1.000 for 9.10 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $632.79/EFH; × 9.10 FH:FC = $5756.80/FC; × negotiation multiplier 1.35 = $7771.69/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -59967,12 +59967,12 @@
       "tail": "A6-MMM",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2500,
+      "threshold": 1000,
       "unit": "FC",
       "compensationRate": 11914.28,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 8.02 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 8.02 FH:FC = $11346.93/FC; × negotiation multiplier 1.05 = $11914.28/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,500 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,000 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -60058,12 +60058,12 @@
       "tail": "A6-UMH",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 17104.26,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 6.72 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1817.13/EFH; × 6.72 FH:FC = $12217.33/FC; × negotiation multiplier 1.40 = $17104.26/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -60149,12 +60149,12 @@
       "tail": "A6-FHY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 21172.68,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 8.02 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 8.02 FH:FC = $16286.68/FC; × negotiation multiplier 1.30 = $21172.68/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -60240,12 +60240,12 @@
       "tail": "9H-JFG",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1650,
+      "threshold": 650,
       "unit": "FC",
       "compensationRate": 12191.9,
       "rateTrace": "GEnx-1B76 mature-run, temperate: PR cost $12,000,000 × 1 = $12,000,000; time on wing 2,900 FC × 1 = 2,900 FC (20,300 FH at 7.00 FH:FC); accrual $4,138/FC. At reference 7 FH:FC that is $591.13/EFH; × lessor markup 1.54 = $908.43/EFH; × grid shape 1.000 for 7.85 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1149.91/EFH; × 7.85 FH:FC = $9031.03/FC; × negotiation multiplier 1.35 = $12191.90/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -60331,12 +60331,12 @@
       "tail": "A6-FGC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 20432.38,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 7.45 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 7.45 FH:FC = $15135.09/FC; × negotiation multiplier 1.35 = $20432.38/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -60422,12 +60422,12 @@
       "tail": "A6-YJC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 14839.58,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 8.07 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 8.07 FH:FC = $11415.06/FC; × negotiation multiplier 1.30 = $14839.58/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -60513,12 +60513,12 @@
       "tail": "A6-PVZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2000,
+      "threshold": 800,
       "unit": "FC",
       "compensationRate": 10911.13,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 7.23 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1117.26/EFH; × 7.23 FH:FC = $8082.32/FC; × negotiation multiplier 1.35 = $10911.13/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,000 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -60604,12 +60604,12 @@
       "tail": "A6-NJJ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 13710.88,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 8.02 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1265.76/EFH; × 8.02 FH:FC = $10156.21/FC; × negotiation multiplier 1.35 = $13710.88/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -60695,12 +60695,12 @@
       "tail": "A6-HPY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1650,
+      "threshold": 650,
       "unit": "FC",
       "compensationRate": 13486.58,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 7.06 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 7.06 FH:FC = $9990.06/FC; × negotiation multiplier 1.35 = $13486.58/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -60786,12 +60786,12 @@
       "tail": "9H-NAL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2200,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 8117.35,
       "rateTrace": "GEnx-1B76 first-run, temperate: PR cost $9,800,000 × 1 = $9,800,000; time on wing 3,400 FC × 1 = 3,400 FC (23,800 FH at 7.00 FH:FC); accrual $2,882/FC. At reference 7 FH:FC that is $411.76/EFH; × lessor markup 1.54 = $632.79/EFH; × grid shape 1.000 for 7.80 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $800.99/EFH; × 7.80 FH:FC = $6244.11/FC; × negotiation multiplier 1.30 = $8117.35/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,200 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -60877,12 +60877,12 @@
       "tail": "A6-WKE",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2100,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 15413.66,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 8.07 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 8.07 FH:FC = $11417.53/FC; × negotiation multiplier 1.35 = $15413.66/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61059,12 +61059,12 @@
       "tail": "9H-FPY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1800,
+      "threshold": 700,
       "unit": "FC",
       "compensationRate": 8624.99,
       "rateTrace": "GEnx-1B76 first-run, temperate: PR cost $9,800,000 × 1 = $9,800,000; time on wing 3,400 FC × 1 = 3,400 FC (23,800 FH at 7.00 FH:FC); accrual $2,882/FC. At reference 7 FH:FC that is $411.76/EFH; × lessor markup 1.54 = $632.79/EFH; × grid shape 1.000 for 7.98 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $800.99/EFH; × 7.98 FH:FC = $6388.88/FC; × negotiation multiplier 1.35 = $8624.99/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61150,12 +61150,12 @@
       "tail": "9H-VSB",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1900,
+      "threshold": 750,
       "unit": "FC",
       "compensationRate": 8664.13,
       "rateTrace": "GEnx-1B76 first-run, temperate: PR cost $9,800,000 × 1 = $9,800,000; time on wing 3,400 FC × 1 = 3,400 FC (23,800 FH at 7.00 FH:FC); accrual $2,882/FC. At reference 7 FH:FC that is $411.76/EFH; × lessor markup 1.54 = $632.79/EFH; × grid shape 1.000 for 8.95 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $716.89/EFH; × 8.95 FH:FC = $6417.87/FC; × negotiation multiplier 1.35 = $8664.13/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,900 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61241,12 +61241,12 @@
       "tail": "A6-ZVG",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2850,
+      "threshold": 1100,
       "unit": "FC",
       "compensationRate": 13548.04,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 8.04 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1603.95/EFH; × 8.04 FH:FC = $12902.89/FC; × negotiation multiplier 1.05 = $13548.04/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -61423,12 +61423,12 @@
       "tail": "A6-ELC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1900,
+      "threshold": 750,
       "unit": "FC",
       "compensationRate": 19711.36,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 7.19 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 7.19 FH:FC = $14601.01/FC; × negotiation multiplier 1.35 = $19711.36/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,900 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61514,12 +61514,12 @@
       "tail": "A6-AVY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2000,
+      "threshold": 800,
       "unit": "FC",
       "compensationRate": 20432.38,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 7.45 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 7.45 FH:FC = $15135.09/FC; × negotiation multiplier 1.35 = $20432.38/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,000 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61696,12 +61696,12 @@
       "tail": "A6-XBK",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1700,
+      "threshold": 650,
       "unit": "FC",
       "compensationRate": 26312.92,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 9.60 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 9.60 FH:FC = $19491.05/FC; × negotiation multiplier 1.35 = $26312.92/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -61787,12 +61787,12 @@
       "tail": "A6-FNG",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 15502.65,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 7.83 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 7.83 FH:FC = $11073.32/FC; × negotiation multiplier 1.40 = $15502.65/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -61969,12 +61969,12 @@
       "tail": "A6-BFT",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1850,
+      "threshold": 750,
       "unit": "FC",
       "compensationRate": 20622.23,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 7.52 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2030.32/EFH; × 7.52 FH:FC = $15275.72/FC; × negotiation multiplier 1.35 = $20622.23/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 750 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -62060,12 +62060,12 @@
       "tail": "A6-XKD",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 15989.93,
       "rateTrace": "GEnx-1B76 first-run, harsh-high: PR cost $9,800,000 × 1.13 = $11,074,000; time on wing 3,400 FC × 0.64 = 2,176 FC (15,232 FH at 7.00 FH:FC); accrual $5,089/FC. At reference 7 FH:FC that is $727.02/EFH; × lessor markup 1.54 = $1117.26/EFH; × grid shape 1.000 for 8.38 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1414.26/EFH; × 8.38 FH:FC = $11844.39/FC; × negotiation multiplier 1.35 = $15989.93/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -62151,12 +62151,12 @@
       "tail": "A6-DLL",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2050,
+      "threshold": 800,
       "unit": "FC",
       "compensationRate": 18643.8,
       "rateTrace": "GEnx-1B76 mature-run, harsh-high: PR cost $12,000,000 × 1.13 = $13,560,000; time on wing 2,900 FC × 0.64 = 1,856 FC (12,992 FH at 7.00 FH:FC); accrual $7,306/FC. At reference 7 FH:FC that is $1043.72/EFH; × lessor markup 1.54 = $1603.95/EFH; × grid shape 1.000 for 7.60 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1817.13/EFH; × 7.60 FH:FC = $13810.22/FC; × negotiation multiplier 1.35 = $18643.80/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,050 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -62242,12 +62242,12 @@
       "tail": "9H-YGB",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2050,
+      "threshold": 800,
       "unit": "FC",
       "compensationRate": 9841.18,
       "rateTrace": "GEnx-1B76 mature-run, temperate: PR cost $12,000,000 × 1 = $12,000,000; time on wing 2,900 FC × 1 = 2,900 FC (20,300 FH at 7.00 FH:FC); accrual $4,138/FC. At reference 7 FH:FC that is $591.13/EFH; × lessor markup 1.54 = $908.43/EFH; × grid shape 1.000 for 7.36 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1029.17/EFH; × 7.36 FH:FC = $7570.14/FC; × negotiation multiplier 1.30 = $9841.18/FC of shortfall",
       "clauseRef": "Part 2 of Schedule 2, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,050 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)"
     },
     {
@@ -62333,12 +62333,12 @@
       "tail": "A6-MXM",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 32121.6,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.21 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $3425.00/EFH; × 7.21 FH:FC = $24708.93/FC; × negotiation multiplier 1.30 = $32121.60/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -62424,12 +62424,12 @@
       "tail": "A6-DVT",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 35962.5,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.50 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $3425.00/EFH; × 7.50 FH:FC = $25687.50/FC; × negotiation multiplier 1.40 = $35962.50/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -62515,12 +62515,12 @@
       "tail": "A6-TEN",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 23039.33,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 8.02 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $2127.09/EFH; × 8.02 FH:FC = $17066.17/FC; × negotiation multiplier 1.35 = $23039.33/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -62606,12 +62606,12 @@
       "tail": "A6-PXZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 32343.44,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.54 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $3065.37/EFH; × 7.54 FH:FC = $23102.46/FC; × negotiation multiplier 1.40 = $32343.44/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -62697,12 +62697,12 @@
       "tail": "9H-ZSR",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 11522.31,
       "rateTrace": "GE90-115B first-run, temperate: PR cost $15,500,000 × 1 = $15,500,000; time on wing 3,200 FC × 1 = 3,200 FC (22,400 FH at 7.00 FH:FC); accrual $4,844/FC. At reference 7 FH:FC that is $691.96/EFH; × lessor markup 1.54 = $1063.39/EFH; × grid shape 1.000 for 7.36 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $1204.72/EFH; × 7.36 FH:FC = $8863.32/FC; × negotiation multiplier 1.30 = $11522.31/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -62788,12 +62788,12 @@
       "tail": "A6-CHC",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2100,
+      "threshold": 850,
       "unit": "FC",
       "compensationRate": 24324.58,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 7.58 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2376.63/EFH; × 7.58 FH:FC = $18018.21/FC; × negotiation multiplier 1.35 = $24324.58/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 850 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -62879,12 +62879,12 @@
       "tail": "A6-RBF",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 29318.12,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.36 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $3065.37/EFH; × 7.36 FH:FC = $22552.40/FC; × negotiation multiplier 1.30 = $29318.12/FC of shortfall",
       "clauseRef": "Annex D, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)"
     },
     {
@@ -62970,12 +62970,12 @@
       "tail": "A6-REY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1650,
+      "threshold": 650,
       "unit": "FC",
       "compensationRate": 31596.39,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 8.65 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $2705.75/EFH; × 8.65 FH:FC = $23404.74/FC; × negotiation multiplier 1.35 = $31596.39/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 650 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -63152,12 +63152,12 @@
       "tail": "A6-URK",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 23698.83,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 7.39 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2376.63/EFH; × 7.39 FH:FC = $17554.69/FC; × negotiation multiplier 1.35 = $23698.83/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -63334,12 +63334,12 @@
       "tail": "9H-SNX",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 1800,
+      "threshold": 700,
       "unit": "FC",
       "compensationRate": 16059.93,
       "rateTrace": "GE90-115B first-run, temperate: PR cost $15,500,000 × 1 = $15,500,000; time on wing 3,200 FC × 1 = 3,200 FC (22,400 FH at 7.00 FH:FC); accrual $4,844/FC. At reference 7 FH:FC that is $691.96/EFH; × lessor markup 1.54 = $1063.39/EFH; × grid shape 1.000 for 8.84 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1346.06/EFH; × 8.84 FH:FC = $11896.25/FC; × negotiation multiplier 1.35 = $16059.93/FC of shortfall",
       "clauseRef": "Schedule 4, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 1,800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)"
     },
     {
@@ -63425,12 +63425,12 @@
       "tail": "A6-DNZ",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 22408.46,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 8.53 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $1877.54/EFH; × 8.53 FH:FC = $16006.04/FC; × negotiation multiplier 1.40 = $22408.46/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -63516,12 +63516,12 @@
       "tail": "9H-HPA",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 16943.97,
       "rateTrace": "GE90-115B first-run, temperate: PR cost $15,500,000 × 1 = $15,500,000; time on wing 3,200 FC × 1 = 3,200 FC (22,400 FH at 7.00 FH:FC); accrual $4,844/FC. At reference 7 FH:FC that is $691.96/EFH; × lessor markup 1.54 = $1063.39/EFH; × grid shape 1.000 for 9.32 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1346.06/EFH; × 9.32 FH:FC = $12551.09/FC; × negotiation multiplier 1.35 = $16943.97/FC of shortfall",
       "clauseRef": "Schedule 5, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)"
     },
     {
@@ -63607,12 +63607,12 @@
       "tail": "A6-LAG",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2450,
+      "threshold": 950,
       "unit": "FC",
       "compensationRate": 25006.38,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.77 FH:FC ($184.64 ÷ $184.64); × derate 5% 1.133 = $3065.37/EFH; × 7.77 FH:FC = $23815.60/FC; × negotiation multiplier 1.05 = $25006.38/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,450 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 950 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -63698,12 +63698,12 @@
       "tail": "A6-VZW",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 31654.21,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 9.51 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2376.63/EFH; × 9.51 FH:FC = $22610.15/FC; × negotiation multiplier 1.40 = $31654.21/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -63789,12 +63789,12 @@
       "tail": "9H-ZHE",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2700,
+      "threshold": 1050,
       "unit": "FC",
       "compensationRate": 12414.66,
       "rateTrace": "GE90-115B first-run, temperate: PR cost $15,500,000 × 1 = $15,500,000; time on wing 3,200 FC × 1 = 3,200 FC (22,400 FH at 7.00 FH:FC); accrual $4,844/FC. At reference 7 FH:FC that is $691.96/EFH; × lessor markup 1.54 = $1063.39/EFH; × grid shape 1.000 for 8.78 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1346.06/EFH; × 8.78 FH:FC = $11823.49/FC; × negotiation multiplier 1.05 = $12414.66/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,700 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,050 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -63880,12 +63880,12 @@
       "tail": "A6-ETY",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 100,
+      "threshold": 50,
       "unit": "FC",
       "compensationRate": 27697.43,
       "rateTrace": "GE90-115B first-run, harsh-high: PR cost $15,500,000 × 1.13 = $17,515,000; time on wing 3,200 FC × 0.64 = 2,048 FC (14,336 FH at 7.00 FH:FC); accrual $8,552/FC. At reference 7 FH:FC that is $1221.75/EFH; × lessor markup 1.54 = $1877.54/EFH; × grid shape 1.000 for 8.32 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $2376.63/EFH; × 8.32 FH:FC = $19783.88/FC; × negotiation multiplier 1.40 = $27697.43/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
+      "clauseText": "At Redelivery each Engine shall have not less than 50 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall first be settled from the Supplemental Rent then held by Lessor in respect of the relevant item, with any balance payable by Lessee in cash within ten Business Days of Redelivery.",
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)"
     },
     {
@@ -63971,12 +63971,12 @@
       "tail": "A6-TAT",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2800,
+      "threshold": 1100,
       "unit": "FC",
       "compensationRate": 21848.93,
       "rateTrace": "GE90-115B mature-run, harsh-high: PR cost $17,800,000 × 1.13 = $20,114,000; time on wing 2,550 FC × 0.64 = 1,632 FC (11,424 FH at 7.00 FH:FC); accrual $12,325/FC. At reference 7 FH:FC that is $1760.68/EFH; × lessor markup 1.54 = $2705.75/EFH; × grid shape 1.000 for 7.69 FH:FC ($184.64 ÷ $184.64); × derate 10% 1.000 = $2705.75/EFH; × 7.69 FH:FC = $20808.50/FC; × negotiation multiplier 1.05 = $21848.93/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,800 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,100 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {
@@ -64062,12 +64062,12 @@
       "tail": "9H-YRG",
       "componentKind": "engine",
       "metric": "cyclesRemaining",
-      "threshold": 2550,
+      "threshold": 1000,
       "unit": "FC",
       "compensationRate": 11444.78,
       "rateTrace": "GE90-115B first-run, temperate: PR cost $15,500,000 × 1 = $15,500,000; time on wing 3,200 FC × 1 = 3,200 FC (22,400 FH at 7.00 FH:FC); accrual $4,844/FC. At reference 7 FH:FC that is $691.96/EFH; × lessor markup 1.54 = $1063.39/EFH; × grid shape 1.000 for 8.10 FH:FC ($184.64 ÷ $184.64); × derate 0% 1.266 = $1346.06/EFH; × 8.10 FH:FC = $10899.79/FC; × negotiation multiplier 1.05 = $11444.78/FC of shortfall",
       "clauseRef": "Schedule 3, para 4.1(b)",
-      "clauseText": "At Redelivery each Engine shall have not less than 2,550 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
+      "clauseText": "At Redelivery each Engine shall have not less than 1,000 Flight Cycles remaining until the next scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 are not met, the greater of the two amounts shall be payable. Any shortfall shall be paid by Lessee to Lessor in cash on the Redelivery Date, at the rate set out in this paragraph, pro-rated for any part unit.",
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)"
     },
     {

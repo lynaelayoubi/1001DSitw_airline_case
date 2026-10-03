@@ -142,3 +142,55 @@ export function compensationRate(reserve: Rated, negotiationMultiplier: number, 
     trace: `${reserve.trace}; × negotiation multiplier ${negotiationMultiplier.toFixed(2)} = ${usd2(rate)}/${unit} of shortfall`,
   };
 }
+
+// ---------------------------------------------------------------------------------------
+// Shop visit cost — what a workscope costs and how much life it buys. SPEC §2.4.
+// ---------------------------------------------------------------------------------------
+
+export interface EngineShopVisitCost {
+  workscope: Exclude<Workscope, 'none'>;
+  restoration: number;
+  llp: number;
+  total: number;
+  /** Time on wing the restoration buys — the engine is mature-run after any visit. */
+  towFC: number;
+  towFH: number;
+  /** LLP life the visit buys. */
+  bucketCycles: number;
+  /** The spec's headline figure: total ÷ bucket cycles ($388/FC vs $688/FC on the reference engine). */
+  totalPerFC: number;
+  trace: string;
+}
+
+/**
+ * Cost of an engine shop visit at a given workscope, scaled from the narrowbody reference
+ * tiers to this engine's own restoration and LLP costs. `visitNumber` 1 is a first-run engine
+ * going in; later visits price at the mature-run figure.
+ */
+export function engineShopVisitCost(
+  model: EngineModel,
+  environment: Environment,
+  workscope: Exclude<Workscope, 'none'>,
+  visitNumber: number,
+): EngineShopVisitCost {
+  const spec = ENGINE_SPECS[model];
+  const tier = WORKSCOPE_TIERS[workscope];
+  const ref = WORKSCOPE_TIERS['build-for-interval'];
+  const phaseIn: EnginePhase = visitNumber <= 1 ? 'first-run' : 'mature-run';
+  const fhFc = spec.referenceFhFc;
+  const econIn = engineEconomics(model, phaseIn, environment, fhFc);
+  const restorationShare = tier.restoration / ref.restoration;
+  const llpShare = tier.llp / ref.llp;
+  const restoration = econIn.prCost * restorationShare;
+  const llp = spec.llpStackCost * llpShare;
+  const total = restoration + llp;
+  const after = engineEconomics(model, 'mature-run', environment, fhFc); // time on wing after the visit, at the reference leg
+  const bucketCycles = workscopeBucketCycles(model, workscope);
+  const totalPerFC = total / bucketCycles;
+  const trace =
+    `${workscope} visit on ${model} (visit ${visitNumber}, ${phaseIn} going in, ${environment}): restoration ${usd(econIn.prCost)} × ${restorationShare.toFixed(2)} = ${usd(restoration)}, ` +
+    `LLP ${usd(spec.llpStackCost)} × ${llpShare.toFixed(2)} = ${usd(llp)}, total ${usd(total)}. ` +
+    `Buys ${Math.round(after.towFC).toLocaleString('en-US')} FC (${Math.round(after.towFH).toLocaleString('en-US')} FH) on wing and ${bucketCycles.toLocaleString('en-US')} FC of LLP life; ` +
+    `${usd(total)} ÷ ${bucketCycles.toLocaleString('en-US')} FC = ${usd(totalPerFC)}/FC`;
+  return { workscope, restoration, llp, total, towFC: after.towFC, towFH: after.towFH, bucketCycles, totalPerFC, trace };
+}

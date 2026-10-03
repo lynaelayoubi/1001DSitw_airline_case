@@ -62,13 +62,13 @@ should land in different places. That difference is the product.
 
 `maintenanceCostMultiplier` · `utilisationMultiplier` · `leaseExtensionMonths` (per tail)
 · `shopSlotLeadTimeMonths` (default 4, range 3–6) · `countOverDeliveryAsLoss` (default true)
-· `reservesReclaimPct`
+· `reservesReclaimPct` · **`downtimeCostPerDay`** (per body class — he asked to set this himself)
 
 ---
 
-## 2 · The engine — pure functions, in order
+## 2 · The calc layer — pure functions, in order
 
-Everything here goes in `src/engine/`. No React, no JSON import. Each function takes data
+Everything here goes in `calc/`. No React, no JSON import. Each function takes data
 and assumptions and returns a result object that **carries its own explanation**.
 
 > Every result must include a `trace` field: the inputs used and the arithmetic, as a
@@ -135,7 +135,17 @@ airline has already spent and legally does not own.
 
 ### 2.6 The four levers — one function each, same return shape
 
-Each returns `{ label, cost, newExposure, saving, feasible, deadline, trace }`.
+Each returns `{ label, cost, downtimeDays, downtimeCost, newExposure, saving, feasible, deadline, trace }`.
+
+> **Downtime is a cost, and he asked for it by name.** *"Versus the maintenance cost, but also
+> the downtime costs. So the aircraft will be out of service depending on the level of work.
+> It could just be like a couple of hours, which is fine. But it could be a week or two. So
+> that's something that we want to be able to put some assumptions in for those costs."*
+>
+> Model **aircraft** downtime, not component shop turnaround — they are not the same number.
+> An engine swap with a spare available grounds the aircraft for a day; the engine itself is
+> then in the shop for months without the aircraft waiting on it. Landing gear grounds the
+> aircraft properly. See ASSUMPTIONS §13.
 
 **L1 · Do the work**
 ```
@@ -164,9 +174,14 @@ return the whole curve so the UI can draw it.
 ### 2.7 Recommendation
 
 ```
-totalCost = compensationPaid + maintenanceSpend − reservesReclaimed + overDeliveryCost
+downtimeCost = aircraftDowntimeDays × downtimeCostPerDay(bodyClass)
+totalCost    = compensationPaid + maintenanceSpend − reservesReclaimed
+             + overDeliveryCost + downtimeCost
 recommendation = argmin(totalCost) over feasible options
 ```
+
+Show `downtimeCost` as its own line on every option, never buried in the total. It is the
+term most likely to change which lever wins, and it is the one he will want to argue with.
 Return the winner, **the runner-up and the delta between them**, and:
 ```
 decisionDeadline = min(option.deadline)   // usually leaseEnd − shopSlotLeadTime
@@ -219,8 +234,12 @@ ranked, with the chosen one marked and the runner-up visible. The shop-visit cur
 §2.6 L4. The decision deadline, prominent.
 
 ### 3.4 Scenarios
-Three controls he named himself: maintenance cost · utilisation · extend this lease by N
-months. The headline numbers move live. Add a reset.
+Four controls, **all four named by him**: maintenance cost · utilisation · extend this
+lease by N months · **downtime cost per day**. The headline numbers move live. Add a reset.
+
+Downtime cost is the one he explicitly said he wants to set the assumption for, so make it
+an input rather than a constant — and when the demo reaches this screen, hand him the number
+to disagree with.
 
 ### 3.5 Lease view
 For one tail: the extracted return conditions as a table, each row showing the clause

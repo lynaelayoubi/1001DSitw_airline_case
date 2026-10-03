@@ -8,8 +8,21 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "types": ["node"],
-    "noEmit": true
+    "types": [
+      "node",
+      "vite/client"
+    ],
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ]
   },
-  "include": ["data", "engine", "ui"]
+  "include": [
+    "data",
+    "calc",
+    "ui"
+  ]
 }
