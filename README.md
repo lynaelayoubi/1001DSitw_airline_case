@@ -11,7 +11,7 @@ Demo for 1001, round 3. Thursday 8 October, 12:00, 30 minutes, Yacoob + Bilal.
 | `BUILD-LOG.md` | every decision that had a real alternative. **Append as you go.** |
 | `ASSUMPTIONS.md` | every rate and cost, with its source and its sensitivity. |
 | `WHATS-FAKE.md` | real vs synthetic vs faked-on-purpose. The second half opens with this. |
-| `RATIONALE.md` | the out-of-character half: timing, expected questions, what's next, your questions. |
+| `COST-REFERENCE.md` | the full research: every public cost figure with source URL, year and confidence. |
 
 ## Starting a session
 
