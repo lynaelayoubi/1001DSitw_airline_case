@@ -2,6 +2,7 @@ import { Fragment, useMemo, useState } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
+import type { FleetRecommendation, TailPlan } from '../../calc/recommend';
 import { Headline } from '../components/Headline';
 import { Trace } from '../components/Trace';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
@@ -11,7 +12,7 @@ import { date, int, kindLabel, money, months, unitLabel } from '../format';
  * toggle; tails beyond the window show no figure, because a projection across years with no
  * shop visit in it is not a forecast.
  */
-export default function FleetScreen({ fleet }: { fleet: FleetExposure }) {
+export default function FleetScreen({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -40,7 +41,7 @@ export default function FleetScreen({ fleet }: { fleet: FleetExposure }) {
         </div>
       </header>
 
-      <Headline fleet={fleet} />
+      <Headline fleet={fleet} plans={plans} />
 
       <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="w-full text-[13px]">
@@ -56,13 +57,13 @@ export default function FleetScreen({ fleet }: { fleet: FleetExposure }) {
               <Th right>After recommendation</Th>
               <Th>Binding clock</Th>
               <Th>QME</Th>
-              <Th>Book shop slot by</Th>
+              <Th>Decide by</Th>
             </tr>
           </thead>
           <tbody>
             {rows.map((t) => (
               <Fragment key={t.tail}>
-                <TailRow t={t} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
+                <TailRow t={t} plan={plans.byTail[t.tail]} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
                 {open === t.tail && <TailDetail t={t} />}
               </Fragment>
             ))}
@@ -72,7 +73,8 @@ export default function FleetScreen({ fleet }: { fleet: FleetExposure }) {
 
       <p className="mt-3 text-xs text-slate-500">
         Hover any figure for its arithmetic. Click a tail for the four components. Exposure = compensation on the binding clock of each component, plus the LLP
-        clause, plus over-delivery priced at what the life cost to buy. Compensation on any component is capped at the cost of putting it right.
+        clause, plus over-delivery priced at what the life cost to buy. Compensation on any component is capped at the cost of putting it right. After
+        recommendation is all-in: the work, its downtime, and what is still owed at handback.
       </p>
     </main>
   );
@@ -82,7 +84,7 @@ function Th({ children, right }: { children: React.ReactNode; right?: boolean })
   return <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>{children}</th>;
 }
 
-function TailRow({ t, open, onToggle }: { t: TailResult; open: boolean; onToggle: () => void }) {
+function TailRow({ t, plan, open, onToggle }: { t: TailResult; plan?: TailPlan; open: boolean; onToggle: () => void }) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
   return (
@@ -118,7 +120,9 @@ function TailRow({ t, open, onToggle }: { t: TailResult; open: boolean; onToggle
             </Trace>
             {t.qmeDelta > 0 && <div className="text-[11px] text-amber-700">+{money(t.qmeDelta)}</div>}
           </td>
-          <td className="px-2 py-2 text-right text-slate-300">—</td>
+          <td className="px-2 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+            {plan ? <AfterRecommendation plan={plan} /> : <span className="text-slate-300">—</span>}
+          </td>
           <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
             <Trace text={t.trace}>
               <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
@@ -139,11 +143,29 @@ function TailRow({ t, open, onToggle }: { t: TailResult; open: boolean; onToggle
         )}
       </td>
       <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-        <Trace text={t.projection.trace} align="right">
-          {date(t.projection.shopSlotDeadline)}
-        </Trace>
+        {plan?.decisionDeadline ? (
+          <Trace text={plan.trace} align="right">
+            {date(plan.decisionDeadline)}
+          </Trace>
+        ) : (
+          <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
+        )}
       </td>
     </tr>
+  );
+}
+
+/** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is. */
+function AfterRecommendation({ plan }: { plan: TailPlan }) {
+  return (
+    <div className="ml-auto max-w-[13rem]">
+      <Trace text={plan.trace} align="right" className="font-semibold tabular-nums">
+        {money(plan.after)}
+      </Trace>
+      {plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
+      {plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
+      <div className="text-[11px] leading-tight text-slate-500">{plan.label}</div>
+    </div>
   );
 }
 

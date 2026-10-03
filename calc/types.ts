@@ -84,6 +84,12 @@ export interface Component {
    * When 'not-evidenced', the last shop visit did not legally reset the clock. SPEC §2.5.
    */
   asLeaseAllows: { tso: number; cso: number; llpMinCyclesRemaining: number };
+  /**
+   * The visit whose LLP bucket an engine is on, where that is not its last shop visit — a
+   * visit that restored performance without replacing life-limited parts. null: the LLPs it
+   * was delivered with. Absent: the last shop visit. Set by the levers, never by the generator.
+   */
+  llpBoughtBy?: { workscope: Workscope; visitNumber: number } | null;
   onTailSince: ISODate;
   /** Current tail registration, or 'POOL' for spares. */
   installedOn: string;

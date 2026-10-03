@@ -54,11 +54,18 @@ export function unitCostOfLife(ac: Aircraft, c: Component, rc: ReturnCondition, 
   }
   switch (c.kind) {
     case 'engine': {
-      const sv = engineShopVisitCost(ac.engineModel, ac.environment, c.lastWorkscope, c.shopVisitCount);
       if (rc.metric === 'llpCyclesRemaining') {
-        const rate = (sv.llp / sv.bucketCycles) * m;
-        return { rate, trace: `${sv.trace}. LLP ${usd(sv.llp)} ÷ ${num(sv.bucketCycles)} FC${mult} = ${usd2(rate)}/FC of surplus` };
+        // LLP life is priced at the visit that bought it: the last one, unless a later visit
+        // restored performance without replacing the life-limited parts.
+        const by = c.llpBoughtBy === undefined ? { workscope: c.lastWorkscope, visitNumber: c.shopVisitCount } : c.llpBoughtBy;
+        if (!by || by.workscope === 'none') {
+          return { rate: 0, trace: 'LLPs not replaced since the engine was delivered; the life came with it, so a surplus costs nothing' };
+        }
+        const lv = engineShopVisitCost(ac.engineModel, ac.environment, by.workscope, by.visitNumber);
+        const rate = (lv.llp / lv.bucketCycles) * m;
+        return { rate, trace: `${lv.trace}. LLP ${usd(lv.llp)} ÷ ${num(lv.bucketCycles)} FC${mult} = ${usd2(rate)}/FC of surplus` };
       }
+      const sv = engineShopVisitCost(ac.engineModel, ac.environment, c.lastWorkscope, c.shopVisitCount);
       if (rc.unit === 'FH') {
         const rate = (sv.restoration / sv.towFH) * m;
         return { rate, trace: `${sv.trace}. Restoration ${usd(sv.restoration)} ÷ ${num(sv.towFH)} FH on wing${mult} = ${usd2(rate)}/FH of surplus` };

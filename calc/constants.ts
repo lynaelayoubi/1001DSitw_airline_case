@@ -346,7 +346,7 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   leaseExtensionMonths: {},
   shopSlotLeadTimeMonths: SHOP_SLOT_LEAD_TIME_MONTHS.default,
   countOverDeliveryAsLoss: true,
-  /** Share of a reserve balance reclaimable against qualifying work. Must be negotiated, not assumed (CLAUDE.md); 1.0 is the lessee-favourable case until lever 1 exposes it. */
+  /** Share of a reserve balance reclaimable against qualifying work, credited by levers 1 and 4. Must be negotiated, not assumed (CLAUDE.md); 1.0 is the lessee-favourable case until the scenario panel exposes it. */
   reservesReclaimPct: 1,
   downtimeCostPerDay: DOWNTIME_COST_PER_DAY,
 };

@@ -486,8 +486,39 @@ Lessors alternate architecture: four reserve, three no-reserve.
 | QME basis and over-delivery | the lease basis moves compensation only; over-delivery stays at the recorded figure | the visit was paid for whether or not the lease credits it, so the QME delta is purely what the lease would claim on top |
 | Horizon | 24 months | beyond the returning window a projection with no intervening shop visit is not a forecast; computed, not shown as one |
 | Shop slot lead time | **4 months** default, 3–6 | §1, customer |
-| Reserves reclaimable | 1.0 of a qualifying balance | placeholder until lever 1; must be negotiated, not assumed |
-| Decision deadline, before levers | lease end − shop slot lead time | SPEC §2.7's usual case; the levers refine it |
+| Reserves reclaimable | 1.0 of a qualifying balance | credited by levers 1 and 4 (below); must be negotiated, not assumed |
+| Decision deadline | the recommended action's own (below) | replaced "lease end − shop slot lead time" once the levers existed |
+
+### Levers and recommendation (SPEC §2.6–§2.8, as built)
+
+Every number here is a rule applied to figures already in §§0–13, or a declared choice. None is a new sourced rate.
+
+| item | value | basis |
+|---|---|---|
+| Basis | as recorded | the basis of the "if nothing changes" figure that avoidable is measured from |
+| Options per tail | pay at handback + one option per lever (its best application on the tail) | SPEC §2.7: argmin, runner-up, delta |
+| Total cost | maintenance − reserves reclaimed + removal and installation + green time scrapped + downtime + exposure still owed at handback | SPEC §2.7, plus green time scrapped (below) |
+| Earliest shop induction | today + shop slot lead time (4 months default) | §1, customer |
+| Latest shop induction | when the component's first clock runs out; for engines also handback − turnaround | it cannot fly past a limit; the restored engine must be back on wing before handback |
+| Engine shop turnaround | **200 days** | top of the 180–200 range in §8 — the conservative end for a feasibility claim |
+| Workscopes swept | engines: build-for-cash and build-for-interval; gear: overhaul + exchange fee; APU: overhaul | §2–§4 |
+| LLPs in a visit | replaced only if the workscope would leave more life than is left; kept LLPs stay priced at the visit that bought them | a build-for-cash visit should not cut 19,000 FC of LLP life to 8,000 |
+| Green time scrapped | life left at induction on the clock that runs out first × its unit cost of life (§13 over-delivery rule), plus the LLP stub if the LLPs are replaced | the mirror of over-delivery: paid-for life thrown away early |
+| Lever 1 | the cheapest workscope that clears every clause, inducted in the last month it can be | "do the work" as done today: just before handback |
+| Lever 4 | every month from the earliest to the latest induction, both workscopes; the minimum | lever 1 is one point on this curve |
+| Reserve rate | the clause's compensation rate ÷ the lessor's negotiation multiplier | §7: compensationRate = reserve rate × multiplier, so this is the lease's own supplemental rent |
+| Reserve balance | from the last event the lease recognises (a visit not evidenced as a QME was never reimbursed), history capped at the lease period's usage, plus usage to induction; reclaim ≤ the work's cost; × reserves reclaimable | reserve leases only; no-reserve leases have no balance |
+| Shop visit downtime | engine: 2 × engine swap (a pool spare on, own engine back) if the pool has one of the model, else 14 days; gear 10; APU 1 | §13 |
+| Removal and installation | per change: engine 300, gear 180, APU 60 MH × $95 | §8 |
+| Lever 2 | the type's other profile in §9, at its published rates × utilisation, from today; no maintenance, no downtime; revenue not modelled | §9, §13; a flag to routing, never a schedule |
+| Lever 3 search | spare-pool units and same-model components on the other returning tails | in-service tails are beyond the 24-month window, where the exposure a swap creates is not a forecast |
+| Lever 3 feasibility | ruled out if either unit would run out before its tail's handback | a swap that moves the problem forward is not a saving |
+| Lever 3 cost | removal and installation on each tail touched + swap downtime (engine 1 day, gear 10, APU 1, per tail) + the exposure created on the other tail | SPEC §2.6 |
+| A spare's surplus life | a never-overhauled unit's surplus priced at a build-for-interval visit's rates (engine: restoration ÷ time on wing, LLP ÷ bucket; gear and APU: overhaul ÷ interval) | it is the airline's own life, not life that came with the aircraft |
+| Airframe | not timed, not swapped | it is the aircraft; no heavy-check aircraft downtime in §13 |
+| A component that runs out before handback | only levers applied to it are offered; paying is off the table unless no lever can keep it flying | the exposure prices a clock past its limit as a capped shortfall; it does not force the removal |
+| Fleet allocation | tails with such a component first, soonest first; then by what each could save; each spare and each donor tail used once | they have to act; the rest are choosing |
+| Decision deadline | levers 1 and 4: induction − lead time; lever 3: the earlier of the outgoing unit running out and the shop-slot deadline; lever 2: today; pay: none | the date the recommended action has to be committed |
 
 ### Reconciliation (§11, as built)
 

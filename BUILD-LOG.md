@@ -315,3 +315,95 @@ a date with a formula, and it already tells someone which Monday matters.
 **Tailwind via the Vite plugin; Recharts not installed until a chart exists.** · Rejected:
 pulling in the whole stack up front. · Because the fleet table has no chart, and an unused
 dependency is a question in review with no good answer.
+
+## Step 4 · the levers and the recommendation — Saturday 3 October
+
+**One option per lever per tail, plus paying at handback, ranked by total cost; each lever
+offers its best application on the tail.** · Rejected: plans that combine actions on several
+components. · Because SPEC §2.7 is an argmin with a runner-up and a delta, and one action per
+tail is what can be explained and booked. The cost is that a tail with two problems — 9H-KVJ's
+ENG2 and APU — gets one of them dealt with.
+
+**Lever 1 is the cheapest workscope that clears the contract, inducted in the last month it can
+be; lever 4 sweeps every month and both workscopes.** · Rejected: two unrelated shop-visit
+options. · Because "do the work" as practised today is a visit just before handback, which makes
+lever 1 one point on lever 4's curve: the delta between them is what timing is worth, and when
+they land on the same month and workscope the action is ranked once.
+
+**No induction after the component runs out, and a restored engine back on wing before handback
+at a 200-day turnaround, the top of the current 180–200.** · Rejected: an instant reset at any
+month up to handback. · Because otherwise lever 4 books visits that cannot happen. With it, a
+16-month handback's last engine induction is month 9, and A6-DLL's ENG1 has to go in by month 6.
+
+**Green time scrapped by an early visit is a cost, at the unit cost of the life thrown away.** ·
+Rejected: leaving it out. · Because without it the cheapest date is always the first slot —
+fewer cycles left over at handback — which pulls engines with paid-for life still on them. With
+it, earlier scraps life already bought and later hands back a fuller bucket: the bucket model on
+a curve.
+
+**LLPs replaced only when the workscope would leave them more life than they have; kept LLPs stay
+priced at the visit that bought them (an optional `llpBoughtBy` on Component, set only by the
+levers).** · Rejected: the generator's rule that every visit resets the stack to the workscope's
+bucket. · Because on the fixture's ENG2, with 19,000 FC of LLP life left, a build-for-cash visit
+would otherwise pay $4.1M to cut the parts to 8,000 FC.
+
+**Reserve rate read off the lease — the clause's compensation rate ÷ the lessor's negotiation
+multiplier — with the balance running from the last event the lease recognises, capped at the
+lease period and at the cost of the work.** · Rejected: a separately sourced reserve rate, and
+netting reserves against compensation in the do-nothing figure. · Because compensationRate is
+reserve × multiplier by construction, so this is the lease's own supplemental rent; a visit not
+evidenced as a QME was never reimbursed, which `asLeaseAllows` already measures; and netting would
+assert what happens to the residual balance, which must be negotiated, not assumed.
+
+**A never-overhauled spare's surplus life priced at a build-for-interval visit's rates in lever
+3.** · Rejected: the exposure's rule that such life costs nothing. · Because that rule is right
+for life that came with the aircraft and wrong for a spare, which is the airline's own life
+handed to the lessor. Left at nothing, lever 3 picked the freshest unit every time — the opposite
+of SPEC's tightness of fit. Priced, the right-sized unit wins on cost: tightness scored in dollars.
+
+**Lever 3 rules out any swap in which either unit would run out before its tail's handback, and
+looks for donors only among the other returning tails.** · Rejected: allowing them, and searching
+the whole fleet. · Because the first run proposed handing 9H-MMC the short ENG2 from 9H-KVJ, which
+would have timed out five months before 9H-MMC's handback; and the exposure a swap creates on a
+tail eight years out is not a forecast.
+
+**A tail with a component that runs out before handback is offered only the levers applied to
+that component; paying is off the table unless none of them can keep it flying.** · Rejected:
+ranking on cost alone. · Because on cost, 9H-ZUU — ENG2 out of cycles in 1.1 months — was told to
+fly a different route, $3,405 cheaper than the spare that keeps it in the air. The exposure prices
+a clock past its limit as a capped shortfall; it does not force the removal. Forced, A6-DLL's ENG1
+visit costs $1.88M more than its do-nothing figure, and its row shows the difference in red.
+
+**Fleet allocation settles those tails first, soonest first, then the rest by what each could
+save; every spare and every donor tail is used once.** · Rejected: settling purely by saving. ·
+Because by saving, the two pool engines that could reach 9H-ZUU's handback went to tails trimming
+over-delivery, and 9H-ZUU was left with nothing that kept it flying.
+
+**Decision deadline is the recommended action's own, and none when the recommendation is to
+pay.** · Rejected: SPEC §2.7's minimum over every option. · Because a route change is worth most
+started now, so its deadline is always today, and the minimum put today on every narrowbody —
+including 9H-PJS, which owes nothing.
+
+**A swap between two tails is split across both rows, each carrying its own removal, downtime and
+exposure afterwards.** · Rejected: the whole swap on the tail that asked for it. · Because the
+fleet total then adds up row by row, and the donor's row shows what it takes on.
+
+**Everything on the as-recorded basis.** · Rejected: recommending on the lease basis. · Because it
+is the basis of the do-nothing figure avoidable is measured from. A new, properly evidenced visit
+does also clear a QME problem on the lease basis; that is real, and belongs in its own number.
+
+**The airframe is left out of levers 1, 3 and 4.** · Rejected: timing heavy checks. · Because the
+airframe is the aircraft and cannot be swapped, and ASSUMPTIONS §13 has no aircraft-downtime
+figure for a heavy check — it would have to be invented.
+
+**Lever 2 starts today at the other profile's published rates, with no maintenance cost; its trace
+gives what each month of delay gives up.** · Rejected: a lead time before the switch. · Because
+there is no source for one, and the cost of waiting is the more useful number for routing anyway.
+
+**"Book shop slot by" became "Decide by", showing the recommended action's deadline.** · Rejected:
+keeping the placeholder. · Because Step 3 put lease end minus lead time there only until the
+levers existed.
+
+**Recommendations computed in the browser at load, about a second for this fleet.** · Rejected:
+precomputing them into `fleet.json`. · Because the scenario panel (SPEC §3.4) has to recompute
+them live, and a stored answer would hide the arithmetic behind a file.

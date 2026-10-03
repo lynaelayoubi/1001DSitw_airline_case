@@ -3,7 +3,7 @@
 
 import { DEFAULT_ASSUMPTIONS } from './constants';
 import { addMonths } from './projection';
-import type { Aircraft, Assumptions, Component, ComponentKind, Metric, ReturnCondition } from './types';
+import type { Aircraft, Assumptions, Component, ComponentKind, Lessor, Metric, ReturnCondition } from './types';
 
 export const AS_OF = '2026-10-03';
 
@@ -123,4 +123,32 @@ export function conditions(tail = 'T-TEST'): ReturnCondition[] {
 
 export function assumptions(over: Partial<Assumptions> = {}): Assumptions {
   return { ...DEFAULT_ASSUMPTIONS, ...over };
+}
+
+/** No-reserve by default, so no reserve balance enters the arithmetic unless a test asks for one. */
+export function lessor(over: Partial<Lessor> = {}): Lessor {
+  return {
+    id: 'L00',
+    name: 'Test Lessor',
+    architecture: 'no-reserve',
+    negotiationMultiplier: 1.25,
+    qmeClauseRef: 'Clause 14.1',
+    qmeClauseText: 'fixture',
+    ...over,
+  };
+}
+
+/**
+ * Spare LEAP-1A26s for lever 3, all mature-run (10,000 FC / 27,500 FH on wing) unless said
+ * otherwise. Over the fixture's 16 months they fly 1,600 FC and 4,400 FH.
+ */
+export function spare(id: string, serial: string, over: Partial<Component> = {}): Component {
+  return component('engine', 'POOL', {
+    id,
+    serial,
+    lastWorkscope: 'build-for-interval',
+    shopVisitCount: 1,
+    installedOn: 'POOL',
+    ...over,
+  });
 }

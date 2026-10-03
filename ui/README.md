@@ -17,10 +17,13 @@ object from `calc/`; the UI formats, it never calculates.
   exposure as a one-line breakdown.
 - "As the lease allows" is the QME number from SPEC §2.5, side by side with the maintenance
   system's view, with the delta on the row and in the headline.
-- Two headline tiles — after recommendations, avoidable — are shown pending until the levers
-  exist. A placeholder number would break the rule that every figure on screen has a formula.
-- "Book shop slot by" is lease end minus the shop-slot lead time (SPEC §2.7's usual case).
-  The levers will refine it; until then it is still the date that matters.
+- "After recommendation" is the tail's all-in figure under its recommended option (SPEC §2.7):
+  the work, its downtime, and what is still owed at handback, with what it saves against doing
+  nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
+  could fly to handback. The option's name sits underneath; the trace ranks all five.
+- The headline's "after recommendations" and "avoidable" tiles add those rows up (SPEC §2.8).
+- "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
+  now. "Nothing to book" where the recommendation is to pay.
 - Click a tail for its components: every clause, today's position, what will be flown, the
   position at return, the gap and its price. The binding clock is marked.
 
@@ -30,5 +33,6 @@ come from" and it is why the demo is defensible.
 
 ## Not yet built
 
-Tail detail with the four levers and the shop-visit curve (§3.3), scenarios (§3.4), lease
-view (§3.5), readiness checklist (§3.6).
+Tail detail with the four levers and the shop-visit curve (§3.3) — the options and lever 4's
+curve are already computed, in `calc/levers.ts` — scenarios (§3.4), lease view (§3.5),
+readiness checklist (§3.6).

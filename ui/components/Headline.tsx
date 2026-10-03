@@ -1,14 +1,16 @@
 import type { FleetExposure } from '../../calc/exposure';
+import type { FleetRecommendation } from '../../calc/recommend';
 import { money } from '../format';
 import { Trace } from './Trace';
 
 /**
  * SPEC §3.2: do nothing · after recommendations · avoidable, plus the QME delta flagged.
- * The two that need the levers (SPEC §2.6–2.8) are shown as pending, not as a number — a
- * figure with no formula behind it does not go on screen.
+ * "After recommendations" is all-in — the work, its downtime, and what is still owed at
+ * handback — so it compares like for like with doing nothing.
  */
-export function Headline({ fleet }: { fleet: FleetExposure }) {
+export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
   const t = fleet.totals;
+  const r = plans.totals;
   return (
     <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile
@@ -16,8 +18,17 @@ export function Headline({ fleet }: { fleet: FleetExposure }) {
         value={<Trace text={fleet.trace}>{money(t.doNothing)}</Trace>}
         sub={`${money(t.compensation)} compensation · ${money(t.overDelivery)} over-delivery`}
       />
-      <Tile label="After recommendations" value="—" sub="Needs the four levers (SPEC §2.6). Next step." pending />
-      <Tile label="Avoidable" value="—" sub="Do nothing minus the best feasible option (SPEC §2.8). Next step." pending />
+      <Tile
+        label="After recommendations"
+        value={<Trace text={plans.trace}>{money(r.after)}</Trace>}
+        sub={`Work, downtime and what is still owed · ${r.acting} act, ${r.paying} pay at handback${r.donors ? `, ${r.donors} lend a unit` : ''}`}
+      />
+      <Tile
+        label="Avoidable"
+        value={<Trace text={plans.trace}>{money(r.avoidable)}</Trace>}
+        sub="If nothing changes, less the best feasible option on each tail"
+        good={r.avoidable > 0}
+      />
       <Tile
         label="As the lease allows"
         value={<Trace text={fleet.trace} align="right">{money(t.asLeaseAllows)}</Trace>}
@@ -32,11 +43,11 @@ export function Headline({ fleet }: { fleet: FleetExposure }) {
   );
 }
 
-function Tile({ label, value, sub, pending, flag }: { label: string; value: React.ReactNode; sub: string; pending?: boolean; flag?: boolean }) {
+function Tile({ label, value, sub, flag, good }: { label: string; value: React.ReactNode; sub: string; flag?: boolean; good?: boolean }) {
   return (
-    <div className={`rounded-lg border px-4 py-3 ${flag ? 'border-amber-300 bg-amber-50' : pending ? 'border-dashed border-slate-300 bg-slate-50' : 'border-slate-200 bg-white'}`}>
+    <div className={`rounded-lg border px-4 py-3 ${flag ? 'border-amber-300 bg-amber-50' : good ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">{label}</div>
-      <div className={`mt-1 text-2xl font-semibold tabular-nums ${pending ? 'text-slate-300' : flag ? 'text-amber-800' : 'text-slate-900'}`}>{value}</div>
+      <div className={`mt-1 text-2xl font-semibold tabular-nums ${flag ? 'text-amber-800' : good ? 'text-emerald-800' : 'text-slate-900'}`}>{value}</div>
       <div className="mt-1 text-xs text-slate-500">{sub}</div>
     </div>
   );

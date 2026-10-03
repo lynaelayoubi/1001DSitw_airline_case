@@ -53,6 +53,6 @@ Each folder has its own README.
 
 ## Status
 
-Built: the fleet exposure table and its headline (SPEC §3.1–§3.2), on the projection and
-exposure calculations (SPEC §2.1–§2.5). The four levers, tail detail, scenarios, lease view
+Built: the projection, exposure, the four levers and the recommendation (SPEC §2.1–§2.8), on
+the fleet exposure table and its headline (SPEC §3.1–§3.2). Tail detail, scenarios, lease view
 and readiness checklist are specified in `SPEC.md` and not yet built — see `ui/README.md`.
