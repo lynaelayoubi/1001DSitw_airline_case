@@ -13,7 +13,7 @@
 import { AIRFRAME, APU, DEFAULT_ASSUMPTIONS, LANDING_GEAR, RETURNING_WINDOW_MONTHS } from './constants';
 import { num, usd, usd2 } from './format';
 import { monthlyRate, projectUsage, projectedUse, readClock, type Basis, type UsageProjection } from './projection';
-import { engineShopVisitCost } from './rates';
+import { engineShopVisitCost, workscopeBucketCycles } from './rates';
 import type {
   Aircraft,
   Assumptions,
@@ -54,18 +54,11 @@ export function unitCostOfLife(ac: Aircraft, c: Component, rc: ReturnCondition, 
   }
   switch (c.kind) {
     case 'engine': {
-      if (rc.metric === 'llpCyclesRemaining') {
-        // LLP life is priced at the visit that bought it: the last one, unless a later visit
-        // restored performance without replacing the life-limited parts.
-        const by = c.llpBoughtBy === undefined ? { workscope: c.lastWorkscope, visitNumber: c.shopVisitCount } : c.llpBoughtBy;
-        if (!by || by.workscope === 'none') {
-          return { rate: 0, trace: 'LLPs not replaced since the engine was delivered; the life came with it, so a surplus costs nothing' };
-        }
-        const lv = engineShopVisitCost(ac.engineModel, ac.environment, by.workscope, by.visitNumber);
-        const rate = (lv.llp / lv.bucketCycles) * m;
-        return { rate, trace: `${lv.trace}. LLP ${usd(lv.llp)} ÷ ${num(lv.bucketCycles)} FC${mult} = ${usd2(rate)}/FC of surplus` };
-      }
       const sv = engineShopVisitCost(ac.engineModel, ac.environment, c.lastWorkscope, c.shopVisitCount);
+      if (rc.metric === 'llpCyclesRemaining') {
+        const rate = (sv.llp / sv.bucketCycles) * m;
+        return { rate, trace: `${sv.trace}. LLP ${usd(sv.llp)} ÷ ${num(sv.bucketCycles)} FC${mult} = ${usd2(rate)}/FC of surplus` };
+      }
       if (rc.unit === 'FH') {
         const rate = (sv.restoration / sv.towFH) * m;
         return { rate, trace: `${sv.trace}. Restoration ${usd(sv.restoration)} ÷ ${num(sv.towFH)} FH on wing${mult} = ${usd2(rate)}/FH of surplus` };
@@ -95,6 +88,37 @@ export function unitCostOfLife(ac: Aircraft, c: Component, rc: ReturnCondition, 
   }
 }
 
+/**
+ * Over-delivery is the part of the surplus that did not have to be bought. A shop visit is
+ * bought whole, and every past one was forced — the engine came off at its limit, the check or
+ * overhaul fell due — so only the life a workscope bought beyond the cheapest one that would
+ * still have cleared the contract was avoidable:
+ *   - restoration, check and overhaul clocks: both engine workscopes buy the same time on wing
+ *     and the others have one tier, so none of that surplus was avoidable;
+ *   - engine LLPs: a build-for-interval bucket over a build-for-cash one, provided the smaller
+ *     bucket would still have cleared this clause at handback.
+ * Sunk once the visit is done: it is realised when the unit is handed over.
+ */
+export function avoidableSurplus(ac: Aircraft, c: Component, rc: ReturnCondition, surplusUnits: number): { units: number; trace: string } {
+  if (surplusUnits <= 0) return { units: 0, trace: '' };
+  if (requirementGroup(rc.metric) === 'interval') {
+    const what = c.kind === 'engine' ? 'restoration' : c.kind === 'airframe' ? 'structural check' : 'overhaul';
+    return { units: 0, trace: `the unavoidable remainder of a ${what} that had to happen, so not counted` };
+  }
+  if (c.shopVisitCount === 0 || c.lastWorkscope === 'none') return { units: 0, trace: 'LLPs as delivered, so not counted' };
+  if (c.lastWorkscope === 'build-for-cash') return { units: 0, trace: 'bought by the cheapest workscope, so none of it was avoidable' };
+  const cheap = workscopeBucketCycles(ac.engineModel, 'build-for-cash');
+  const extra = workscopeBucketCycles(ac.engineModel, c.lastWorkscope) - cheap;
+  if (surplusUnits < extra)
+    return { units: 0, trace: `a build-for-cash visit's ${num(cheap)} FC would have left this clause short, so the larger workscope was needed and none of it was avoidable` };
+  return {
+    units: extra,
+    trace:
+      `build-for-interval bought ${num(extra)} FC more LLP life than a build-for-cash visit, which would still have cleared the clause: those ${num(extra)} FC were avoidable, ` +
+      `the other ${num(surplusUnits - extra)} FC the remainder of a visit that had to happen`,
+  };
+}
+
 export interface RequirementResult {
   requirementId: string;
   clauseRef: string;
@@ -114,10 +138,12 @@ export interface RequirementResult {
   gap: number;
   shortfallUnits: number;
   surplusUnits: number;
+  /** The part of the surplus that did not have to be bought (avoidableSurplus). */
+  avoidableSurplusUnits: number;
   /** shortfallUnits × compensationRate. */
   compensation: number;
   unitCostOfLife: number;
-  /** surplusUnits × unitCostOfLife. */
+  /** avoidableSurplusUnits × unitCostOfLife. */
   overDelivery: number;
   /** (remainingAtReturn − threshold) in months of flying at the projected rate. Negative = short. */
   slackMonths: number;
@@ -140,15 +166,18 @@ export function assessRequirement(
   const shortfallUnits = Math.max(0, gap);
   const surplusUnits = Math.max(0, -gap);
   const compensation = shortfallUnits * rc.compensationRate;
-  const unitCost = surplusUnits > 0 ? unitCostOfLife(ac, c, rc, a) : { rate: 0, trace: '' };
-  const overDelivery = surplusUnits * unitCost.rate;
+  const avoid = avoidableSurplus(ac, c, rc, surplusUnits);
+  const unitCost = avoid.units > 0 ? unitCostOfLife(ac, c, rc, a) : { rate: 0, trace: '' };
+  const overDelivery = avoid.units * unitCost.rate;
   const slackMonths = -gap / monthlyRate(p, rc.unit);
   const u = rc.unit;
   const verdict =
     gap > 0
       ? `shortfall ${num(shortfallUnits)} ${u} × ${usd2(rc.compensationRate)}/${u} = ${usd(compensation)} compensation`
       : gap < 0
-        ? `over-delivery ${num(surplusUnits)} ${u}: ${unitCost.trace} → ${usd(overDelivery)}`
+        ? avoid.units > 0
+          ? `surplus ${num(surplusUnits)} ${u}; ${avoid.trace}. Over-delivery ${num(avoid.units)} ${u}: ${unitCost.trace} → ${usd(overDelivery)}`
+          : `surplus ${num(surplusUnits)} ${u}, ${avoid.trace}`
         : 'exactly on the threshold';
   const trace =
     `${clock.trace}. Less ${num(use)} ${u} projected before handback = ${num(remainingAtReturn)} ${u} at return. ` +
@@ -171,6 +200,7 @@ export function assessRequirement(
     gap,
     shortfallUnits,
     surplusUnits,
+    avoidableSurplusUnits: avoid.units,
     compensation,
     unitCostOfLife: unitCost.rate,
     overDelivery,
@@ -182,15 +212,24 @@ export function assessRequirement(
 /**
  * ASSUMPTIONS §7: on shortfall the executed lease lets the lessor require rectification or
  * take redelivery and be indemnified at commercial rates — so no component can owe more than
- * the shop visit that would put it right. Linear compensation is capped here.
+ * the cheapest work that would put it right. For an engine that is a restoration if a
+ * restoration clock is short (both workscopes buy the same time on wing, so the build-for-cash
+ * price), plus an LLP replacement only if the LLP clause is short. Linear compensation is
+ * capped here.
  */
-export function rectificationCost(ac: Aircraft, c: Component, a: Assumptions): UnitCostOfLife {
+export function rectificationCost(ac: Aircraft, c: Component, a: Assumptions, short: { interval: boolean; llp: boolean } = { interval: true, llp: false }): UnitCostOfLife {
   const m = a.maintenanceCostMultiplier;
   const mult = m === 1 ? '' : ` × maintenance cost ${m.toFixed(2)}`;
   switch (c.kind) {
     case 'engine': {
-      const sv = engineShopVisitCost(ac.engineModel, ac.environment, 'build-for-interval', c.shopVisitCount + 1);
-      return { rate: sv.total * m, trace: `a ${sv.workscope} visit (${usd(sv.total)}${mult})` };
+      const sv = engineShopVisitCost(ac.engineModel, ac.environment, 'build-for-cash', c.shopVisitCount + 1);
+      const restore = short.interval || !short.llp;
+      const rate = ((restore ? sv.restoration : 0) + (short.llp ? sv.llp : 0)) * m;
+      const parts = [
+        ...(restore ? [`a restoration (${usd(sv.restoration)})`] : []),
+        ...(short.llp ? [`an LLP replacement to a ${num(sv.bucketCycles)} FC bucket (${usd(sv.llp)})`] : []),
+      ];
+      return { rate, trace: `${parts.join(' and ')}${mult}` };
     }
     case 'landing-gear': {
       const g = LANDING_GEAR[ac.type];
@@ -226,7 +265,7 @@ export interface ComponentResult {
   binding: BindingClock;
   /** Binding-clock shortfall × rate, plus LLP, before the cap. */
   compensationUncapped: number;
-  /** What putting the component right would cost — the most the lease can claim. */
+  /** The cheapest work that would put the component right — the most the lease can claim. */
   rectificationCost: number;
   /** min(compensationUncapped, rectificationCost). */
   compensation: number;
@@ -260,7 +299,7 @@ export function assessComponent(
   const bound = requirements.find((r) => r.requirementId === binding.requirementId)!;
   const llp = requirements.filter((r) => r.group === 'llp');
   const compensationUncapped = bound.compensation + llp.reduce((s, r) => s + r.compensation, 0);
-  const cap = rectificationCost(ac, c, a);
+  const cap = rectificationCost(ac, c, a, { interval: bound.compensation > 0, llp: llp.some((r) => r.compensation > 0) });
   const capped = compensationUncapped > cap.rate;
   const compensation = capped ? cap.rate : compensationUncapped;
   const overDelivery = bound.overDelivery + llp.reduce((s, r) => s + r.overDelivery, 0);
@@ -275,7 +314,7 @@ export function assessComponent(
       : `${bound.unit} is the only clock.`;
   const llpNote = llp.length ? ` LLP counted on top: ${llp.map((r) => `${usd(r.compensation)} compensation, ${usd(r.overDelivery)} over-delivery`).join('; ')}.` : '';
   const capNote = capped
-    ? ` Linear compensation ${usd(compensationUncapped)} exceeds the cost of ${cap.trace}, which is the lease's own remedy, so it is capped there.`
+    ? ` Linear compensation ${usd(compensationUncapped)} exceeds the cheapest work that would put it right, ${cap.trace}, which is the lease's own remedy, so it is capped there.`
     : '';
   const trace =
     `${c.position} (${c.serial}, ${c.qmeStatus}), ${basis}: ${bindingNote}${llpNote}${capNote} ` +

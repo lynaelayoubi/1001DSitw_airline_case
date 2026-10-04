@@ -1,12 +1,13 @@
 // SPEC §2.6 — the four levers. Fixture arithmetic (fixtures.test-helpers.ts): 275 FH and
 // 100 FC a month for 16 months. ENG2 has one build-for-interval visit behind it: 2,000 FH and
 // 500 FC to its next shop visit and 19,500 FC of LLP life today, so it runs out of cycles at
-// month 5. Its baseline is 1,300 FC short × $1,800 = $2,340,000 compensation plus 17,400 FC of
-// LLP surplus × $330 = $5,742,000 over-delivery: $8,082,000.
+// month 5. Its baseline is 1,300 FC short × $1,800 = $2,340,000 compensation plus over-delivery:
+// of its 17,400 FC of LLP surplus, the 12,000 FC a build-for-interval visit bought beyond a
+// build-for-cash one, × $330 = $3,960,000. $6,300,000 in all.
 
 import { describe, expect, it } from 'vitest';
 
-import { DAYS_PER_MONTH, LABOUR_RATE_PER_MH } from './constants';
+import { LABOUR_RATE_PER_MH } from './constants';
 import { assessTail } from './exposure';
 import { AS_OF, aircraft, assumptions, component, condition, conditions, lessor, spare } from './fixtures.test-helpers';
 import { doTheWork, flyItDifferently, moveAComponent, payAtHandback, timeTheShopVisit, type Donor, type LeverContext } from './levers';
@@ -29,17 +30,15 @@ function context(
 // The engine numbers a reader can redo: a second visit prices at the mature-run PR cost.
 const BFC_RESTORATION = 6_500_000 * (3.1 / 3.88); // $5,193,299
 const ENGINE_RI = 300 * LABOUR_RATE_PER_MH; // $28,500
-const TAT = 200 / DAYS_PER_MONTH; // 6.57 months
-// A build-for-cash visit on ENG2 inducted at month 5, back at 5 + TAT; it then flies 16 − 5 − TAT months.
-const flownAfter = 16 - 5 - TAT;
-const RESTORED_OD = (10_000 - 100 * flownAfter - 200) * (BFC_RESTORATION / 10_000) + (19_000 - 100 * flownAfter - 500) * 330;
+// ENG2's sunk over-delivery: carried by every option that leaves it on the aircraft.
+const SUNK_OD = 12_000 * 330;
 
 describe('pay at handback', () => {
   it('is the exposure, with nothing spent', () => {
     const ctx = context(aircraft({}, [eng2]));
     const o = payAtHandback(ctx);
     expect(o).toMatchObject({ lever: 'pay', cost: 0, downtimeCost: 0, feasible: true, deadline: null, saving: 0 });
-    expect(o.total).toBeCloseTo(8_082_000, 3);
+    expect(o.total).toBeCloseTo(2_340_000 + SUNK_OD, 3);
   });
 
   it('says so when a component runs out before handback', () => {
@@ -70,13 +69,15 @@ describe('L1 · do the work', () => {
     expect(o.cost).toBeCloseTo(BFC_RESTORATION + ENGINE_RI, 3);
     expect(o.downtimeDays).toBe(14); // no spare in the pool: the aircraft waits
     expect(o.downtimeCost).toBe(14 * 45_000);
-    expect(o.newExposure).toBeCloseTo(RESTORED_OD, 0);
+    // Compensation goes; the life the visit buys is in its price; the old run's sunk over-delivery stays.
+    expect(o.newExposure).toBeCloseTo(SUNK_OD, 3);
     expect(o.deadline).toBe(addMonths(AS_OF, 1)); // month 5 less 4 months' lead
     expect(o.trace).toContain('LLPs kept');
+    expect(o.trace).toContain('lost either way');
   });
 
   it('pays when the work costs more than the compensation it avoids', () => {
-    // $5.2M of work and $10.8M of fresh life handed back, to avoid $2.34M of compensation.
+    // $5.2M of work and $630,000 of downtime to avoid $2.34M of compensation.
     const o = doTheWork(context(aircraft({}, [eng2])));
     expect(o.saving).toBeLessThan(0);
   });
@@ -125,15 +126,22 @@ describe('L4 · time the shop visit', () => {
     expect(o.curve!.find((x) => x.month === 10)!.reason).toContain('turnaround');
   });
 
-  it('weighs green time scrapped against a fuller bucket at handback', () => {
-    // Month 4 scraps 100 FC of the current run at $540/FC ($54,000) but hands back 100 FC less
-    // of the new one at $519/FC — so month 5 is cheaper by about $2,067.
+  it('costs the same in every open month on a no-reserve lease, and then takes the latest', () => {
     const o = timeTheShopVisit(context(aircraft({}, [eng2])));
     const at = (m: number) => o.curve!.find((x) => x.month === m && x.workscope === 'build-for-cash')!;
-    expect(at(4).scrapped).toBeCloseTo(100 * 540, 3);
-    expect(at(5).scrapped).toBeCloseTo(0, 3);
-    expect(at(4).total - at(5).total).toBeCloseTo(54_000 - 100 * (BFC_RESTORATION / 10_000), 0);
+    expect(at(4).total).toBeCloseTo(at(5).total, 3);
+    expect(at(4).overDelivery).toBeCloseTo(SUNK_OD, 3); // carried, whatever the month
     expect(o.label).toBe('Time the shop visit: ENG2 build-for-cash visit, month 5');
+  });
+
+  it('on a reserve lease, reclaims a month more of reserves for each month later it goes in', () => {
+    // A balance small enough not to hit the cap: $480/FH × (5,000 FH since the last recognised
+    // visit + 275 FH a month to induction). Month 5 holds 275 FH × $480 = $132,000 more than month 4.
+    const eng = component('engine', 'ENG2', { ...eng2, asLeaseAllows: { tso: 5_000, cso: 9_500, llpMinCyclesRemaining: 19_500 } });
+    const o = timeTheShopVisit(context(aircraft({}, [eng]), { lessor: lessor({ architecture: 'reserve' }) }));
+    const at = (m: number) => o.curve!.find((x) => x.month === m && x.workscope === 'build-for-cash')!;
+    expect(at(5).reserves - at(4).reserves).toBeCloseTo(275 * 480, 3);
+    expect(at(4).total - at(5).total).toBeCloseTo(275 * 480, 3);
   });
 
   it('is never worse than doing the work, because L1 is one point on its curve', () => {
@@ -144,13 +152,13 @@ describe('L4 · time the shop visit', () => {
     expect(l4.actionKey).toBe(l1.actionKey); // here they land on the same month and workscope
   });
 
-  it('replacing LLPs scraps their stub', () => {
-    // Build-for-interval would leave 20,000 FC, more than the 19,000 left: the parts come out
-    // with 19,000 FC of life at $330/FC still on them.
+  it('pays for LLPs only when the workscope replaces them', () => {
+    // Build-for-interval would leave 20,000 FC, more than the 19,000 left, so the parts are
+    // replaced and paid for; build-for-cash's 8,000 FC is less, so they stay.
     const o = timeTheShopVisit(context(aircraft({}, [eng2])));
-    const bfi = o.curve!.find((x) => x.month === 5 && x.workscope === 'build-for-interval')!;
-    expect(bfi.scrapped).toBeCloseTo(19_000 * 330, 3);
-    expect(bfi.visitCost).toBeCloseTo(6_500_000 + 6_600_000, 3);
+    const at = (s: string) => o.curve!.find((x) => x.month === 5 && x.workscope === s)!;
+    expect(at('build-for-interval').visitCost).toBeCloseTo(6_500_000 + 6_600_000, 3);
+    expect(at('build-for-cash').visitCost).toBeCloseTo(BFC_RESTORATION, 3);
   });
 });
 
@@ -159,12 +167,13 @@ describe('L2 · fly it differently', () => {
   const shortDense = aircraft({ routeProfile: 'short-dense', hoursPerMonth: 291, cyclesPerMonth: 151 }, [eng2]);
 
   it('re-runs the projection on the other profile and reports the change', () => {
-    // As is: 2,416 FC flown, 2,116 short × $1,800 = $3,808,800; LLP surplus 16,584 × $330 = $5,472,720.
-    // Mixed (301 FH, 107 FC): 1,712 FC flown, 1,412 short = $2,541,600; LLP 17,288 × $330 = $5,705,040.
+    // As is: 2,416 FC flown, 2,116 short × $1,800 = $3,808,800. Mixed (301 FH, 107 FC): 1,712 FC
+    // flown, 1,412 short = $2,541,600. The sunk over-delivery is the same 12,000 FC × $330 on both
+    // profiles, so it cancels: the saving is the compensation alone.
     const o = flyItDifferently(context(shortDense));
     expect(o.label).toBe('Fly it mixed, not short-dense (flag to routing)');
-    expect(o.newExposure).toBeCloseTo(2_541_600 + 5_705_040, 3);
-    expect(o.saving).toBeCloseTo(3_808_800 + 5_472_720 - (2_541_600 + 5_705_040), 3);
+    expect(o.newExposure).toBeCloseTo(2_541_600 + SUNK_OD, 3);
+    expect(o.saving).toBeCloseTo(3_808_800 - 2_541_600, 3);
     expect(o).toMatchObject({ cost: 0, downtimeDays: 0, deadline: AS_OF });
     expect(o.trace).toContain('not a schedule');
   });
@@ -185,21 +194,26 @@ describe('L2 · fly it differently', () => {
 });
 
 describe('L3 · move a component', () => {
-  // Fitted to ENG2 on the full fixture tail (exposure $8,773,378 if nothing changes).
+  // Fitted to ENG2 on the full fixture tail ($6,528,600 if nothing changes). A spare's life
+  // above the thresholds leaves the airline with it, priced at build-for-interval rates
+  // ($540/FC restoration, $330/FC LLP):
   // TIGHT: 2,000 FC / 5,500 FH to its next visit, 12,000 FC of LLP. At handback 200 FC and
   //        9,900 LLP FC over → 200 × $540 + 9,900 × $330 = $3,375,000.
   // RICH:  the most life — 7,700 FC and 17,400 LLP FC over → $9,900,000.
   const tight = spare('U1', 'ESN-TIGHT', { tso: 22_000, cso: 8_000, llpMinCyclesRemaining: 12_000 });
   const rich = spare('U2', 'ESN-RICH', { tso: 1_375, cso: 500, llpMinCyclesRemaining: 19_500 });
-  const baseline = 8_082_000 + 98 * (680_000 / 144) + 160_000 + 68_600;
+  const baseline = 2_340_000 + SUNK_OD + 160_000 + 68_600; // gear surplus is not over-delivery
 
   it('picks the right-sized unit, not the one with the most life', () => {
     const o = moveAComponent(context(full, { pool: [rich, tight] }));
     expect(o.label).toBe('Swap ENG2 for spare ESN-TIGHT');
-    expect(o.newExposure).toBeCloseTo(baseline - 8_082_000 + 3_375_000, 0);
+    // ENG2's compensation and its sunk over-delivery leave with it — it goes to the pool, so its
+    // avoidable LLP life is not handed over — and the spare's priced life comes in.
+    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 3_375_000, 0);
     expect(o.cost).toBeCloseTo(ENGINE_RI, 3);
     expect(o.downtimeCost).toBe(45_000); // one overnight change
-    expect(o.saving).toBeCloseTo(8_082_000 - 3_375_000 - ENGINE_RI - 45_000, 0);
+    expect(o.saving).toBeCloseTo(2_340_000 + SUNK_OD - 3_375_000 - ENGINE_RI - 45_000, 0);
+    expect(o.trace).toContain(`its $3,960,000 of avoidable LLP life is not handed over`);
     expect(o.move).toMatchObject({ position: 'ENG2', incoming: { id: 'U1', from: 'pool' } });
     expect(o.trace).toContain('200 FC above');
   });
@@ -209,13 +223,13 @@ describe('L3 · move a component', () => {
   });
 
   it("never treats a spare's life as free", () => {
-    // Never been to the shop, so the exposure would price its surplus at nothing. Priced at a
-    // build-for-interval visit's rates: 6,700 FC × $540 + 13,900 LLP FC × $330 = $8,205,000.
+    // Never been to the shop, so on its own tail its surplus would not be over-delivery at all.
+    // As a spare it leaves the airline: 6,700 FC × $540 + 13,900 LLP FC × $330 = $8,205,000.
     const fresh = spare('U3', 'ESN-NEW', { tso: 11_000, cso: 4_000, llpMinCyclesRemaining: 16_000, lastWorkscope: 'none', shopVisitCount: 0 });
     const o = moveAComponent(context(full, { pool: [fresh] }));
-    expect(o.newExposure).toBeCloseTo(baseline - 8_082_000 + 6_700 * 540 + 13_900 * 330, 0);
+    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 6_700 * 540 + 13_900 * 330, 0);
     expect(o.saving).toBeLessThan(0);
-    expect(o.trace).toContain('never been to the shop');
+    expect(o.trace).toContain('is a spare, so all its life');
   });
 
   it('rules out a unit that would run out before handback', () => {
@@ -240,7 +254,10 @@ describe('L3 · move a component', () => {
     expect(d.exposureAfter).toBeCloseTo(withOurs.asRecorded.exposure, 3);
     expect(o.cost).toBeCloseTo(2 * ENGINE_RI + d.exposureAfter - d.exposureBefore, 3);
     expect(o.downtimeDays).toBe(2);
-    expect(o.move!.own.newExposure).toBeCloseTo(3_375_000, 0);
+    // Between two returning tails a unit is handed to a lessor either way, so it stays on the
+    // over-delivery rule: the donor's engine here has 9,900 LLP FC over, less than the 12,000 a
+    // build-for-cash visit would have saved, so none of it was avoidable and it owes nothing.
+    expect(o.move!.own.newExposure).toBeCloseTo(0, 3);
   });
 
   it('will not hand another tail a unit that runs out before its handback', () => {

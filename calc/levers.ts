@@ -86,10 +86,10 @@ export interface CurvePoint {
   reason: string;
   visitCost: number;
   reserves: number;
-  scrapped: number;
   downtimeCost: number;
-  /** The timed component's compensation and over-delivery at handback after the visit. */
+  /** The timed component's compensation at handback after the visit. */
   compensation: number;
+  /** Its sunk over-delivery, carried whatever the month: the past visit's avoidable LLP life is lost either way. */
   overDelivery: number;
   total: number;
 }
@@ -99,8 +99,7 @@ export interface LeverOption {
   label: string;
   /**
    * Money the option spends: maintenance, less reserves reclaimed, plus removal and
-   * installation and any green time scrapped. For a swap between two tails, also the exposure
-   * it creates on the other one.
+   * installation. For a swap between two tails, also the exposure it creates on the other one.
    */
   cost: number;
   downtimeDays: number;
@@ -214,12 +213,6 @@ function focusOut(ctx: LeverContext): string | null {
   if (ctx.focus === undefined) return null;
   const c = ctx.ac.components[ctx.focus]!;
   return MOVABLE.includes(c.kind) ? null : `${c.position} is the one running out, and the airframe cannot be swapped or its heavy check timed by the levers.`;
-}
-
-/** The engine's LLP origin when a visit leaves the parts in place. */
-function llpOrigin(c: Component): Component['llpBoughtBy'] {
-  if (c.llpBoughtBy !== undefined) return c.llpBoughtBy;
-  return c.shopVisitCount > 0 && c.lastWorkscope !== 'none' ? { workscope: c.lastWorkscope, visitNumber: c.shopVisitCount } : null;
 }
 
 // ---------------------------------------------------------------------------------------
@@ -356,7 +349,6 @@ interface Visit {
   reason: string;
   visitCost: number;
   reserves: number;
-  scrapped: number;
   downtimeDays: number;
   downtimeCost: number;
   before: ComponentResult;
@@ -373,6 +365,11 @@ interface Visit {
  * on exchange. The restored unit is written with counters measured from the visit — negative
  * today, because the visit is in the future — so the exposure engine projects it to handback
  * unchanged. The new visit is assumed evidenced as a QME.
+ *
+ * What the option costs is the visit's price. The life it buys is paid for in that price, so
+ * none of it counts again as over-delivery; the old unit's sunk over-delivery — the avoidable
+ * LLP life of its last visit — is lost whether it is handed over or scrapped, so it is carried
+ * unchanged and cancels against doing nothing. Only compensation moves.
  */
 function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope): Visit {
   const { ac, a, baseline, conditions } = ctx;
@@ -391,18 +388,16 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   let restored: Component;
   let restoration: number;
   let llpCost = 0;
-  let llpReplaced = false;
   let workTrace: string;
   if (engine) {
-    const n = c.shopVisitCount + 1;
-    const sv = engineShopVisitCost(ac.engineModel, ac.environment, scope, n);
+    const sv = engineShopVisitCost(ac.engineModel, ac.environment, scope, c.shopVisitCount + 1);
     const llpAtInduction = c.llpMinCyclesRemaining - cyclesTo(month);
-    llpReplaced = llpAtInduction < sv.bucketCycles;
+    const llpReplaced = llpAtInduction < sv.bucketCycles;
     restoration = sv.restoration * mult;
     llpCost = llpReplaced ? sv.llp * mult : 0;
     const llp = llpReplaced ? sv.bucketCycles : llpAtInduction;
     const counters = { tso: -hoursTo(back), cso: -cyclesTo(back), llpMinCyclesRemaining: llp + cyclesTo(back) };
-    restored = { ...c, ...counters, ...done, asLeaseAllows: counters, lastWorkscope: scope, llpBoughtBy: llpReplaced ? { workscope: scope, visitNumber: n } : llpOrigin(c) };
+    restored = { ...c, ...counters, ...done, asLeaseAllows: counters, lastWorkscope: scope };
     workTrace =
       `restoration ${usd(restoration)}` +
       (llpReplaced
@@ -427,22 +422,6 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   }
   const visitCost = restoration + llpCost;
 
-  // Green time scrapped: life already paid for that is still on the clock when the unit comes off.
-  const leftAt = (r: RequirementResult) => r.remainingToday - monthlyRate(p, r.unit) * month;
-  const interval = before.requirements.filter((r) => r.group === 'interval');
-  const first = interval.reduce((x, y) => (leftAt(y) / monthlyRate(p, y.unit) < leftAt(x) / monthlyRate(p, x.unit) ? y : x));
-  const stubUnits = Math.max(0, leftAt(first));
-  const stubRate = unitCostOfLife(ac, c, conditionFor(conditions, first.requirementId), a).rate;
-  let scrapped = stubUnits * stubRate;
-  const scrapNotes = [stubUnits > 0 ? `${num(stubUnits)} ${first.unit} of ${clockWord(first)} left × ${usd2(stubRate)}` : `no ${clockWord(first)} left`];
-  const llpReq = before.requirements.find((r) => r.group === 'llp');
-  if (llpReplaced && llpReq) {
-    const units = Math.max(0, leftAt(llpReq));
-    const rate = unitCostOfLife(ac, c, conditionFor(conditions, llpReq.requirementId), a).rate;
-    scrapped += units * rate;
-    scrapNotes.push(`${num(units)} FC of LLP stub × ${usd2(rate)}`);
-  }
-
   const reserves = reservesAt(ctx, i, month, restoration, llpCost);
   const spare = engine && ctx.pool.some((u) => u.kind === 'engine' && u.model === ac.engineModel);
   const downtimeDays = engine
@@ -464,17 +443,17 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   const downtimeCost = downtimeDays * perDay;
 
   const after = assessComponent(ac, restored, conditions, p, 'as-recorded', a);
-  const newExposure = baseline.asRecorded.exposure - before.exposure + after.exposure;
-  const cost = visitCost + ri.amount - reserves.amount + scrapped;
+  const newExposure = baseline.asRecorded.exposure - before.compensation + after.compensation;
+  const cost = visitCost + ri.amount - reserves.amount;
   const reason = visitBlock(ctx, i, month);
+  const sunk = a.countOverDeliveryAsLoss && before.overDelivery > 0 ? ` The ${usd(before.overDelivery)} of avoidable LLP life on the old run is lost either way and stays in.` : '';
   const trace =
     `${c.position} ${visitName(c.kind, scope)} inducted month ${month} (${date})` +
     (engine ? `, back on wing month ${num(back, 1)} after a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround` : '') +
-    `: ${workTrace} + removal and installation ${usd(ri.amount)} (${ri.trace}) − reserves ${usd(reserves.amount)} (${reserves.trace}) ` +
-    `+ green time scrapped ${usd(scrapped)} (${scrapNotes.join('; ')}) = ${usd(cost)}. ` +
+    `: ${workTrace} + removal and installation ${usd(ri.amount)} (${ri.trace}) − reserves ${usd(reserves.amount)} (${reserves.trace}) = ${usd(cost)}. ` +
     `Down ${days(downtimeDays)} × ${usd(perDay)} = ${usd(downtimeCost)} (${downWhy}). ` +
-    `At handback ${c.position} would owe ${usd(after.compensation)} and hand back ${usd(after.overDelivery)} of surplus life, ` +
-    `against ${usd(before.exposure)} if nothing is done → tail exposure ${usd(newExposure)}.`;
+    `At handback ${c.position} would owe ${usd(after.compensation)} in compensation against ${usd(before.compensation)} if nothing is done; ` +
+    `the life the visit buys is paid for in its price.${sunk} Tail exposure ${usd(newExposure)}.`;
   return {
     index: i,
     position: c.position,
@@ -486,7 +465,6 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
     reason,
     visitCost,
     reserves: reserves.amount,
-    scrapped,
     downtimeDays,
     downtimeCost,
     before,
@@ -577,13 +555,13 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
           reason: v.reason,
           visitCost: v.visitCost,
           reserves: v.reserves,
-          scrapped: v.scrapped,
           downtimeCost: v.downtimeCost,
           compensation: v.after.compensation,
-          overDelivery: v.after.overDelivery,
+          overDelivery: v.before.overDelivery,
           total: v.total,
         });
-        if (v.feasible && (!pick || v.total < pick.total)) pick = v;
+        // Months that cost the same go to the later one: it keeps the decision open longest.
+        if (v.feasible && (!pick || v.total < pick.total - 0.5 || (v.total <= pick.total + 0.5 && v.month > pick.month))) pick = v;
       }
     if (!pick) {
       notes.push(noWindow(ctx, i));
@@ -616,7 +594,8 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     trace:
       `Lever 4, time the shop visit: ${v.position} swept month by month from the ${lead}-month slot lead time to handback, both workscopes. ` +
       `Open months: ${byMonth.join('; ')}. Cheapest: ${v.workscope} inducted month ${v.month}. ${v.trace} ` +
-      `Earlier scraps more green time already paid for; later hands back a fuller bucket. Book the slot by ${deadline}.` +
+      `A visit costs the same whichever open month it is in, so months differ only by the reserves reclaimed by then and any compensation left; ` +
+      `equal months go to the latest, which keeps the decision open longest. Book the slot by ${deadline}.` +
       (others.length ? ` Elsewhere on the tail: ${others.join('; ')}.` : '') +
       (notes.length ? ` Not possible elsewhere on the tail: ${notes.join('; ')}.` : ''),
   });
@@ -691,14 +670,16 @@ export function flyItDifferently(ctx: LeverContext): LeverOption {
 // ---------------------------------------------------------------------------------------
 
 /**
- * A unit that has never been to the shop has its surplus priced at nothing by the exposure,
- * because on its own tail that life came with the aircraft. A spare's life is the airline's
- * own, so handing it over is priced at what a build-for-interval visit charges for it. This is
- * what makes tightness of fit cost money: every unit of life above the threshold is paid for.
+ * A spare from the pool would otherwise stay with the airline, so all of its life above the
+ * thresholds leaves the airline because of the swap — not only the part a past visit did not
+ * need to buy. It is priced at a build-for-interval visit's rates, which is what makes
+ * tightness of fit cost money. A unit swapped between two returning tails is handed to a lessor
+ * either way, so it stays on the over-delivery rule on both tails. Returns the spare's exposure
+ * on this tail: its compensation plus that life.
  */
-function lifeGivenAway(ac: Aircraft, unit: Component, result: ComponentResult, conditions: ReturnCondition[], a: Assumptions) {
-  if (!a.countOverDeliveryAsLoss || (unit.shopVisitCount > 0 && unit.lastWorkscope !== 'none')) return { amount: 0, trace: '' };
-  const priced: Component = { ...unit, shopVisitCount: 1, lastWorkscope: 'build-for-interval', llpBoughtBy: undefined };
+function spareExposure(ac: Aircraft, unit: Component, result: ComponentResult, conditions: ReturnCondition[], a: Assumptions) {
+  if (!a.countOverDeliveryAsLoss) return { exposure: result.compensation, trace: '' };
+  const priced: Component = { ...unit, shopVisitCount: Math.max(1, unit.shopVisitCount), lastWorkscope: 'build-for-interval' };
   const parts = result.requirements
     .filter((r) => r.surplusUnits > 0 && (r.requirementId === result.binding.requirementId || r.group === 'llp'))
     .map((r) => {
@@ -706,12 +687,12 @@ function lifeGivenAway(ac: Aircraft, unit: Component, result: ComponentResult, c
       return { r, rate, amount: r.surplusUnits * rate };
     });
   const amount = parts.reduce((s, x) => s + x.amount, 0);
-  if (!amount) return { amount: 0, trace: '' };
   return {
-    amount,
-    trace:
-      `${unit.serial} has never been to the shop, so its surplus would otherwise count as free; it is the airline's own life, priced at a ` +
-      `build-for-interval visit's rates: ${parts.map((x) => `${num(x.r.surplusUnits)} ${x.r.unit} × ${usd2(x.rate)}`).join(' + ')} = ${usd(amount)}`,
+    exposure: result.compensation + amount,
+    trace: amount
+      ? `${unit.serial} is a spare, so all its life above the thresholds leaves the airline with it, priced at a build-for-interval visit's rates: ` +
+        `${parts.map((x) => `${num(x.r.surplusUnits)} ${x.r.unit} × ${usd2(x.rate)}`).join(' + ')} = ${usd(amount)}`
+      : '',
   };
 }
 
@@ -738,14 +719,14 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
   const before = baseline.asRecorded.components[i]!;
   const incoming: Component = { ...unit, position: c.position, installedOn: ac.tail };
   const after = assessComponent(ac, incoming, conditions, p, 'as-recorded', a);
-  const given = lifeGivenAway(ac, incoming, after, conditions, a);
+  const given = donor ? { exposure: after.exposure, trace: '' } : spareExposure(ac, incoming, after, conditions, a);
   const dd = SWAP_DAYS[c.kind];
   const ri = removalInstall(c.kind, 1);
   const own = {
     cost: ri.amount,
     downtimeDays: dd,
     downtimeCost: dd * a.downtimeCostPerDay[ac.bodyClass],
-    newExposure: baseline.asRecorded.exposure - before.exposure + after.exposure + given.amount,
+    newExposure: baseline.asRecorded.exposure - before.exposure + given.exposure,
   };
 
   // A swap that installs a unit which runs out before handback only moves the problem forward.
@@ -762,9 +743,8 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
     const dBefore = d.baseline.asRecorded.components[j]!;
     const outgoing: Component = { ...c, position: theirs.position, installedOn: d.ac.tail };
     const dAfter = assessComponent(d.ac, outgoing, d.conditions, d.baseline.projection, 'as-recorded', a);
-    const dGiven = lifeGivenAway(d.ac, outgoing, dAfter, d.conditions, a);
     const exposureBefore = d.baseline.asRecorded.exposure;
-    const exposureAfter = exposureBefore - dBefore.exposure + dAfter.exposure + dGiven.amount;
+    const exposureAfter = exposureBefore - dBefore.exposure + dAfter.exposure;
     blocked ||= reach(d.baseline.projection, dAfter, d.ac.tail, c.serial);
     donorPart = {
       tail: d.ac.tail,
@@ -775,8 +755,8 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
       exposureBefore,
       exposureAfter,
       trace:
-        `On ${d.ac.tail}, ${c.serial} in ${theirs.position} would owe ${usd(dAfter.compensation)} and hand back ${usd(dAfter.overDelivery)}` +
-        `${dGiven.trace ? ` (${dGiven.trace})` : ''}, against ${usd(dBefore.exposure)} for ${theirs.serial}: ${d.ac.tail} exposure ${usd(exposureBefore)} → ${usd(exposureAfter)}.`,
+        `On ${d.ac.tail}, ${c.serial} in ${theirs.position} would owe ${usd(dAfter.compensation)} with ${usd(dAfter.overDelivery)} of avoidable LLP life, ` +
+        `against ${usd(dBefore.exposure)} for ${theirs.serial}: ${d.ac.tail} exposure ${usd(exposureBefore)} → ${usd(exposureAfter)}.`,
     };
   }
 
@@ -793,7 +773,7 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
   const trace =
     `${unit.serial} from ${where} into ${c.position}: fitted now, it reaches handback ${fit}. ` +
     `${ac.tail} exposure ${usd(baseline.asRecorded.exposure)} → ${usd(own.newExposure)}${given.trace ? ` (${given.trace})` : ''}. ` +
-    `${c.position} ${c.serial} goes ${donor ? `to ${where}` : "to the pool, where its life stays the airline's"}. ` +
+    `${c.position} ${c.serial} goes ${donor ? `to ${where}` : `to the pool, where its life stays the airline's${a.countOverDeliveryAsLoss && before.overDelivery > 0 ? `: its ${usd(before.overDelivery)} of avoidable LLP life is not handed over` : ''}`}. ` +
     `Removal and installation ${usd(ri.amount)} (${ri.trace})${donor ? ' on each tail' : ''}; down ${days(dd)} × ${usd(a.downtimeCostPerDay[ac.bodyClass])}` +
     (donorPart ? ` here and ${days(donorPart.downtimeDays)} × ${usd(a.downtimeCostPerDay[donor!.d.ac.bodyClass])} there. ${donorPart.trace} That ${usd(donorPart.exposureAfter - donorPart.exposureBefore)} is counted against the swap.` : '.');
   return {

@@ -12,7 +12,8 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
   const t = fleet.totals;
   const r = plans.totals;
   return (
-    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <section>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <Tile
         label="If nothing changes"
         value={<Trace text={fleet.trace}>{money(t.doNothing)}</Trace>}
@@ -39,6 +40,15 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
         }
         flag={t.qmeDelta > 0}
       />
+      </div>
+      <p className="mt-2 text-sm text-slate-600">
+        Of the <Trace text={fleet.trace}>{money(t.doNothing)}</Trace> if nothing changes,{' '}
+        <span className="font-semibold text-slate-900">{money(t.compensation)}</span> is cash payable to lessors at handback and{' '}
+        <span className="font-semibold text-slate-900">{money(t.overDelivery)}</span> is life already bought and handed over — LLP life past shop visits
+        bought beyond the cheapest workscope that would have cleared the contract
+        {fleet.assumptions.countOverDeliveryAsLoss ? '' : ' (not counted in this scenario)'}. That part is sunk: it cancels out of the avoidable figure
+        unless a swap keeps the unit in the pool.
+      </p>
     </section>
   );
 }

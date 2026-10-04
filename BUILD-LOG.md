@@ -407,3 +407,54 @@ levers existed.
 **Recommendations computed in the browser at load, about a second for this fleet.** · Rejected:
 precomputing them into `fleet.json`. · Because the scenario panel (SPEC §3.4) has to recompute
 them live, and a stored answer would hide the arithmetic behind a file.
+
+## Step 5 · the scale of the exposure — Sunday 4 October
+
+Diagnosis in `DIAGNOSIS.md`: exposure on the ten returning tails was $130M, 1.45× the
+maintenance they accrue before handback, and $93.6M of it was over-delivery.
+
+**Over-delivery counts only the surplus that did not have to be bought: an engine's LLP bucket
+from a build-for-interval visit beyond a build-for-cash one, where the smaller bucket would still
+have cleared the clause; nothing on restoration, check or overhaul clocks.** · Rejected: every
+unit of surplus at what it cost to buy (Step 3). · Because a shop visit is bought whole and every
+past one was forced — the engine came off at its limit, the check fell due — so only the choice of
+the larger workscope was avoidable. Over-delivery falls from $93.6M to $36.5M.
+
+**Compensation capped at the cheapest work that would put the component right: a restoration at
+the build-for-cash price, plus an LLP replacement only if the LLP clause is short.** · Rejected:
+Step 3's cap at a build-for-interval visit. · Because an unrecognised restoration is put right by a
+restoration, not by a new LLP stack; the old cap let the lease basis claim $27–35M an engine, and
+four of the seven unevidenced engines sat on it. The QME delta falls from $105.6M to $42.5M.
+
+**LLP life read as recorded on the lease basis.** · Rejected: the generator's withdrawal of the
+last run's cycles from LLP life. · Because LLP life is tracked part by part and an unrecognised
+visit does not take life off fitted parts. Worth $0.8M here; wrong in principle. The calc reads it
+differently; the data is left as generated.
+
+**A future visit's life is paid for in its price, and the old unit's sunk over-delivery is carried
+through unchanged; Step 4's "green time scrapped" is dropped.** · Rejected: keeping the scrapped
+term, and counting the new visit's surplus as over-delivery. · Because under the rule above,
+unavoidable life handed back is not a loss, so unavoidable life thrown away early is not one
+either, and counting the new life as well would charge the visit twice. Consequence: a visit costs
+the same in any open month, so lever 4 mostly confirms lever 1's month, differing where reserves
+or compensation make a month cheaper.
+
+**A pool spare's whole surplus priced at build-for-interval rates; a unit swapped between two
+returning tails stays on the over-delivery rule.** · Rejected: the rule for spares too, and full
+pricing for both. · Because a spare's life leaves the airline only because of the swap, while a
+unit between two returning tails goes to a lessor either way.
+
+**Sunk over-delivery cancels out of the avoidable figure for every option except a swap that sends
+the unit to the pool.** · Rejected: forcing it to cancel there too. · Because the unit is not
+handed over, so the loss is not realised — which is the point of moving components. It matters:
+$7.92M of ENG1 life kept on A6-GPZ and 9H-MMC, against a fleet avoidable figure of $4.79M. Open
+for review.
+
+**The headline says how much of the do-nothing figure is cash payable at handback and how much is
+life already bought and handed over.** · Rejected: leaving the split in the tile's subtitle. ·
+Because they are different kinds of loss and the demo has to say which is which.
+
+**A scale test against two outside figures, with stated bands** (ASSUMPTIONS §11b): exposure ÷
+maintenance accrual to handback in 0.2–1.0 (lands at 0.72), no tail above 2× its body class's
+settlement benchmark (largest 1.70), average 0.3–1.5× (lands at 0.82). · Rejected: eyeballing the
+totals. · Because the first version passed every unit test and was still twice the right size.

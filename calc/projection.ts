@@ -206,12 +206,20 @@ export function readClock(ac: Aircraft, c: Component, rc: ReturnCondition, basis
         );
       }
       if (rc.metric === 'llpCyclesRemaining') {
-        return out(
-          pos.llpMinCyclesRemaining,
-          null,
-          null,
-          `${c.position} ${model}: limiting life-limited part has ${num(pos.llpMinCyclesRemaining)} FC remaining today (the worst part sets the engine's life)`,
-        );
+        // LLP life is tracked part by part, with each part's own records: a shop visit that fails
+        // the lease's QME definition does not reset the restoration clock, but it does not take
+        // life off parts that were fitted. So both bases read the recorded LLP position.
+        const llp = c.llpMinCyclesRemaining;
+        const note = basis === 'as-lease-allows' ? ' (LLP life is tracked per part, so the lease basis reads it as recorded)' : '';
+        return {
+          metric: rc.metric,
+          unit: rc.unit,
+          basis,
+          remainingToday: llp,
+          limit: null,
+          used: null,
+          trace: `${c.position} ${model}: limiting life-limited part has ${num(llp)} FC remaining today (the worst part sets the engine's life)${note}`,
+        };
       }
       break;
     }

@@ -376,6 +376,22 @@ Useful shares for sanity: engines are **>80% of total direct maintenance cost on
 and **>90% on a 777-300ER**; within that, performance restoration is 35–40% and LLPs
 **50–55%**. Widebodies are 20.3% of the world fleet and **42% of MRO spend**.
 
+### 11b · The scale check — also a test
+
+Two comparisons against figures the model did not produce, each with a band and a reason
+(`calc/scale.ts`, `calc/scale.test.ts`).
+
+| check | band | reason |
+|---|---|---|
+| Exposure on the returning tails ÷ their four-component maintenance accrual between today and handback (the cost basis above) | **0.2–1.0** | a handback that costs more than all the maintenance it takes to get there counts something twice — before the over-delivery and cap fix this stood at 1.45; below 0.2, return conditions on a fleet where four of seven lessors write fat-threshold no-reserve leases would have no teeth |
+| Any one tail ÷ its body class's settlement benchmark | **≤ 2** | the benchmark is one settlement on a smaller, older engine; twice it leaves room for a fat-threshold lease with an engine past its limit |
+| Average over the tails with any exposure ÷ benchmark | **0.3–1.5** | centred on a real settlement; tails owing nothing are left out, since clearing every clause says nothing about the size of a claim |
+
+| benchmark | figure | source |
+|---|---|---|
+| Narrowbody | **$6.7M** | one 737-800 off lease, full settlement (Sun Country 10-Q, Q2 2025, audited; §7) |
+| Widebody | **$24.7M** = $6.7M × 3.69 | total maintenance event value, 777-300ER $60.4–75.8M ÷ A320-200 $17.7–19.2M at the midpoints (Ackert / ISTAT 2020; §7) |
+
 ---
 
 ## 12 · Sensitivity — the column that matters most
@@ -479,11 +495,13 @@ Lessors alternate architecture: four reserve, three no-reserve.
 | Engine cycle thresholds on widebodies | × (2.75 ÷ engine reference FH:FC) = × 0.39 | the executed lease is an A320; a cycle clause carried unscaled onto a 7 FH:FC engine demands more cycles than a mature engine has between visits |
 | Binding clock | of the hours / cycles / months clauses on one component, the one producing the larger compensation; if none is short, the one that runs out first | SPEC §2.3; the lease's own "the greater of the two amounts shall be payable" |
 | LLP clause | counted on top of the binding clock | a part-life limit, not the shop-visit interval |
-| Over-delivery unit cost, engine | restoration cost ÷ time on wing it buys (interval clocks); LLP cost ÷ bucket cycles (LLP clause) | the two halves of the visit buy two different kinds of life; pricing both at the visit total would count it twice |
-| Over-delivery unit cost, others | overhaul or check cost ÷ its interval | §3–§5 |
+| **Over-delivery** | only the surplus that did not have to be bought: on an engine's LLP clause, the bucket a build-for-interval visit bought beyond a build-for-cash one (12,000 FC narrowbody, 9,000 FC widebody), if the smaller bucket would still have cleared the clause at handback; **nothing** on restoration, check or overhaul clocks | a shop visit is bought whole and every past one was forced (the engine came off at its limit, the check or overhaul fell due); both engine workscopes buy the same time on wing and the others have one tier. Was: every unit of surplus at what it cost to buy, which made over-delivery $93.6M of a $130M fleet figure (DIAGNOSIS.md) |
+| Over-delivery unit cost | LLP cost ÷ bucket cycles of the visit that bought it | the LLP half of the visit buys LLP life |
 | Over-delivery with no shop visit in the lease | **$0** | the life came with the aircraft; nothing was paid for it |
-| **Compensation cap** | per component, min(linear compensation, cost of the rectifying shop visit: build-for-interval engine visit, gear overhaul + exchange fee, next structural check, APU overhaul) | §7: the executed lease's remedy is rectification or indemnity at commercial rates, so no clause can cost more than doing the work |
+| Over-delivery is sunk | realised when the unit is handed over; every option that leaves the unit on the aircraft carries it unchanged, so it cancels out of the avoidable figure. Only a swap that sends the unit to the pool keeps it | a real loss at handback, and not one the levers can undo — except by not handing the unit over |
+| **Compensation cap** | per component, min(linear compensation, the cheapest work that would put it right): an engine restoration at the build-for-cash price if a restoration clock is short, plus a build-for-cash LLP replacement only if the LLP clause is short; gear overhaul + exchange fee; next structural check; APU overhaul | §7: the executed lease's remedy is rectification or indemnity at commercial rates, so no clause can cost more than the work that puts it right. Was: a build-for-interval visit (restoration and a full new LLP stack) |
 | QME basis and over-delivery | the lease basis moves compensation only; over-delivery stays at the recorded figure | the visit was paid for whether or not the lease credits it, so the QME delta is purely what the lease would claim on top |
+| QME basis and LLP life | read as recorded on both bases | LLP life is tracked part by part, with each part's own records; an unrecognised visit does not reset the restoration clock, but it does not take life off parts that were fitted |
 | Horizon | 24 months | beyond the returning window a projection with no intervening shop visit is not a forecast; computed, not shown as one |
 | Shop slot lead time | **4 months** default, 3–6 | §1, customer |
 | Reserves reclaimable | 1.0 of a qualifying balance | credited by levers 1 and 4 (below); must be negotiated, not assumed |
@@ -497,15 +515,15 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 |---|---|---|
 | Basis | as recorded | the basis of the "if nothing changes" figure that avoidable is measured from |
 | Options per tail | pay at handback + one option per lever (its best application on the tail) | SPEC §2.7: argmin, runner-up, delta |
-| Total cost | maintenance − reserves reclaimed + removal and installation + green time scrapped + downtime + exposure still owed at handback | SPEC §2.7, plus green time scrapped (below) |
+| Total cost | maintenance − reserves reclaimed + removal and installation + downtime + exposure still owed at handback | SPEC §2.7 |
 | Earliest shop induction | today + shop slot lead time (4 months default) | §1, customer |
 | Latest shop induction | when the component's first clock runs out; for engines also handback − turnaround | it cannot fly past a limit; the restored engine must be back on wing before handback |
 | Engine shop turnaround | **200 days** | top of the 180–200 range in §8 — the conservative end for a feasibility claim |
 | Workscopes swept | engines: build-for-cash and build-for-interval; gear: overhaul + exchange fee; APU: overhaul | §2–§4 |
-| LLPs in a visit | replaced only if the workscope would leave more life than is left; kept LLPs stay priced at the visit that bought them | a build-for-cash visit should not cut 19,000 FC of LLP life to 8,000 |
-| Green time scrapped | life left at induction on the clock that runs out first × its unit cost of life (§13 over-delivery rule), plus the LLP stub if the LLPs are replaced | the mirror of over-delivery: paid-for life thrown away early |
+| LLPs in a visit | replaced, and paid for, only if the workscope would leave more life than is left | a build-for-cash visit should not cut 19,000 FC of LLP life to 8,000 |
+| A future visit's life | paid for in the visit's price; none of it counts again as over-delivery. The old unit's sunk over-delivery is carried unchanged | counting it as well would charge the visit twice |
 | Lever 1 | the cheapest workscope that clears every clause, inducted in the last month it can be | "do the work" as done today: just before handback |
-| Lever 4 | every month from the earliest to the latest induction, both workscopes; the minimum | lever 1 is one point on this curve |
+| Lever 4 | every month from the earliest to the latest induction, both workscopes; the minimum, equal months going to the latest | lever 1 is one point on this curve. A visit costs the same in any open month, so months differ only by reserves reclaimed and compensation left |
 | Reserve rate | the clause's compensation rate ÷ the lessor's negotiation multiplier | §7: compensationRate = reserve rate × multiplier, so this is the lease's own supplemental rent |
 | Reserve balance | from the last event the lease recognises (a visit not evidenced as a QME was never reimbursed), history capped at the lease period's usage, plus usage to induction; reclaim ≤ the work's cost; × reserves reclaimable | reserve leases only; no-reserve leases have no balance |
 | Shop visit downtime | engine: 2 × engine swap (a pool spare on, own engine back) if the pool has one of the model, else 14 days; gear 10; APU 1 | §13 |
@@ -514,7 +532,7 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 | Lever 3 search | spare-pool units and same-model components on the other returning tails | in-service tails are beyond the 24-month window, where the exposure a swap creates is not a forecast |
 | Lever 3 feasibility | ruled out if either unit would run out before its tail's handback | a swap that moves the problem forward is not a saving |
 | Lever 3 cost | removal and installation on each tail touched + swap downtime (engine 1 day, gear 10, APU 1, per tail) + the exposure created on the other tail | SPEC §2.6 |
-| A spare's surplus life | a never-overhauled unit's surplus priced at a build-for-interval visit's rates (engine: restoration ÷ time on wing, LLP ÷ bucket; gear and APU: overhaul ÷ interval) | it is the airline's own life, not life that came with the aircraft |
+| A spare's surplus life | all of a pool spare's surplus above the thresholds (binding clock and LLP), priced at a build-for-interval visit's rates (engine: restoration ÷ time on wing, LLP ÷ bucket; gear and APU: overhaul ÷ interval) | it would otherwise stay with the airline, so all of it leaves because of the swap; this is what makes tightness of fit cost money. A unit swapped between two returning tails is handed to a lessor either way and stays on the over-delivery rule |
 | Airframe | not timed, not swapped | it is the aircraft; no heavy-check aircraft downtime in §13 |
 | A component that runs out before handback | only levers applied to it are offered; paying is off the table unless no lever can keep it flying | the exposure prices a clock past its limit as a capped shortfall; it does not force the removal |
 | Fleet allocation | tails with such a component first, soonest first; then by what each could save; each spare and each donor tail used once | they have to act; the rest are choosing |

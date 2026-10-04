@@ -311,6 +311,28 @@ export const MODEL_COVERAGE_OF_TOTAL_MRO =
 export const RECONCILIATION_BAND = { min: 0.65, max: 1.35 } as const;
 
 // ---------------------------------------------------------------------------------------
+// §11b The scale check — is the exposure the right size? ASSUMPTIONS §11b gives the reasons.
+// ---------------------------------------------------------------------------------------
+
+/** One 737-800 returned off lease, full settlement ≈ $6.7M (Sun Country 10-Q, Q2 2025, audited). ASSUMPTIONS §7. */
+export const EOL_SETTLEMENT_NARROWBODY = 6_700_000;
+
+/**
+ * Widebody to narrowbody, by total maintenance event value: 777-300ER $60.4–75.8M ÷ A320-200
+ * $17.7–19.2M, at the midpoints (Ackert / ISTAT 2020, ASSUMPTIONS §7) = 3.69.
+ */
+export const WIDEBODY_EVENT_VALUE_RATIO = (60.4 + 75.8) / 2 / ((17.7 + 19.2) / 2);
+
+export const SCALE_BANDS = {
+  /** Exposure on the returning tails ÷ their four-component maintenance accrual over the rest of the lease. */
+  accrualRatio: { min: 0.2, max: 1.0 },
+  /** No returning tail above this multiple of its body class's settlement benchmark. */
+  perTailMaxMultiple: 2,
+  /** The average multiple, over the tails with any exposure. */
+  averageMultiple: { min: 0.3, max: 1.5 },
+} as const;
+
+// ---------------------------------------------------------------------------------------
 // §13 Downtime — aircraft days out of service, and the declared cost per day.
 // ---------------------------------------------------------------------------------------
 export const DOWNTIME_DAYS = {

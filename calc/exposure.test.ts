@@ -108,18 +108,29 @@ describe('§2.3 price the shortfall', () => {
     expect(r.compensationUncapped).toBeCloseTo(2_340_000 + 363_000, 3);
   });
 
-  it("caps compensation at the cost of the rectifying shop visit — the lease's own remedy", () => {
-    // A $50,000/FC rate makes the linear figure $65M; a build-for-interval visit on this engine
-    // (visit 2, mature-run going in, temperate) is $6.5M + $6.6M = $13.1M.
+  it("caps compensation at the cheapest work that would put it right — the lease's own remedy", () => {
+    // A $50,000/FC rate makes the linear figure $65M. Only a restoration clock is short, so the
+    // cap is a restoration at the build-for-cash price (both workscopes buy the same time on
+    // wing): visit 2, mature-run going in, $6.5M × 3.10 ÷ 3.88 = $5,193,299.
     const dear = rcs.map((rc) => (rc.metric === 'cyclesRemaining' && rc.componentKind === 'engine' ? { ...rc, compensationRate: 50_000 } : rc));
     const r = assessComponent(ac, eng2, dear, p, 'as-recorded', a);
     expect(r.compensationUncapped).toBeCloseTo(1_300 * 50_000, 3);
-    expect(r.rectificationCost).toBeCloseTo(13_100_000, 3);
-    expect(r.compensation).toBeCloseTo(13_100_000, 3);
-    expect(r.trace).toContain('capped');
+    expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88), 3);
+    expect(r.compensation).toBeCloseTo(r.rectificationCost, 3);
+    expect(r.trace).toContain('cheapest work that would put it right');
     const normal = assessComponent(ac, eng2, rcs, p, 'as-recorded', a);
     expect(normal.compensation).toBe(normal.compensationUncapped);
     expect(normal.trace).not.toContain('capped');
+  });
+
+  it('adds an LLP replacement to the cap only when the LLP clause is short', () => {
+    // 1,000 FC of LLP life: 1,100 FC short of the clause. Cap = restoration + a build-for-cash
+    // LLP replacement, $6.6M × 2.40 ÷ 3.88 = $4,082,474.
+    const eng = component('engine', 'ENG1', { ...eng2, llpMinCyclesRemaining: 1_000 });
+    const dear = rcs.map((rc) => (rc.metric === 'cyclesRemaining' && rc.componentKind === 'engine' ? { ...rc, compensationRate: 50_000 } : rc));
+    const r = assessComponent(ac, eng, dear, p, 'as-recorded', a);
+    expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88) + 6_600_000 * (2.4 / 3.88), 3);
+    expect(r.trace).toContain('an LLP replacement');
   });
 });
 
@@ -132,21 +143,43 @@ describe('§2.4 price the over-delivery', () => {
     expect(unitCostOfLife(ac, eng1, llp, a).trace).toContain('no shop visit');
   });
 
-  it('prices engine LLP surplus at the LLP half of the visit ÷ the bucket it bought', () => {
-    // build-for-interval LLP on a LEAP-1A26: $6.6M ÷ 20,000 FC = $330/FC; surplus 19,500 − 1,600 − 500 = 17,400.
+  it('counts only the LLP life a build-for-interval visit bought beyond a build-for-cash one', () => {
+    // Surplus 19,500 − 1,600 − 500 = 17,400 FC. Build-for-interval bought a 20,000 FC bucket where
+    // build-for-cash would have bought 8,000 and still cleared the clause: 12,000 FC × ($6.6M ÷
+    // 20,000 FC = $330) = $3,960,000 was avoidable. The other 5,400 FC are the remainder of a
+    // visit that had to happen.
     const r = assessRequirement(ac, eng2, llp, p, 'as-recorded', a);
+    expect(r.surplusUnits).toBeCloseTo(17_400, 6);
+    expect(r.avoidableSurplusUnits).toBe(12_000);
     expect(r.unitCostOfLife).toBeCloseTo(330, 9);
-    expect(r.overDelivery).toBeCloseTo(17_400 * 330, 3); // $5,742,000
+    expect(r.overDelivery).toBeCloseTo(12_000 * 330, 3);
+    expect(r.trace).toContain('were avoidable');
   });
 
-  it('prices the interval clocks at the restoration half ÷ the time on wing it bought', () => {
-    // Fresh mature-run engine: 27,500 FH / 10,000 FC left; restoration (visit 1, first-run going in) $5.4M.
+  it('counts none of it when the cheapest workscope bought it', () => {
+    const cash = component('engine', 'ENG2', { ...eng2, lastWorkscope: 'build-for-cash' });
+    expect(assessRequirement(ac, cash, llp, p, 'as-recorded', a).overDelivery).toBe(0);
+  });
+
+  it('counts none of it when the cheaper bucket would have left the clause short', () => {
+    // 13,000 FC of LLP life: 10,900 FC surplus, less than the 12,000 FC a build-for-cash visit
+    // would have saved — so it would have been short, and build-for-interval was needed.
+    const tight = component('engine', 'ENG2', { ...eng2, llpMinCyclesRemaining: 13_000 });
+    const r = assessRequirement(ac, tight, llp, p, 'as-recorded', a);
+    expect(r.surplusUnits).toBeCloseTo(10_900, 6);
+    expect(r.overDelivery).toBe(0);
+    expect(r.trace).toContain('was needed');
+  });
+
+  it('counts no restoration surplus: both workscopes buy the same time on wing, and the visit had to happen', () => {
+    // Fresh mature-run engine: 27,500 FH / 10,000 FC left — a surplus, but not an avoidable one.
     const fresh = component('engine', 'ENG2', { ...eng2, tso: 0, cso: 0 });
     const h = assessRequirement(ac, fresh, engHours, p, 'as-recorded', a);
-    expect(h.unitCostOfLife).toBeCloseTo(5_400_000 / 27_500, 9);
     expect(h.surplusUnits).toBeCloseTo(27_500 - 4_400 - 500, 6);
-    const c = assessRequirement(ac, fresh, engCycles, p, 'as-recorded', a);
-    expect(c.unitCostOfLife).toBeCloseTo(5_400_000 / 10_000, 9); // $540/FC
+    expect(h.overDelivery).toBe(0);
+    expect(h.trace).toContain('unavoidable remainder of a restoration');
+    // The price of that life is still known — the swap lever uses it for a spare.
+    expect(unitCostOfLife(ac, fresh, engCycles, a).rate).toBeCloseTo(5_400_000 / 10_000, 9); // $540/FC
   });
 
   it('the cheap visit costs more per cycle of life it buys', () => {
@@ -157,11 +190,12 @@ describe('§2.4 price the over-delivery', () => {
     expect(cashRate).toBeGreaterThan(interval * 1.5);
   });
 
-  it('prices other components at their overhaul ÷ interval', () => {
-    // MLG months: 120 − 16 = 104 at return; wants 6 → 98 months × ($680,000 ÷ 144).
+  it('counts no check or overhaul surplus, and prices shortfalls at the clause rate', () => {
+    // MLG months: 120 − 16 = 104 at return; wants 6 → 98 months over, the remainder of an overhaul that had to happen.
     const g = assessRequirement(ac, mlg, gearMonths, p, 'as-recorded', a);
     expect(g.surplusUnits).toBeCloseTo(98, 9);
-    expect(g.overDelivery).toBeCloseTo(98 * (680_000 / 144), 3);
+    expect(g.overDelivery).toBe(0);
+    expect(unitCostOfLife(ac, mlg, gearMonths, a).rate).toBeCloseTo(680_000 / 144, 9);
     // AIRFRAME: 12 − 16 = −4 at return; wants 4 → short 8 months × $20,000.
     const f = assessRequirement(ac, airframe, afMonths, p, 'as-recorded', a);
     expect(f.gap).toBeCloseTo(8, 9);

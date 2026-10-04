@@ -128,7 +128,13 @@ describe('readClock', () => {
     const lease = readClock(ac, c, engHours, 'as-lease-allows');
     expect(lease.remainingToday).toBeCloseTo(-12_500, 6);
     expect(lease.trace).toContain('not evidenced as a QME');
-    expect(readClock(ac, c, llp, 'as-lease-allows').remainingToday).toBe(4_000);
+  });
+
+  it('reads LLP life as recorded on both bases: it is tracked per part, and an unrecognised visit does not take it away', () => {
+    const c = component('engine', 'ENG2', { ...eng2, qmeStatus: 'not-evidenced', asLeaseAllows: { tso: 40_000, cso: 13_000, llpMinCyclesRemaining: 4_000 } });
+    const lease = readClock(ac, c, llp, 'as-lease-allows');
+    expect(lease.remainingToday).toBe(19_500);
+    expect(lease.trace).toContain('tracked per part');
   });
 
   it('infers months since overhaul from cycles for gear and airframe', () => {

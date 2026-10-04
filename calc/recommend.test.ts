@@ -38,7 +38,26 @@ describe('recommendTail', () => {
     const r = recommendTail(context(full, [tight]));
     expect(r.unavoidable).toBeCloseTo(r.recommended.total, 3);
     expect(r.avoidable).toBeCloseTo(r.doNothing - r.unavoidable, 3);
-    expect(r.avoidable).toBeCloseTo(8_082_000 - 3_375_000 - 28_500 - 45_000, 0);
+    // ENG2's compensation and sunk over-delivery ($2,340,000 + $3,960,000) go to the pool with it;
+    // the spare's $3,375,000 of life comes in, plus removal and a night's downtime.
+    expect(r.avoidable).toBeCloseTo(2_340_000 + 3_960_000 - 3_375_000 - 28_500 - 45_000, 0);
+  });
+
+  it('carries sunk over-delivery through the avoidable figure unchanged, unless a swap keeps the unit', () => {
+    // Two tails alike but for ENG2's last workscope. Short-dense, so the engine is 116 FC short
+    // ($208,800) and a move to mixed clears it; nothing runs out before handback. Build-for-
+    // interval left 12,000 FC × $330 = $3,960,000 of avoidable LLP life; build-for-cash left none.
+    // The do-nothing figures differ by exactly that — the avoidable figures not at all.
+    const eng = (w: 'build-for-interval' | 'build-for-cash') => component('engine', 'ENG2', { ...eng2, tso: 20_000, cso: 7_500, lastWorkscope: w });
+    const tail = (w: 'build-for-interval' | 'build-for-cash') =>
+      recommendTail(context(aircraft({ routeProfile: 'short-dense', hoursPerMonth: 291, cyclesPerMonth: 151 }, [eng(w)])));
+    const interval = tail('build-for-interval');
+    const cash = tail('build-for-cash');
+    expect(interval.doNothing - cash.doNothing).toBeCloseTo(3_960_000, 3);
+    expect(interval.recommended.lever).toBe('L2');
+    expect(cash.recommended.lever).toBe('L2');
+    expect(interval.avoidable).toBeCloseTo(208_800, 3);
+    expect(cash.avoidable).toBeCloseTo(interval.avoidable, 3);
   });
 
   it("decides by the recommended action's deadline", () => {

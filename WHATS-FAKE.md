@@ -17,7 +17,8 @@ The one-sentence version:
 - Forward projection of hours and cycles to the return date.
 - Gap against each return condition, in units and in cash.
 - Which clock binds — hours or cycles — per component, per requirement.
-- Over-delivery cost, from the unit cost of life bought by a shop visit.
+- Over-delivery cost: the LLP life a past shop visit bought beyond the cheapest workscope that would
+  have cleared the contract, at what that life cost to buy.
 - The QME adjustment and the delta between the two exposure figures.
 - All four levers, costed and ranked, including the exposure a component swap creates on
   the receiving aircraft.

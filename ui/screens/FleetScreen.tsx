@@ -73,8 +73,9 @@ export default function FleetScreen({ fleet, plans }: { fleet: FleetExposure; pl
 
       <p className="mt-3 text-xs text-slate-500">
         Hover any figure for its arithmetic. Click a tail for the four components. Exposure = compensation on the binding clock of each component, plus the LLP
-        clause, plus over-delivery priced at what the life cost to buy. Compensation on any component is capped at the cost of putting it right. After
-        recommendation is all-in: the work, its downtime, and what is still owed at handback.
+        clause, plus over-delivery: the LLP life a past shop visit bought beyond the cheapest workscope that would have cleared the contract. Compensation on any
+        component is capped at the cheapest work that would put it right. After recommendation is all-in: the work, its downtime, and what is still owed at
+        handback.
       </p>
     </main>
   );

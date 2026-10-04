@@ -22,6 +22,8 @@ object from `calc/`; the UI formats, it never calculates.
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
   could fly to handback. The option's name sits underneath; the trace ranks all five.
 - The headline's "after recommendations" and "avoidable" tiles add those rows up (SPEC §2.8).
+- A line under the headline splits the do-nothing figure into cash payable to lessors at handback
+  and life already bought and handed over — different kinds of loss, the second sunk.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
   now. "Nothing to book" where the recommendation is to pay.
 - Click a tail for its components: every clause, today's position, what will be flown, the
