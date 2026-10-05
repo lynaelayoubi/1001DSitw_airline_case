@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, type AssumptionInput } from '../../calc/constants';
 import { readInput, writeInput, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
-import { inputShown, inputValue } from '../format';
+import { inputValue } from '../format';
 
 /**
  * What the recommendations rest on: the one place the seven assumptions live, collapsed directly
@@ -75,7 +75,7 @@ export function WhatThisAssumes({
                   )}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap tabular-nums">
-                  {inputShown(input, input.range.min)} to {inputShown(input, input.range.max)}
+                  {inputValue(input, input.range.min)} to {inputValue(input, input.range.max)}
                 </td>
                 <td className="px-3 py-2 text-slate-600">{input.source}</td>
                 <td className={`px-3 py-2 whitespace-nowrap ${pending ? 'opacity-60' : ''}`}>
@@ -85,7 +85,7 @@ export function WhatThisAssumes({
                   <Override input={input} value={value} stated={stated} onChange={set} />
                   {value !== stated && (
                     <button className="ml-2 text-xs text-violet-800 underline" onClick={() => set(stated)}>
-                      back to {inputShown(input, stated)}
+                      back to {inputValue(input, stated)}
                     </button>
                   )}
                 </td>
@@ -99,28 +99,31 @@ export function WhatThisAssumes({
 }
 
 /**
- * An override in the unit a person uses for it: percentage change, multiple, dollars a day, share
- * or months. Empty while the stated value is in use; held as typed while editing, so a figure that
+ * An override that replaces the value, in the unit the value is shown in beside it — a multiple,
+ * dollars a day, a share or months — so the field asks one question. Empty while the stated value
+ * is in use, which the placeholder shows; held as typed while editing, so a figure that
  * passes through the stated value on the way to another does not clear itself; kept inside the
  * evidenced range.
  */
 function Override({ input, value, stated, onChange }: { input: AssumptionInput; value: number; stated: number; onChange: (v: number) => void }) {
   const [typing, setTyping] = useState<string | null>(null);
-  const asPercentChange = input.unit === 'multiplier' && input.id !== 'lessorMarkup';
-  const toField = (v: number) => (asPercentChange ? Math.round((v - 1) * 100) : input.unit === 'share' ? Math.round(v * 100) : v);
-  const fromField = (f: number) => (asPercentChange ? 1 + f / 100 : input.unit === 'share' ? f / 100 : f);
-  const suffix = asPercentChange || input.unit === 'share' ? '%' : input.unit === 'months' ? 'months' : input.unit === 'usd-per-day' ? '$/day' : '×';
-  const step = asPercentChange || input.unit === 'share' ? 1 : input.range.step;
+  const share = input.unit === 'share';
+  const toField = (v: number) => (share ? Math.round(v * 100) : input.unit === 'multiplier' ? Number(v.toFixed(2)) : v);
+  const fromField = (f: number) => (share ? f / 100 : f);
+  const prefix = input.unit === 'multiplier' ? '×' : input.unit === 'usd-per-day' ? '$' : '';
+  const suffix = share ? '%' : input.unit === 'months' ? 'months' : input.unit === 'usd-per-day' ? '/day' : '';
+  const step = share ? 1 : input.range.step;
   const inRange = (v: number) => Math.min(input.range.max, Math.max(input.range.min, v));
   return (
     <label className="inline-flex items-center gap-1">
+      {prefix && <span className="text-xs text-slate-500">{prefix}</span>}
       <input
         className="w-24 rounded border border-slate-300 px-1.5 py-0.5 text-right tabular-nums"
         type="number"
         step={step}
         min={toField(input.range.min)}
         max={toField(input.range.max)}
-        placeholder={String(toField(stated))}
+        placeholder={input.unit === 'multiplier' ? stated.toFixed(2) : String(toField(stated))}
         value={typing ?? (value === stated ? '' : toField(value))}
         onChange={(e) => {
           setTyping(e.target.value);
@@ -130,7 +133,7 @@ function Override({ input, value, stated, onChange }: { input: AssumptionInput; 
         }}
         onBlur={() => setTyping(null)}
       />
-      <span className="text-xs text-slate-500">{suffix}</span>
+      {suffix && <span className="text-xs text-slate-500">{suffix}</span>}
     </label>
   );
 }

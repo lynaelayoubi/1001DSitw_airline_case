@@ -768,3 +768,10 @@ the most valuable finding in the brief and read as an unexplained column. The he
 shows the money that turns on it (+$54.4M) rather than a second total; on each tail, "As the lease
 allows" and "QME" are one column, "Clock reset"; the component card shows the figure if the reset
 counts beside the figure under the lease, where it does not.
+
+**Every assumption row speaks in one unit — the value, its evidenced range, the override field and
+its reset all as a multiple, dollars a day, a share or months — and the field replaces the value.**
+· Rejected: shop costs and utilisation overridden as a percentage change beside a value shown as
+× 1.00. · Because that put two questions in one column, and a bare 0 in the field read as zero
+shop costs rather than no change. The how-firm flips still read as a move ("utilisation +1%"):
+that is the question they answer.

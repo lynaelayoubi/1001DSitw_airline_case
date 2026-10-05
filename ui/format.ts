@@ -37,11 +37,11 @@ export const kindLabel: Record<string, string> = {
   apu: 'APU',
 };
 
-/** An assumption as a person says it: shop costs and utilisation as a move on the stated figures, the rest in their own unit. */
-export function inputShown(input: AssumptionInput, v: number): string {
+/** An assumption's value in the unit it is shown, and overridden, in: a multiple, dollars a day, a share or months. */
+export function inputValue(input: AssumptionInput, v: number): string {
   switch (input.unit) {
     case 'multiplier':
-      return input.id === 'lessorMarkup' ? `× ${v.toFixed(2)}` : `${v >= 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`;
+      return `× ${v.toFixed(2)}`;
     case 'usd-per-day':
       return `${money(v)}/day`;
     case 'share':
@@ -50,6 +50,3 @@ export function inputShown(input: AssumptionInput, v: number): string {
       return `${v} months`;
   }
 }
-
-/** The value in use: a multiplier reads as a multiple, so the stated figures read × 1.00 rather than +0%. */
-export const inputValue = (input: AssumptionInput, v: number): string => (input.unit === 'multiplier' ? `× ${v.toFixed(2)}` : inputShown(input, v));
