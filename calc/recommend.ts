@@ -13,17 +13,19 @@ import { COST_ESTIMATE_UNCERTAINTY, DEFAULT_ASSUMPTIONS } from './constants';
 import type { FleetExposure, TailResult } from './exposure';
 import { num, usd } from './format';
 import {
+  describeProposal,
   doTheWork,
   firstTimeout,
   flyItDifferently,
   moveAComponent,
   payAtHandback,
+  proposedOption,
   timeTheShopVisit,
   type Donor,
   type LeverContext,
   type LeverOption,
 } from './levers';
-import type { Assumptions, Dataset, ISODate, ReturnCondition } from './types';
+import type { Assumptions, Dataset, ISODate, Proposal, ReturnCondition } from './types';
 
 export interface TailRecommendation {
   tail: string;
@@ -157,6 +159,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
 
 export interface TailPlan {
   tail: string;
+  /** The action is the customer's own, proposed in the what-if (calc/whatif.ts), not the model's choice. */
+  proposed: boolean;
   /** 'donor' when the tail gives a unit to another tail's swap instead of acting on its own. */
   role: 'own' | 'donor';
   /** The tail's own ranking, from what was left to it. */
@@ -185,6 +189,8 @@ export interface TailPlan {
   avoidableLife: number;
   /** Why the action is forced rather than chosen, or null. */
   forced: string | null;
+  /** Still owed at handback after the plan: compensation, and life already bought and handed over. */
+  owed: number;
   /** Maintenance cash the plan's action spends, and when (LeverOption.spend). A donor's share is on the tail that asked. */
   spend: number;
   spendDate: ISODate | null;
@@ -192,9 +198,21 @@ export interface TailPlan {
   trace: string;
 }
 
+/** A proposal in the what-if: what was asked, and what it was priced as or why it was refused. */
+export interface ProposalResult {
+  proposal: Proposal;
+  /** What was asked, as the customer would say it. */
+  asked: string;
+  /** The priced option, when applied. */
+  label: string;
+  refused: string | null;
+}
+
 export interface FleetRecommendation {
   /** One per returning tail, in the fleet table's order. */
   plans: TailPlan[];
+  /** The customer's proposed actions, in the order given — [] for the model's own plan. */
+  proposals: ProposalResult[];
   byTail: Record<string, TailPlan>;
   totals: {
     doNothing: number;
@@ -259,10 +277,31 @@ export function compareRecommendations(atRest: FleetRecommendation, scenario: Fl
   return { tails, changed, trace };
 }
 
+/** The customer's own action on a tail, standing in for the model's ranking. */
+function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: ReturnType<typeof firstTimeout>): TailRecommendation {
+  const doNothing = ctx.baseline.asRecorded.exposure;
+  const at = timeout && `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
+  return {
+    tail: ctx.ac.tail,
+    doNothing,
+    options: [o],
+    recommended: o,
+    runnerUp: null,
+    delta: 0,
+    decisionDeadline: o.deadline,
+    unavoidable: o.total,
+    avoidable: doNothing - o.total,
+    forced: timeout ? { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` } : null,
+    call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: "it is your change, not the model's choice" },
+    trace: `${ctx.ac.tail}: your change — ${o.label}, ${usd(o.total)} all-in against ${usd(doNothing)} if nothing changes. Decided by you, not ranked by the model.\n\n${o.trace}`,
+  };
+}
+
 export function recommendFleet(
   data: Pick<Dataset, 'aircraft' | 'lessors' | 'pool' | 'returnConditions'>,
   fleet: FleetExposure,
   a: Assumptions = DEFAULT_ASSUMPTIONS,
+  proposals: Exclude<Proposal, { kind: 'return' }>[] = [],
 ): FleetRecommendation {
   const aircraft = new Map(data.aircraft.map((x) => [x.tail, x]));
   const lessors = new Map(data.lessors.map((l) => [l.id, l]));
@@ -296,8 +335,41 @@ export function recommendFleet(
   const acting = new Set<string>();
   const gives = new Map<string, { to: string; option: LeverOption }>();
   const settled = new Map<string, TailRecommendation>();
+
+  // The customer's own actions go first, in the order given: a spare or a tail his change takes is
+  // gone for the tails that would have had it, and they plan around it below.
+  const proposed = new Set<string>();
+  const takenBy = new Map<string, string>();
+  const units = new Map([...data.pool.map((u) => [u.id, { serial: u.serial, tail: null as string | null }] as const), ...data.aircraft.flatMap((x) => x.components.map((u) => [u.id, { serial: u.serial, tail: x.tail }] as const))]);
+  const results: ProposalResult[] = proposals.map((pr) => {
+    const unit = pr.kind === 'swap' && pr.unit ? units.get(pr.unit) : undefined;
+    const asked = describeProposal(pr, unit?.serial);
+    const refuse = (why: string): ProposalResult => ({ proposal: pr, asked, label: asked, refused: why });
+    const t = tails.find((x) => x.tail === pr.tail);
+    if (!t) return refuse(`${pr.tail} is not handing back inside the window.`);
+    if (proposed.has(pr.tail)) return refuse(`${pr.tail} already has a change in this what-if: one per tail, because each is priced against the tail as it stands.`);
+    const giving = gives.get(pr.tail);
+    if (giving) return refuse(`${pr.tail} already gives its ${giving.option.move!.donor!.position} to ${giving.to} in this what-if.`);
+    if (pr.kind === 'swap' && pr.unit && unit) {
+      if (takenBy.has(pr.unit)) return refuse(`${unit.serial} already goes to ${takenBy.get(pr.unit)} in this what-if.`);
+      if (unit.tail && (proposed.has(unit.tail) || gives.has(unit.tail))) return refuse(`${unit.serial} is on ${unit.tail}, which already has a change in this what-if.`);
+    }
+    const timeout = firstTimeout(t);
+    const ctx = contextFor(t, usedPool, new Set([...acting, ...gives.keys()]));
+    if (timeout) ctx.focus = ctx.ac.components.findIndex((c) => c.position === timeout.position);
+    const o = proposedOption(ctx, pr);
+    if (!o.feasible) return refuse(o.trace);
+    settled.set(pr.tail, imposedRecommendation(ctx, o, timeout));
+    proposed.add(pr.tail);
+    acting.add(pr.tail);
+    if (o.move?.incoming.from === 'pool') usedPool.add(o.move.incoming.id);
+    if (o.move?.donor) gives.set(o.move.donor.tail, { to: pr.tail, option: o });
+    if (o.move) takenBy.set(o.move.incoming.id, pr.tail);
+    return { proposal: pr, asked, label: o.label, refused: null };
+  });
+
   for (const t of order) {
-    if (gives.has(t.tail)) continue;
+    if (gives.has(t.tail) || proposed.has(t.tail)) continue;
     const rec = recommendTail(contextFor(t, usedPool, new Set([...acting, ...gives.keys()])));
     settled.set(t.tail, rec);
     const o = rec.recommended;
@@ -317,6 +389,7 @@ export function recommendFleet(
       const afterCash = d.cost + d.downtimeCost + d.compensationAfter;
       return {
         tail: t.tail,
+        proposed: false,
         role: 'donor',
         recommendation: rec,
         label: `Gives ${d.position} to ${gift.to}`,
@@ -328,6 +401,7 @@ export function recommendFleet(
         avoidableCash: t.asRecorded.compensation - afterCash,
         avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
         forced: null,
+        owed: d.exposureAfter,
         spend: 0,
         spendDate: null,
         decisionDeadline: settled.get(gift.to)!.decisionDeadline,
@@ -345,6 +419,7 @@ export function recommendFleet(
     const afterCash = own ? own.cost + own.downtimeCost + own.newCompensation : o.cost + o.downtimeCost + o.newCompensation;
     return {
       tail: t.tail,
+      proposed: proposed.has(t.tail),
       role: 'own',
       recommendation: rec,
       label,
@@ -356,6 +431,7 @@ export function recommendFleet(
       avoidableCash: t.asRecorded.compensation - afterCash,
       avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
       forced: rec.forced?.why ?? null,
+      owed: own ? own.newExposure : o.newExposure,
       spend: o.spend,
       spendDate: o.spendDate,
       decisionDeadline: rec.decisionDeadline,
@@ -400,5 +476,5 @@ export function recommendFleet(
     `cost estimates)${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. Each spare and each tail is used once; ` +
     `forced tails chose first.\n\n` +
     plans.map((p) => `${p.tail}: ${p.forced ? 'forced — ' : ''}${p.label} — ${usd(p.doNothing)} → ${usd(p.after)}`).join('\n');
-  return { plans, byTail: Object.fromEntries(plans.map((p) => [p.tail, p])), totals, trace };
+  return { plans, proposals: results, byTail: Object.fromEntries(plans.map((p) => [p.tail, p])), totals, trace };
 }

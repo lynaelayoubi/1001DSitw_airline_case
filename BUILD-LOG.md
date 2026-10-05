@@ -700,3 +700,46 @@ recomputes everything downstream, the sweep included (the worker is sent the liv
 range is the ground the sweep covers; a value past an edge has no evidenced room on that side. The
 sweep also now steps only toward an edge that lies in its direction, so it can never walk the wrong
 way from an override.
+
+## Step 12 · what if, and what the screen is for — Monday 5 October
+
+**A what-if of the customer's own decisions — swap a component, send one to the shop, change a
+tail's route, move its return date — priced against today's plan, which stays on screen.** ·
+Rejected: sliders on the seven assumptions. · Because those are the world's, not his, and the
+robustness sweep already moves them across their whole range; he can ask "what if I do X", he
+should not have to guess "what if the world is Y". Several changes hold at once — the correlated
+moves the sweep says it cannot make.
+
+**Each change is priced by the levers' own machinery and imposed before the model plans the rest
+of the fleet.** · Rejected: planning the fleet first and pricing his change on what is left. ·
+Because the point is to see what his choice displaces: giving 9H-ZUU's spare to A6-YTM moves 9H-ZUU
+onto 9H-KVJ's spare and leaves 9H-KVJ an engine shop visit, +$9.7M of maintenance.
+
+**A proposal the model knows cannot happen is refused with the reason, and left out.** · Rejected:
+offering only the choices that work. · Because a slot inside the lead time, a component already run
+out, a type with no spare and a route the type does not fly are exactly what he needs to be told
+— so the choices include them, and the refusal carries the model's own reason.
+
+**One action per tail, plus its return date.** · Rejected: stacking actions on one tail. · Because
+each lever is priced against the tail as it stands; a second action would be priced on a state
+the model does not carry. Refused, with that reason, rather than priced wrong.
+
+**Moving a return date lives in the what-if; the single-lease stepper is gone.** · Rejected:
+keeping the stepper beside it. · Because two places to move a return date make neither
+authoritative — the same reason the assumptions became one table.
+
+**No trace in a tooltip: the working opens deliberately, in place, below what it explains — a
+tail's recommendation and each component's clauses — and a tooltip is one sentence saying what a
+column or tile is.** · Rejected: the hover traces on every figure. · Because they were written for
+traceability, not for reading; they covered the content they described, and inside capitalised
+headings they rendered whole sentences in capitals.
+
+**How firm the answers are is one collapsed line carrying the finding, beside the assumptions.** ·
+Rejected: an open block in the panel. · Because it is the model assessing itself — useful, but not
+what a head of fleet acts on. The inputs line inside it is gone: the assumptions line beside it
+already says which inputs change no answer.
+
+**Nothing restates what is beside it.** · Rejected, and removed: the footnote under the table (how
+the model works), the paragraph under the headline (now one sentence), a forced row's second
+explanation and its saving against a do-nothing that cannot happen (the badge's tip says why), and
+the what-if's echo of his own change in the list of tails that change.

@@ -4,15 +4,17 @@ import { fitToBudget } from '../calc/budget';
 import { DEFAULT_ASSUMPTIONS } from '../calc/constants';
 import { closingDecisions } from '../calc/deadlines';
 import { assessFleet } from '../calc/exposure';
-import { compareRecommendations, recommendFleet } from '../calc/recommend';
+import { recommendFleet } from '../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../calc/robustness';
-import type { Assumptions, Dataset } from '../calc/types';
+import type { Assumptions, Dataset, Proposal } from '../calc/types';
+import { whatIf, whatIfChoices } from '../calc/whatif';
 import dataset from '../data/fleet.json';
 import FleetScreen from './screens/FleetScreen';
 
 // The only place the dataset is read. Everything on screen comes out of assessFleet and
-// recommendFleet, recomputed from the assumptions (the lease extension and any override); the
-// robustness sweep runs in a worker and arrives a moment later.
+// recommendFleet, recomputed from the assumptions (any override); the head of fleet's what-if is
+// priced against that plan without replacing it, and the robustness sweep runs in a worker and
+// arrives a moment later.
 const data = dataset as unknown as Dataset;
 
 export default function App() {
@@ -21,11 +23,15 @@ export default function App() {
   const atRest = useMemo(() => recommendFleet(data, assessFleet(data, DEFAULT_ASSUMPTIONS), DEFAULT_ASSUMPTIONS), []);
   const fleet = useMemo(() => assessFleet(data, live), [live]);
   const plans = useMemo(() => recommendFleet(data, fleet, live), [fleet, live]);
-  const comparison = useMemo(() => compareRecommendations(atRest, plans), [atRest, plans]);
   // A budget is a constraint on what to fund, not a model assumption; no limit until one is entered.
   const [budget, setBudget] = useState<number | null>(null);
   const budgetPlan = useMemo(() => fitToBudget(plans, budget ?? Infinity, data.asOf), [plans, budget]);
   const closing = useMemo(() => closingDecisions(plans, data.asOf), [plans]);
+  // The head of fleet's own changes, against today's plan; the screen stays on today's plan.
+  const [proposals, setProposals] = useState<Proposal[]>([]);
+  const proposed = useDeferredValue(proposals);
+  const choices = useMemo(() => whatIfChoices(data, fleet), [fleet]);
+  const scenario = useMemo(() => (proposed.length ? whatIf(data, live, plans, proposed) : null), [live, plans, proposed]);
 
   const [robustness, setRobustness] = useState<{ id: number; result: Robustness; extension: ExtensionEffects } | null>(null);
   const worker = useRef<Worker | null>(null);
@@ -54,7 +60,6 @@ export default function App() {
       fleet={fleet}
       plans={plans}
       atRest={atRest}
-      comparison={comparison}
       robustness={robustness?.result ?? null}
       extension={robustness?.extension ?? null}
       robustnessPending={!robustness || robustness.id !== askedId}
@@ -62,6 +67,10 @@ export default function App() {
       onBudget={setBudget}
       budgetPlan={budgetPlan}
       closing={closing}
+      choices={choices}
+      proposals={proposals}
+      onProposals={setProposals}
+      whatIf={scenario}
       assumptions={assumptions}
       onAssumptions={setAssumptions}
     />

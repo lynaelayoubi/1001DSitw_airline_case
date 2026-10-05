@@ -165,3 +165,15 @@ export interface Dataset {
   pool: Component[];
   returnConditions: ReturnCondition[];
 }
+
+/**
+ * A decision the customer proposes in the what-if (calc/whatif.ts): his choice, not the model's.
+ * A swap names a unit by id, or null for the right-sized one the model would pick; a visit names
+ * the month (from today) and workscope; a route names the profile; a return date moves later by
+ * whole months.
+ */
+export type Proposal =
+  | { kind: 'swap'; tail: string; position: string; unit: string | null }
+  | { kind: 'visit'; tail: string; position: string; month: number; workscope: Exclude<Workscope, 'none'> }
+  | { kind: 'route'; tail: string; profile: RouteProfile | null }
+  | { kind: 'return'; tail: string; months: number };

@@ -25,7 +25,7 @@ import { assessComponent, unitCostOfLife, type ComponentResult, type Requirement
 import { num, usd, usd2 } from './format';
 import { addMonths, monthlyRate, monthsBetween, type UsageProjection } from './projection';
 import { engineShopVisitCost } from './rates';
-import type { Aircraft, Assumptions, Component, ComponentKind, ISODate, Lessor, ReturnCondition, Workscope } from './types';
+import type { Aircraft, Assumptions, Component, ComponentKind, ISODate, Lessor, Proposal, ReturnCondition, RouteProfile, Workscope } from './types';
 
 export type LeverId = 'pay' | 'L1' | 'L2' | 'L3' | 'L4';
 
@@ -635,36 +635,48 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
 // ---------------------------------------------------------------------------------------
 
 export function flyItDifferently(ctx: LeverContext): LeverOption {
-  const { ac, a, baseline, conditions } = ctx;
+  const { ac } = ctx;
   const label = 'Fly it differently';
-  const p = baseline.projection;
-  const T = p.monthsToReturn;
   const alternatives = PROFILES_BY_TYPE[ac.type].filter((x) => x !== ac.routeProfile);
   if (!alternatives.length)
     return unavailable(ctx, 'L2', label, `The ${ac.type} flies only the ${ac.routeProfile} profile in this network, so there is no other hours-to-cycles mix to move it to.`);
-  const runs = alternatives.map((profile) => {
-    const u = UTILISATION[profile];
-    const hpm = u.hoursPerMonth * a.utilisationMultiplier;
-    const cpm = u.cyclesPerMonth * a.utilisationMultiplier;
-    const q: UsageProjection = {
-      ...p,
-      hoursPerMonth: hpm,
-      cyclesPerMonth: cpm,
-      apuHoursPerMonth: cpm * APU_HOURS_PER_FLIGHT_CYCLE,
-      fhFc: u.fhFc,
-      hours: hpm * T,
-      cycles: cpm * T,
-      apuHours: cpm * APU_HOURS_PER_FLIGHT_CYCLE * T,
-    };
-    const comps = ac.components.map((c) => assessComponent(ac, c, conditions, q, 'as-recorded', a));
-    const sum = (f: (r: ComponentResult) => number) => comps.reduce((s, r) => s + f(r), 0);
-    const still = ctx.focus === undefined ? null : runout(q, comps[ctx.focus]!);
-    const blocked = still && still.months < T - EPS ? `on ${profile} ${ac.components[ctx.focus!]!.position} would still run out of ${clockWord(still.requirement)} at month ${num(still.months, 1)}` : '';
-    return { profile, u, q, blocked, exposure: sum((r) => r.exposure), compensation: sum((r) => r.compensation), overDelivery: sum((r) => r.overDelivery) };
-  });
+  const runs = alternatives.map((profile) => routeRun(ctx, profile));
   const open = runs.filter((x) => !x.blocked);
   if (!open.length) return unavailable(ctx, 'L2', label, `A route change does not keep the aircraft flying to handback: ${runs.map((x) => x.blocked).join('; ')}.`);
-  const r = open.reduce((x, y) => (y.exposure < x.exposure ? y : x));
+  return routeOption(ctx, open.reduce((x, y) => (y.exposure < x.exposure ? y : x)));
+}
+
+type RouteRun = ReturnType<typeof routeRun>;
+
+/** The tail on one route profile's hours-to-cycles mix to handback; blocked if it leaves the focus running out. */
+function routeRun(ctx: LeverContext, profile: RouteProfile) {
+  const { ac, a, baseline, conditions } = ctx;
+  const p = baseline.projection;
+  const T = p.monthsToReturn;
+  const u = UTILISATION[profile];
+  const hpm = u.hoursPerMonth * a.utilisationMultiplier;
+  const cpm = u.cyclesPerMonth * a.utilisationMultiplier;
+  const q: UsageProjection = {
+    ...p,
+    hoursPerMonth: hpm,
+    cyclesPerMonth: cpm,
+    apuHoursPerMonth: cpm * APU_HOURS_PER_FLIGHT_CYCLE,
+    fhFc: u.fhFc,
+    hours: hpm * T,
+    cycles: cpm * T,
+    apuHours: cpm * APU_HOURS_PER_FLIGHT_CYCLE * T,
+  };
+  const comps = ac.components.map((c) => assessComponent(ac, c, conditions, q, 'as-recorded', a));
+  const sum = (f: (r: ComponentResult) => number) => comps.reduce((s, r) => s + f(r), 0);
+  const still = ctx.focus === undefined ? null : runout(q, comps[ctx.focus]!);
+  const blocked = still && still.months < T - EPS ? `on ${profile} ${ac.components[ctx.focus!]!.position} would still run out of ${clockWord(still.requirement)} at month ${num(still.months, 1)}` : '';
+  return { profile, u, q, blocked, exposure: sum((r) => r.exposure), compensation: sum((r) => r.compensation), overDelivery: sum((r) => r.overDelivery) };
+}
+
+function routeOption(ctx: LeverContext, r: RouteRun): LeverOption {
+  const { ac, a, baseline } = ctx;
+  const p = baseline.projection;
+  const T = p.monthsToReturn;
   const base = baseline.asRecorded;
   const downtimeDays = DOWNTIME_DAYS.routeReassignment;
   const saving = base.exposure - r.exposure;
@@ -872,6 +884,21 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
 
   const s = open[0]!;
   const runnerUp = open[1];
+  return swapOption(
+    ctx,
+    s,
+    `Lever 3, move a component: the unit whose life sits just above what this contract demands, not the one with the most. ` +
+      `Searched ${fromPool + fromTails} units that fit ${positions}: ${fromPool} in the pool, ${fromTails} on other returning tails` +
+      (shut ? `; ${shut} ruled out because a unit would run out before handback. ` : '. ') +
+      `Best: ${s.trace} ` +
+      (runnerUp ? `Next best: ${runnerUp.unit.serial} into ${ac.components[runnerUp.index]!.position} at ${usd(runnerUp.total)} all-in. ` : ''),
+  );
+}
+
+/** A swap as an option: decided by the earlier of the component running out and the shop-slot deadline. */
+function swapOption(ctx: LeverContext, s: Swap, trace: string): LeverOption {
+  const { ac, baseline } = ctx;
+  const p = baseline.projection;
   const c = ac.components[s.index]!;
   const out = runout(p, baseline.asRecorded.components[s.index]!);
   const runoutDate = out.months < p.monthsToReturn ? addMonths(p.asOf, out.months) : null;
@@ -896,12 +923,119 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
     position: c.position,
     actionKey: `swap:${c.position}:${s.unit.id}`,
     move: s.detail,
-    trace:
-      `Lever 3, move a component: the unit whose life sits just above what this contract demands, not the one with the most. ` +
-      `Searched ${fromPool + fromTails} units that fit ${positions}: ${fromPool} in the pool, ${fromTails} on other returning tails` +
-      (shut ? `; ${shut} ruled out because a unit would run out before handback. ` : '. ') +
-      `Best: ${s.trace} ` +
-      (runnerUp ? `Next best: ${runnerUp.unit.serial} into ${ac.components[runnerUp.index]!.position} at ${usd(runnerUp.total)} all-in. ` : '') +
-      `Priced as fitted today. Decide by ${deadline}: ${why}.`,
+    trace: `${trace}Priced as fitted today. Decide by ${deadline}: ${why}.`,
   });
+}
+
+// ---------------------------------------------------------------------------------------
+// The customer's own choice — the what-if (calc/whatif.ts). One action on one tail, priced by
+// the same machinery as the levers, or refused with the reason the model knows it cannot
+// happen: never priced as if it could.
+// ---------------------------------------------------------------------------------------
+
+/** What a proposal asks for, as the customer would say it; a swap's unit by its serial. */
+export function describeProposal(p: Proposal, serial?: string): string {
+  switch (p.kind) {
+    case 'swap':
+      return `Swap ${p.position} ${serial ? `for ${serial}` : 'for the right-sized unit'}`;
+    case 'visit':
+      return `Send ${p.position} to the shop, month ${p.month}${p.position.startsWith('ENG') ? `, ${p.workscope}` : ''}`;
+    case 'route':
+      return p.profile ? `Fly it ${p.profile}` : 'Change its route';
+    case 'return':
+      return `Hand it back ${p.months} ${p.months === 1 ? 'month' : 'months'} later`;
+  }
+}
+
+/**
+ * A proposed swap, shop visit or route change on this tail, as an option. Infeasible, with the
+ * reason as its trace, when the model knows it cannot happen: no free unit of that type, a slot
+ * inside the lead time or after the component has run out, a turnaround past handback, a route
+ * the type does not fly — or, on a tail with a component running out before handback, a change
+ * that does not deal with it. Set ctx.focus to that component, as recommendTail does.
+ */
+export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { kind: 'return' }>): LeverOption {
+  const { ac, baseline } = ctx;
+  const p = baseline.projection;
+  const out = ctx.focus === undefined ? null : { c: ac.components[ctx.focus]!, r: runout(p, baseline.asRecorded.components[ctx.focus]!) };
+  const runsOut = out ? `${out.c.position} runs out of ${clockWord(out.r.requirement)} at month ${num(out.r.months, 1)}, before handback` : '';
+
+  if (proposal.kind === 'route') {
+    const label = proposal.profile ? `Fly it ${proposal.profile}` : 'Change its route';
+    const flown = PROFILES_BY_TYPE[ac.type];
+    if (!proposal.profile || proposal.profile === ac.routeProfile || !flown.includes(proposal.profile))
+      return unavailable(
+        ctx,
+        'L2',
+        label,
+        flown.length < 2
+          ? `The ${ac.type} flies only the ${ac.routeProfile} profile in this network: there is no other route to put it on.`
+          : proposal.profile === ac.routeProfile
+            ? `${ac.tail} already flies ${ac.routeProfile}.`
+            : `The ${ac.type} does not fly ${proposal.profile} in this network.`,
+      );
+    const r = routeRun(ctx, proposal.profile);
+    if (r.blocked) return unavailable(ctx, 'L2', label, `${runsOut}, and ${r.blocked}: the route change does not keep it flying.`);
+    return routeOption(ctx, r);
+  }
+
+  const i = ac.components.findIndex((c) => c.position === proposal.position);
+  const c = ac.components[i];
+  const label = proposal.kind === 'swap' ? `Swap ${proposal.position}` : `Send ${proposal.position} to the shop`;
+  if (!c) return unavailable(ctx, proposal.kind === 'swap' ? 'L3' : 'L4', label, `${ac.tail} has no ${proposal.position}.`);
+  if (out && ctx.focus !== i)
+    return unavailable(ctx, proposal.kind === 'swap' ? 'L3' : 'L4', label, `${runsOut}, and this does not deal with it: one change per tail, so it has to be ${out.c.position}.`);
+
+  if (proposal.kind === 'visit') {
+    if (!MOVABLE.includes(c.kind)) return unavailable(ctx, 'L4', label, `The airframe's heavy check is not timed by the levers: its downtime is not in ASSUMPTIONS §13.`);
+    const scope: Scope = c.kind === 'engine' ? proposal.workscope : 'build-for-interval';
+    const block = visitBlock(ctx, i, proposal.month);
+    if (block) return unavailable(ctx, 'L4', label, `A slot in month ${proposal.month} (${addMonths(p.asOf, proposal.month)}) cannot be had: ${block}.`);
+    const v = simulateVisit(ctx, i, proposal.month, scope);
+    const lead = ctx.a.shopSlotLeadTimeMonths;
+    const deadline = addMonths(p.asOf, v.month - lead);
+    return finish(ctx, {
+      lever: 'L4',
+      label: `Send ${c.position} to the shop: ${visitName(c.kind, scope)}, month ${v.month}`,
+      cost: v.cost,
+      downtimeDays: v.downtimeDays,
+      downtimeCost: v.downtimeCost,
+      newExposure: v.newExposure,
+      newCompensation: v.newCompensation,
+      spend: v.cost,
+      spendDate: v.date,
+      feasible: true,
+      deadline,
+      position: c.position,
+      actionKey: `visit:${c.position}:${v.month}:${scope}`,
+      trace: `Your change: ${v.trace} Book the slot by ${deadline} (${lead} months' lead).`,
+    });
+  }
+
+  if (!MOVABLE.includes(c.kind)) return unavailable(ctx, 'L3', label, `The airframe is the aircraft: it cannot be swapped.`);
+  const model = c.kind === 'engine' ? ac.engineModel : ac.type;
+  const fits = (u: Component) => u.kind === c.kind && u.model === model;
+  const what = `${model} ${c.kind === 'engine' ? 'engine' : c.kind === 'landing-gear' ? 'landing gear' : 'APU'}`;
+  const free: Swap[] = [
+    ...ctx.pool.filter(fits).map((u) => evaluateSwap(ctx, i, u)),
+    ...ctx.donors.flatMap((d) => d.ac.components.flatMap((u, j) => (fits(u) ? [evaluateSwap(ctx, i, u, { d, j })] : []))),
+  ];
+  let s: Swap | undefined;
+  if (proposal.unit) {
+    s = free.find((x) => x.unit.id === proposal.unit);
+    if (!s) {
+      const elsewhere = [...ctx.pool, ...ctx.donors.flatMap((d) => d.ac.components)].find((u) => u.id === proposal.unit);
+      return unavailable(
+        ctx,
+        'L3',
+        label,
+        elsewhere ? `${elsewhere.serial} is a ${elsewhere.model} ${elsewhere.kind}; ${c.position} on ${ac.tail} takes a ${what}.` : `That unit is not free: it is in no pool and on no returning tail that is free to give it.`,
+      );
+    }
+  } else {
+    if (!free.length) return unavailable(ctx, 'L3', label, `No ${what} is free: none in the pool, and none on another returning tail that is free to give one.`);
+    s = free.filter((x) => !x.blocked).sort((x, y) => x.total - y.total)[0] ?? free[0]!;
+  }
+  if (s.blocked) return unavailable(ctx, 'L3', `${label} for ${s.unit.serial}`, `${s.blocked}: the swap only moves the problem.`);
+  return swapOption(ctx, s, `Your change: ${proposal.unit ? '' : 'the right-sized unit, as the model would pick. '}${s.trace} `);
 }

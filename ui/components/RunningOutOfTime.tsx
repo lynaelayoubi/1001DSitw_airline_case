@@ -1,10 +1,9 @@
 import type { ClosingDecisions } from '../../calc/deadlines';
 import { date, money } from '../format';
-import { Trace } from './Trace';
 
 /**
- * The customer's calendar: the decisions that are closing, soonest first (calc/deadlines.ts) —
- * the top line of the panel, above the model's own view of how firm its answers are. Each row says
+ * The customer's calendar: the decisions that are closing, soonest first (calc/deadlines.ts),
+ * beside what he can do about them. Each row says
  * its own consequence, because there are two: a chosen action falls back to the best option still
  * open — usually paying at handback — while a forced removal with nothing left runs out with
  * nothing booked. Forced rows show no saving: their benchmark is a do-nothing that cannot happen.
@@ -13,7 +12,7 @@ export function RunningOutOfTime({ closing }: { closing: ClosingDecisions }) {
   return (
     <div>
       <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">
-        <Trace text={closing.trace}>Running out of time</Trace>
+        Running out of time
       </h2>
       {closing.items.length === 0 ? (
         <p className="text-sm text-slate-500">No recommended action has a date: nothing is closing.</p>
@@ -25,7 +24,7 @@ export function RunningOutOfTime({ closing }: { closing: ClosingDecisions }) {
                 <td className="py-1.5 pr-3 font-medium whitespace-nowrap">{x.tail}</td>
                 <td className="py-1.5 pr-3">{x.label}</td>
                 <td className="py-1.5 pr-3 whitespace-nowrap">
-                  <Trace text={x.trace}>decide by {date(x.decideBy)}</Trace>
+                  decide by {date(x.decideBy)}
                 </td>
                 <td className="py-1.5 pr-3 text-right whitespace-nowrap tabular-nums">
                   {x.saving === null ? <span className="text-slate-500">forced</span> : <>saves {money(x.saving)}</>}

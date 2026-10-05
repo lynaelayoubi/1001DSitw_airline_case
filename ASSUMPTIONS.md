@@ -593,8 +593,8 @@ The screen no longer asks for these numbers: the customer's own teams hold them.
 with its provenance below and can be overridden, and the robustness check says how far each would
 have to move before any recommendation changes. One collapsed table directly above the robustness
 panel is the only place they live: each with its value, evidenced range and source, whether the
-sweep found any recommendation it changes, and an override held inside the evidenced range. **One control stays on screen:** extend the lease
-on a named returning tail, 0–12 months — the customer's own decision and example.
+sweep found any recommendation it changes, and an override held inside the evidenced range. Moving a tail's return date is not among them: it is
+the customer's own decision, and lives in the what-if (§16).
 
 | assumption | value used | plausible range | basis of the ends | in deployment, from |
 |---|---|---|---|---|
@@ -664,3 +664,27 @@ the first length at which any tail's recommended action changes is recorded. Whe
 panel says so plainly instead of leaving a control that does nothing. On this fleet, extending
 A6-DLL, 9H-KVJ, 9H-ZUU or 9H-PJS changes nothing at any length; extending A6-MXM changes its own
 answer at one month.
+
+---
+
+## 16 · The what-if (as built, `calc/whatif.ts`)
+
+The head of fleet proposes his own actions and sees what they change against today's plan. Not the
+seven assumptions — those are the world's, and the robustness sweep moves them (§14) — but the
+four decisions he controls:
+
+| decision | priced by | refused, with the reason, when |
+|---|---|---|
+| Swap a component | lever 3's swap (`evaluateSwap`), the unit he names or the right-sized one | no free unit of that type in the pool or on another returning tail; the unit would run out before a handback; it is already promised to another change in the what-if |
+| Send one to the shop | lever 4's visit (`simulateVisit`), the month and workscope he names | the month is inside the shop-slot lead time; the component runs out before the slot; the turnaround puts it back after handback |
+| Change its route | lever 2's run (`routeRun`) on the profile he names | the type flies only one profile in this network |
+| Move its return date | the lease extension, 1–12 months | moved twice, or past what the model projects |
+
+**Rules.** Return dates move first: they change the world every other change is priced in. Then
+each action is imposed in the order given, before the model plans the rest of the fleet — a spare
+or a tail his change takes is gone for the tails that would have had it, and they re-plan around
+it. One action per tail, plus its return date: each lever is priced against the tail as it
+stands, so a second action on the same tail is refused rather than priced on a state the model
+does not carry. On a tail with a component running out before handback, an action must deal with
+that component. Today's plan stays on screen; the what-if shows the difference — still owed at
+handback, maintenance spend, all-in with downtime — and the tails whose action changes.

@@ -2,15 +2,17 @@ import { Fragment, useMemo, useState } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
-import { actionOf, type FleetRecommendation, type ScenarioComparison, type TailPlan } from '../../calc/recommend';
+import { actionOf, type FleetRecommendation, type TailPlan } from '../../calc/recommend';
 import type { BudgetPlan } from '../../calc/budget';
 import type { ClosingDecisions } from '../../calc/deadlines';
 import { describeInput, type ExtensionEffects, type Robustness } from '../../calc/robustness';
-import type { Assumptions } from '../../calc/types';
+import type { Assumptions, Proposal } from '../../calc/types';
+import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { Headline } from '../components/Headline';
 import { RobustnessPanel } from '../components/RobustnessPanel';
-import { Trace } from '../components/Trace';
+import { HowFirm } from '../components/HowFirm';
 import { WhatThisAssumes } from '../components/WhatThisAssumes';
+import { Working } from '../components/Working';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
 
 /**
@@ -25,7 +27,6 @@ export default function FleetScreen({
   fleet,
   plans,
   atRest,
-  comparison,
   robustness,
   extension,
   robustnessPending,
@@ -35,11 +36,14 @@ export default function FleetScreen({
   onBudget,
   budgetPlan,
   closing,
+  choices,
+  proposals,
+  onProposals,
+  whatIf,
 }: {
   fleet: FleetExposure;
   plans: FleetRecommendation;
   atRest: FleetRecommendation;
-  comparison: ScenarioComparison;
   robustness: Robustness | null;
   extension: ExtensionEffects | null;
   robustnessPending: boolean;
@@ -49,6 +53,10 @@ export default function FleetScreen({
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
   closing: ClosingDecisions;
+  choices: TailChoices[];
+  proposals: Proposal[];
+  onProposals: (p: Proposal[]) => void;
+  whatIf: WhatIfResult | null;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -79,17 +87,16 @@ export default function FleetScreen({
       </header>
 
       <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
+      <HowFirm robustness={robustness} pending={robustnessPending} />
       <RobustnessPanel
-        robustness={robustness}
         extension={extension}
-        pending={robustnessPending}
         budget={budget}
         onBudget={onBudget}
         budgetPlan={budgetPlan}
-        assumptions={assumptions}
-        onChange={onAssumptions}
-        tails={fleet.returning.map((t) => ({ tail: t.tail, type: t.type })).sort((x, y) => x.tail.localeCompare(y.tail))}
-        comparison={comparison}
+        choices={choices}
+        proposals={proposals}
+        onProposals={onProposals}
+        whatIf={whatIf}
         closing={closing}
       />
 
@@ -104,12 +111,18 @@ export default function FleetScreen({
               <Th>Lessor</Th>
               <Th>Return</Th>
               <Th right>Months left</Th>
-              <Th right>If nothing changes</Th>
-              <Th right>As the lease allows</Th>
-              <Th right>After recommendation</Th>
-              <Th>Binding clock</Th>
-              <Th>QME</Th>
-              <Th>Decide by</Th>
+              <Th right tip="Compensation and life handed over at handback if this tail does nothing.">
+                If nothing changes
+              </Th>
+              <Th right tip="The same, counting only the maintenance the lease recognises as a qualified event.">
+                As the lease allows
+              </Th>
+              <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
+                After recommendation
+              </Th>
+              <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Binding clock</Th>
+              <Th tip="Components whose last shop visit is not evidenced as a qualified maintenance event.">QME</Th>
+              <Th tip="The last date to commit to the recommended action.">Decide by</Th>
             </tr>
           </thead>
           <tbody>
@@ -123,25 +136,24 @@ export default function FleetScreen({
                   open={open === t.tail}
                   onToggle={() => setOpen(open === t.tail ? null : t.tail)}
                 />
-                {open === t.tail && <TailDetail t={t} robustness={robustness} />}
+                {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} robustness={robustness} />}
               </Fragment>
             ))}
           </tbody>
         </table>
       </div>
 
-      <p className="mt-3 text-xs text-slate-500">
-        Hover any figure for its arithmetic. Click a tail for the four components. Exposure = compensation on the binding clock of each component, plus the LLP
-        clause, plus over-delivery: the LLP life a past shop visit bought beyond the cheapest workscope that would have cleared the contract. Compensation on any
-        component is capped at the cheapest work that would put it right. After recommendation is all-in: the work, its downtime, and what is still owed at
-        handback.
-      </p>
     </main>
   );
 }
 
-function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
-  return <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>{children}</th>;
+/** A column head; its tip is one sentence answering what the column is. */
+function Th({ children, right, tip }: { children: React.ReactNode; right?: boolean; tip?: string }) {
+  return (
+    <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'} ${tip ? 'cursor-help' : ''}`} title={tip}>
+      {children}
+    </th>
+  );
 }
 
 function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; leftOut: boolean; open: boolean; onToggle: () => void }) {
@@ -157,7 +169,7 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
       <td className="max-w-[9rem] px-2 py-2 leading-tight text-slate-600">{t.lessor}</td>
       <td className="px-2 py-2 whitespace-nowrap">{date(t.projection.effectiveLeaseEnd)}</td>
       <td className="px-2 py-2 text-right tabular-nums">
-        <Trace text={t.projection.trace}>{months(t.projection.monthsToReturn)}</Trace>
+        {months(t.projection.monthsToReturn)}
       </td>
       {beyond ? (
         <>
@@ -168,26 +180,20 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
         </>
       ) : (
         <>
-          <td className="px-2 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-            <Trace text={r.trace} align="right" className="font-semibold tabular-nums">
-              {money(r.exposure)}
-            </Trace>
+          <td className="px-2 py-2 text-right">
+            <span className="font-semibold tabular-nums">{money(r.exposure)}</span>
             <Breakdown t={t} />
           </td>
-          <td className="px-2 py-2 text-right tabular-nums" onClick={(e) => e.stopPropagation()}>
-            <Trace text={t.asLeaseAllows.trace} align="right" className={t.qmeDelta > 0 ? 'font-semibold text-amber-800' : 'text-slate-500'}>
-              {money(t.asLeaseAllows.exposure)}
-            </Trace>
+          <td className="px-2 py-2 text-right tabular-nums">
+            <span className={t.qmeDelta > 0 ? 'font-semibold text-amber-800' : 'text-slate-500'}>{money(t.asLeaseAllows.exposure)}</span>
             {t.qmeDelta > 0 && <div className="text-[11px] text-amber-700">+{money(t.qmeDelta)}</div>}
           </td>
-          <td className="px-2 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+          <td className="px-2 py-2 text-right">
             {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
           </td>
-          <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-            <Trace text={t.trace}>
-              <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
-              {t.binding.how === 'tightest' && <span className="ml-1 text-xs text-slate-400">clear</span>}
-            </Trace>
+          <td className="px-2 py-2 whitespace-nowrap">
+            <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
+            {t.binding.how === 'tightest' && <span className="ml-1 text-xs text-slate-400">clear</span>}
           </td>
         </>
       )}
@@ -202,11 +208,9 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           <span className="text-slate-300">—</span>
         )}
       </td>
-      <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+      <td className="px-2 py-2 whitespace-nowrap">
         {plan?.decisionDeadline ? (
-          <Trace text={plan.trace} align="right">
-            {date(plan.decisionDeadline)}
-          </Trace>
+          date(plan.decisionDeadline)
         ) : (
           <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
         )}
@@ -220,28 +224,18 @@ function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before
   const changed = before && actionOf(before) !== actionOf(plan);
   return (
     <div className="ml-auto max-w-[13rem]">
-      <Trace text={plan.trace} align="right" className="font-semibold tabular-nums">
-        {money(plan.after)}
-      </Trace>
-      {plan.forced ? (
-        // Not a saving or a loss the tool chose: the do-nothing figure it is measured against cannot happen.
-        plan.avoidable !== 0 && (
-          <div className="text-[11px] text-slate-500 tabular-nums">
-            {plan.avoidable > 0 ? '−' : '+'}
-            {money(Math.abs(plan.avoidable))} vs a do-nothing that cannot happen
-          </div>
-        )
-      ) : (
-        <>
-          {plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
-          {plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
-        </>
-      )}
+      <span className="font-semibold tabular-nums">{money(plan.after)}</span>
+      {/* A forced tail shows no saving: the do-nothing it would be measured against cannot happen. */}
+      {!plan.forced && plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
+      {!plan.forced && plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
       <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>
-        {plan.forced && <span className="mr-1 rounded bg-slate-800 px-1 py-px text-[10px] font-medium text-white">forced</span>}
+        {plan.forced && (
+          <span className="mr-1 cursor-help rounded bg-slate-800 px-1 py-px text-[10px] font-medium text-white" title={plan.forced}>
+            forced
+          </span>
+        )}
         {plan.label}
       </div>
-      {plan.forced && <div className="text-[11px] leading-tight text-slate-500">{plan.forced}</div>}
       {plan.role === 'own' && !plan.recommendation.call.stands && (
         <div className="text-[11px] leading-tight text-amber-800">{plan.recommendation.call.why}</div>
       )}
@@ -268,11 +262,26 @@ function Breakdown({ t }: { t: TailResult }) {
   );
 }
 
-function TailDetail({ t, robustness }: { t: TailResult; robustness: Robustness | null }) {
+function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; robustness: Robustness | null }) {
+  const rec = plan?.role === 'own' ? plan.recommendation : null;
   return (
     <tr className="border-t border-slate-100 bg-slate-50/60">
       <td colSpan={11} className="px-3 py-3">
         <div className="grid gap-3">
+          {plan && (
+            <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
+              <div className="text-sm">
+                <span className="font-semibold">{plan.label}</span>
+                {rec?.runnerUp && (
+                  <span className="text-slate-500">
+                    {' '}
+                    · next best: {rec.runnerUp.label}, {money(rec.delta)} more
+                  </span>
+                )}
+              </div>
+              <Working>{`${t.projection.trace}\n\n${plan.trace}`}</Working>
+            </div>
+          )}
           <TailRobustness tail={t.tail} robustness={robustness} />
           {t.asRecorded.components.map((c, i) => (
             <ComponentCard key={c.componentId} c={c} lease={t.asLeaseAllows.components[i]!} />
@@ -298,14 +307,18 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
       <span className="text-slate-400">holds to {describeInput(input.input, edge, input.current)}</span>
     );
   };
+  const state = robustness.byTail[tail] ?? 'firm';
+  const near = robustness.close.find((c) => c.tail === tail);
   return (
-    <div className="rounded-md border border-slate-200 bg-white">
-      <div className="flex items-baseline justify-between border-b border-slate-100 px-3 py-2">
-        <span className="text-sm font-semibold">How far each input would have to move before this answer changes</span>
-        <span className="text-xs text-slate-500">
-          {robustness.byTail[tail] ?? 'firm'} · one input at a time, so a lower bound
-        </span>
-      </div>
+    <details className="rounded-md border border-slate-200 bg-white">
+      <summary className="cursor-pointer px-3 py-2 text-sm">
+        How firm this answer is — <span className="font-medium">{state}</span>
+        {near && (
+          <span className="text-slate-500">
+            : {near.input.label.toLowerCase()} {near.flip.change} would change it
+          </span>
+        )}
+      </summary>
       <table className="w-full text-xs">
         <thead className="text-[10px] tracking-wide text-slate-400 uppercase">
           <tr>
@@ -326,7 +339,7 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
           ))}
         </tbody>
       </table>
-    </div>
+    </details>
   );
 }
 
@@ -340,17 +353,13 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
           {flagged && <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">last shop visit not evidenced as a QME</span>}
         </div>
         <div className="text-sm tabular-nums">
-          <Trace text={c.trace} align="right">
-            <span className="font-semibold">{money(c.exposure)}</span>
-            <span className="text-slate-500"> as recorded</span>
-          </Trace>
+          <span className="font-semibold">{money(c.exposure)}</span>
+          <span className="text-slate-500"> as recorded</span>
           {flagged && (
             <>
               <span className="mx-2 text-slate-300">·</span>
-              <Trace text={lease.trace} align="right">
-                <span className="font-semibold text-amber-800">{money(lease.exposure)}</span>
-                <span className="text-slate-500"> as the lease allows</span>
-              </Trace>
+              <span className="font-semibold text-amber-800">{money(lease.exposure)}</span>
+              <span className="text-slate-500"> as the lease allows</span>
             </>
           )}
         </div>
@@ -376,6 +385,11 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
           ))}
         </tbody>
       </table>
+      <div className="border-t border-slate-100 px-3 py-1.5">
+        <Working>
+          {[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`As the lease allows: ${lease.trace}`] : [])].join('\n\n')}
+        </Working>
+      </div>
     </div>
   );
 }
@@ -387,10 +401,8 @@ function RequirementRow({ r, binding, how, lease }: { r: RequirementResult; bind
     <tr className={`border-t border-slate-100 ${binding ? 'bg-slate-50' : ''}`}>
       <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">{r.clauseRef}</td>
       <td className="px-3 py-1.5 whitespace-nowrap">
-        <Trace text={r.trace}>
-          {unitLabel[u]}
-          {r.group === 'llp' && <span className="text-slate-400"> (LLP)</span>}
-        </Trace>
+        {unitLabel[u]}
+        {r.group === 'llp' && <span className="text-slate-400"> (LLP)</span>}
         {binding && <span className="ml-2 rounded bg-slate-900 px-1.5 py-0.5 text-[10px] font-medium text-white">{how === 'shortfall' ? 'binds' : 'runs out first'}</span>}
       </td>
       <td className="px-3 py-1.5 text-right tabular-nums">{int(r.remainingToday)}</td>
@@ -404,9 +416,7 @@ function RequirementRow({ r, binding, how, lease }: { r: RequirementResult; bind
       <td className="px-3 py-1.5 text-right tabular-nums">{r.overDelivery > 0 ? money(r.overDelivery) : <span className="text-slate-300">—</span>}</td>
       {lease && (
         <td className="px-3 py-1.5 text-right tabular-nums text-amber-800">
-          <Trace text={lease.trace} align="right">
-            {int(lease.remainingAtReturn)} at return · {lease.compensation > 0 ? money(lease.compensation) : '—'}
-          </Trace>
+          {int(lease.remainingAtReturn)} at return · {lease.compensation > 0 ? money(lease.compensation) : '—'}
         </td>
       )}
     </tr>

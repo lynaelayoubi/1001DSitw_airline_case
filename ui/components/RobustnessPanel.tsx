@@ -1,184 +1,51 @@
-import { useState } from 'react';
-
 import type { BudgetPlan } from '../../calc/budget';
 import type { ClosingDecisions } from '../../calc/deadlines';
-import { LEASE_EXTENSION_CONTROL } from '../../calc/constants';
-import type { ScenarioComparison } from '../../calc/recommend';
-import { inputsLine, type ExtensionEffects, type Robustness } from '../../calc/robustness';
-import type { Assumptions } from '../../calc/types';
+import type { ExtensionEffects } from '../../calc/robustness';
+import type { Proposal } from '../../calc/types';
+import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { date, money } from '../format';
 import { RunningOutOfTime } from './RunningOutOfTime';
-import { Trace } from './Trace';
-
-const pct = (x: number) => `${Math.round(x * 100)}%`;
+import { WhatIf } from './WhatIf';
 
 /**
- * What you can do, and when it has to be decided. Left: the customer's own decisions — extend a
- * named lease, set this year's budget. Right, on top: the customer's calendar, the decisions closing
- * soonest. Under it, subordinate: the model's view of how firm its answers are — how far each
- * assumption would have to move before an answer changes, since the numbers behind them are held
- * by the customer's own teams rather than asked for here.
+ * What you can do, and when it has to be decided. Left: the customer's own decisions — a what-if
+ * of his own actions against today's plan, and this year's budget. Right: his calendar, the
+ * decisions closing soonest. How firm the answers are is the model assessing itself, and sits
+ * collapsed above (HowFirm).
  */
 export function RobustnessPanel({
-  robustness,
   extension,
-  pending,
-  assumptions,
-  onChange,
-  tails,
-  comparison,
+  choices,
+  proposals,
+  onProposals,
+  whatIf,
   budget,
   onBudget,
   budgetPlan,
   closing,
 }: {
-  robustness: Robustness | null;
   extension: ExtensionEffects | null;
-  pending: boolean;
-  assumptions: Assumptions;
-  onChange: (a: Assumptions) => void;
-  tails: { tail: string; type: string }[];
-  comparison: ScenarioComparison;
+  choices: TailChoices[];
+  proposals: Proposal[];
+  onProposals: (p: Proposal[]) => void;
+  whatIf: WhatIfResult | null;
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
   closing: ClosingDecisions;
 }) {
-  const [extended, setExtended] = useState(tails[0]?.tail ?? '');
-  const months = assumptions.leaseExtensionMonths[extended] ?? 0;
-  const extend = (tail: string, n: number) => onChange({ ...assumptions, leaseExtensionMonths: n > 0 ? { [tail]: n } : {} });
-  const c = LEASE_EXTENSION_CONTROL;
-  const r = robustness;
-  const effect = extension?.byTail[extended];
 
   return (
     <section className="mb-5 grid gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 lg:grid-cols-[1fr_2fr]">
       <div>
         <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">What you can do</h2>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-slate-800">
-          <span>Extend the lease on</span>
-          <select
-            className="rounded border border-slate-300 bg-white px-1 text-sm"
-            value={extended}
-            onChange={(e) => {
-              setExtended(e.target.value);
-              extend(e.target.value, months);
-            }}
-          >
-            {tails.map((t) => (
-              <option key={t.tail} value={t.tail}>
-                {t.tail} · {t.type}
-              </option>
-            ))}
-          </select>
-          <span className="inline-flex items-center overflow-hidden rounded border border-slate-300">
-            <button className="px-2 py-0.5 enabled:hover:bg-slate-50 disabled:text-slate-300" disabled={months <= c.min} onClick={() => extend(extended, months - c.step)} aria-label="One month less">
-              −
-            </button>
-            <span className="min-w-[5.5rem] border-x border-slate-300 px-2 py-0.5 text-center tabular-nums">
-              {months} {months === 1 ? 'month' : 'months'}
-            </span>
-            <button className="px-2 py-0.5 enabled:hover:bg-slate-50 disabled:text-slate-300" disabled={months >= c.max} onClick={() => extend(extended, months + c.step)} aria-label="One month more">
-              +
-            </button>
-          </span>
-        </div>
-        <p className="mt-1 text-xs text-slate-500">
-          {!extension
-            ? 'Checking what extending each lease would change…'
-            : !extension.any
-              ? `Extending any returning tail's lease, by any length up to ${extension.maxMonths} months, changes no recommendation.`
-              : !effect || effect.months === null
-                ? `Extending ${extended}'s lease changes no recommendation at any length up to ${extension.maxMonths} months.`
-                : `Extending ${extended}'s lease first changes a recommendation at ${effect.months} ${effect.months === 1 ? 'month' : 'months'}: ${effect.changes
-                    .map((x) => `${x.tail} ${x.from} → ${x.to}`)
-                    .join('; ')}.`}
-        </p>
-        <div className="mt-2 text-sm">
-          <Trace text={comparison.trace}>
-            <span className={comparison.changed.length ? 'font-semibold text-violet-800' : 'text-slate-500'}>
-              {comparison.changed.length === 0
-                ? 'No tail changes its recommended action'
-                : comparison.changed.length === 1
-                  ? `1 of ${comparison.tails} tails changes its recommended action`
-                  : `${comparison.changed.length} of ${comparison.tails} tails change their recommended action`}
-            </span>
-          </Trace>
-          {comparison.changed.length > 0 && (
-            <ul className="mt-1 space-y-0.5 text-[13px]">
-              {comparison.changed.map((x) => (
-                <li key={x.tail}>
-                  <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.from}</span> → <span className="text-violet-800">{x.to}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
 
         <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} />
       </div>
 
-      <div>
-        <RunningOutOfTime closing={closing} />
-        <div className={`mt-3 border-t border-slate-100 pt-2 text-slate-600 ${pending ? 'opacity-60' : ''}`}>
-          <h3 className="mb-1 text-[10.5px] font-medium tracking-wide text-slate-400 uppercase">
-            How firm are these answers {pending && <span className="normal-case">— rechecking…</span>}
-          </h3>
-          {!r ? (
-            <p className="text-xs text-slate-500">Checking how far each assumption would have to move before an answer changes…</p>
-          ) : (
-            <>
-              <p className="text-xs">
-                <Trace text={r.trace}>
-                  <span className="font-semibold">{r.firm.length} firm</span> · <span className="font-semibold">{r.close.length} close</span>
-                </Trace>
-                {r.undecided.length > 0 && (
-                  <span className="text-slate-500">
-                    {' '}
-                    · {r.undecided.length} with no recommendation
-                  </span>
-                )}
-              </p>
-              <CallList title="Close — an input inside its evidenced range would change the answer" calls={r.close} tone="text-violet-800" />
-              {r.undecided.length > 0 && (
-                <div className="mt-1">
-                  <div className="text-xs text-slate-500">No recommendation — the options cannot be told apart within the cost estimates' precision</div>
-                  <ul className="space-y-0.5 text-xs">
-                    {r.undecided.map((x) => (
-                      <li key={x.tail}>
-                        <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.why}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              <p className="mt-2 text-xs">{inputsLine(r.changing, r.holding)}</p>
-              <p className="mt-2 text-xs text-slate-500">
-                Each assumption moves on its own here. In practice they move together — a busy summer raises flying and shop demand at once — so
-                read this as a lower bound on how fragile the answers are: correlated moves would flip them sooner.
-              </p>
-            </>
-          )}
-        </div>
-      </div>
+      <RunningOutOfTime closing={closing} />
     </section>
-  );
-}
-
-function CallList({ title, calls, tone }: { title: string; calls: Robustness['close']; tone: string }) {
-  if (!calls.length) return null;
-  return (
-    <div className="mt-1">
-      <div className="text-xs text-slate-500">{title}</div>
-      <ul className="space-y-0.5 text-xs">
-        {calls.map((c) => (
-          <li key={c.tail}>
-            <span className="font-medium">{c.tail}</span> <span className="text-slate-500">{c.label}</span> → <span className={tone}>{c.flip.to}</span> if{' '}
-            {c.input.label.toLowerCase()} {c.flip.change} <span className="text-slate-400">(reach {pct(c.flip.reach)})</span>
-          </li>
-        ))}
-      </ul>
-    </div>
   );
 }
 
@@ -203,10 +70,7 @@ function Budget({ budget, onBudget, plan }: { budget: number | null; onBudget: (
         </span>
       </div>
       <p className="mt-1 text-xs text-slate-500">
-        <Trace text={plan.trace}>
-          Every recommended action needs {money(plan.needed)} in this window, {money(plan.forcedSpend)} of it forced
-        </Trace>
-        .
+        Every recommended action needs {money(plan.needed)} in this window, {money(plan.forcedSpend)} of it forced.
       </p>
       {budget !== null && (
         <div className="mt-1 text-[13px]">

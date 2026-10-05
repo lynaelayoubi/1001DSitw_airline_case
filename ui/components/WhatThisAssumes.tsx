@@ -4,11 +4,11 @@ import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, type AssumptionInput } from '..
 import { readInput, writeInput, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
 import { inputShown, inputValue } from '../format';
-import { Trace } from './Trace';
 
 /**
  * What the recommendations rest on: the one place the seven assumptions live, collapsed directly
- * above the panel. The label carries the finding; open, each input's value, evidenced range, the
+ * above the panel. The label carries the finding; open, each input's value, evidenced range (why it
+ * stops there is in ASSUMPTIONS §14), the
  * system its real number should come from, whether the sweep found any recommendation it changes,
  * and an override. An override recomputes everything downstream — the fleet, the recommendations,
  * the calendar, the budget and, in the worker, the robustness sweep — and stays inside the evidenced
@@ -50,7 +50,9 @@ export function WhatThisAssumes({
             <th className="px-3 py-2 text-left font-medium">Value used</th>
             <th className="px-3 py-2 text-left font-medium">Evidenced range</th>
             <th className="px-3 py-2 text-left font-medium">Real number from</th>
-            <th className="px-3 py-2 text-left font-medium">Changes a recommendation in its range?</th>
+            <th className="px-3 py-2 text-left font-medium" title="Whether moving it anywhere in its evidenced range changes any tail's recommendation.">
+              Changes an answer
+            </th>
             <th className="px-3 py-2 text-left font-medium">Override</th>
           </tr>
         </thead>
@@ -73,9 +75,7 @@ export function WhatThisAssumes({
                   )}
                 </td>
                 <td className="px-3 py-2 whitespace-nowrap tabular-nums">
-                  <Trace text={input.basis}>
-                    {inputShown(input, input.range.min)} to {inputShown(input, input.range.max)}
-                  </Trace>
+                  {inputShown(input, input.range.min)} to {inputShown(input, input.range.max)}
                 </td>
                 <td className="px-3 py-2 text-slate-600">{input.source}</td>
                 <td className={`px-3 py-2 whitespace-nowrap ${pending ? 'opacity-60' : ''}`}>
