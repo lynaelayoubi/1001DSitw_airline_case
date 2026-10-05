@@ -743,3 +743,28 @@ already says which inputs change no answer.
 the model works), the paragraph under the headline (now one sentence), a forced row's second
 explanation and its saving against a do-nothing that cannot happen (the badge's tip says why), and
 the what-if's echo of his own change in the list of tails that change.
+
+## Step 13 · the screen leads with its answer — Monday 5 October
+
+**The recommended actions are the first thing on the screen — tail, action, date, and "forced" or
+what it saves, soonest first — with the avoidable total beside them.** · Rejected: the assumptions
+drawer, the what-if and the budget above them. · Because those justify the list, and justification
+goes under what it justifies. Order now: actions, headline, the tails, what you can do, then —
+collapsed — what the answers assume and how firm they are.
+
+**The avoidable total beside the list is split: what the chosen actions save ($6.99M — the list's
+savings add up to it) and the difference on forced tails ($1.59M, against a do-nothing that cannot
+happen).** · Rejected: the single $8.58M beside a column that adds to $6.99M. · Because a head of
+fleet adds up the column, and the gap would read as an error. Computed in `recommendFleet`
+(`avoidableChosen`, `avoidableForced`), tested against the list.
+
+**What happens after each date is the date's tip, one sentence; the row itself is the four things
+asked for.** · Rejected: a fifth column with the consequence. · Because the list is the answer, and
+the consequence is the question a reader asks of one date.
+
+**QME is said in plain words wherever it appears: whether the lease recognises the clock reset, and
+the money that turns on it.** · Rejected: "QME" and "as the lease allows" as labels. · Because it is
+the most valuable finding in the brief and read as an unexplained column. The headline tile now
+shows the money that turns on it (+$54.4M) rather than a second total; on each tail, "As the lease
+allows" and "QME" are one column, "Clock reset"; the component card shows the figure if the reset
+counts beside the figure under the lease, where it does not.

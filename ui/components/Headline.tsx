@@ -3,16 +3,17 @@ import type { FleetRecommendation } from '../../calc/recommend';
 import { money } from '../format';
 
 /**
- * SPEC §3.2: do nothing · after recommendations · avoidable, plus the QME delta flagged.
- * "After recommendations" is all-in — the work, its downtime, and what is still owed at
- * handback — so it compares like for like with doing nothing.
+ * SPEC §3.2: do nothing · after recommendations · the money that turns on the paperwork. The
+ * avoidable total sits at the top, beside the recommended actions it adds up. "After
+ * recommendations" is all-in — the work, its downtime, and what is still owed at handback — so it
+ * compares like for like with doing nothing.
  */
 export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
   const t = fleet.totals;
   const r = plans.totals;
   return (
     <section>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-3">
         <Tile
           label="If nothing changes"
           tip="Compensation and life handed over at handback if no tail acts."
@@ -26,30 +27,13 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
           sub={`${r.acting} act, ${r.forced} forced, ${r.paying} pay at handback${r.undecided ? `, ${r.undecided} no recommendation` : ''}${r.donors ? `, ${r.donors} lend a unit` : ''}`}
         />
         <Tile
-          label="Avoidable"
-          tip="If nothing changes, less after recommendations."
-          value={money(r.avoidable)}
-          sub={
-            <>
-              <span className="block">
-                Cash: {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable ({Math.round(r.avoidableCashShare * 100)}%)
-              </span>
-              <span className="block">
-                Life: {r.avoidableLife < 0 ? '−' : ''}
-                {money(Math.abs(r.avoidableLife))}, spares handed over net of units kept in the pool
-              </span>
-            </>
-          }
-          good={r.avoidable > 0}
-        />
-        <Tile
-          label="As the lease allows"
-          tip="If nothing changes, counting only the maintenance the lease recognises as a qualified event."
-          value={money(t.asLeaseAllows)}
+          label="Resets the lease does not recognise"
+          tip="What handback would cost more if the lease holds you to its definition of a qualifying shop visit."
+          value={`${t.qmeDelta > 0 ? '+' : ''}${money(t.qmeDelta)}`}
           sub={
             t.qmeDelta > 0
-              ? `+${money(t.qmeDelta)} on ${t.qmeTails} ${t.qmeTails === 1 ? 'tail' : 'tails'} with maintenance the lease does not recognise`
-              : 'Every recorded event is evidenced'
+              ? `On ${t.qmeTails} ${t.qmeTails === 1 ? 'tail' : 'tails'}, a shop visit's records do not meet the lease's definition of a qualifying event, so its clock reset does not count at handback.`
+              : "Every recorded shop visit meets the lease's definition, so every clock reset counts."
           }
           flag={t.qmeDelta > 0}
         />

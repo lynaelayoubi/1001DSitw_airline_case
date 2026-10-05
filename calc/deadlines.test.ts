@@ -53,4 +53,12 @@ describe('closingDecisions — the decisions that are running out of time', () =
       expect(x.after!.givesUp).toBeCloseTo(x.saving!, 2);
     }
   });
+
+  it("adds up to the avoidable total's chosen part, so the list and the total beside it agree", () => {
+    const saves = c.items.reduce((s, x) => s + (x.saving ?? 0), 0);
+    expect(saves).toBeCloseTo(plans.totals.avoidableChosen, 2);
+    expect(plans.totals.avoidableChosen + plans.totals.avoidableForced).toBeCloseTo(plans.totals.avoidable, 6);
+    // On this fleet: $6.99M chosen (9H-MMC and A6-GPZ), $1.59M on the three forced tails.
+    expect(plans.totals.avoidableChosen).toBeCloseTo(1_313_000 + 5_678_000, -4);
+  });
 });

@@ -9,19 +9,21 @@ import { describeInput, type ExtensionEffects, type Robustness } from '../../cal
 import type { Assumptions, Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { Headline } from '../components/Headline';
-import { RobustnessPanel } from '../components/RobustnessPanel';
+import { RecommendedActions } from '../components/RecommendedActions';
 import { HowFirm } from '../components/HowFirm';
 import { WhatThisAssumes } from '../components/WhatThisAssumes';
+import { WhatYouCanDo } from '../components/WhatYouCanDo';
 import { Working } from '../components/Working';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
 
 /**
- * SPEC §3.1 — one row per returning tail, ranked by money. The full fleet sits behind a
- * toggle; tails beyond the window show no figure, because a projection across years with no
- * shop visit in it is not a forecast. Above it: what the answers assume (collapsed: each input with its
- * evidence, source and override), then the customer's own decisions (extend a lease, a budget)
- * beside their calendar — the decisions closing soonest — with how firm the answers are under that. A row
- * whose recommended action differs from the plan at rest says what it was.
+ * SPEC §3.1 — the screen leads with its answer: the recommended actions, soonest first, with the
+ * avoidable total beside them. Under it, what justifies it: the headline, then one row per
+ * returning tail, ranked by money (the full fleet behind a toggle; tails beyond the window show no
+ * figure, because a projection across years with no shop visit in it is not a forecast). Then what
+ * the customer can do — his own what-if and this year's budget — and last, collapsed, what the
+ * answers assume and how firm they are. A row whose recommended action differs from the plan at
+ * rest says what it was.
  */
 export default function FleetScreen({
   fleet,
@@ -86,20 +88,7 @@ export default function FleetScreen({
         </div>
       </header>
 
-      <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
-      <HowFirm robustness={robustness} pending={robustnessPending} />
-      <RobustnessPanel
-        extension={extension}
-        budget={budget}
-        onBudget={onBudget}
-        budgetPlan={budgetPlan}
-        choices={choices}
-        proposals={proposals}
-        onProposals={onProposals}
-        whatIf={whatIf}
-        closing={closing}
-      />
-
+      <RecommendedActions closing={closing} totals={plans.totals} />
       <Headline fleet={fleet} plans={plans} />
 
       <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
@@ -114,14 +103,13 @@ export default function FleetScreen({
               <Th right tip="Compensation and life handed over at handback if this tail does nothing.">
                 If nothing changes
               </Th>
-              <Th right tip="The same, counting only the maintenance the lease recognises as a qualified event.">
-                As the lease allows
-              </Th>
               <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
                 After recommendation
               </Th>
               <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Binding clock</Th>
-              <Th tip="Components whose last shop visit is not evidenced as a qualified maintenance event.">QME</Th>
+              <Th tip="Whether the lease recognises each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
+                Clock reset
+              </Th>
               <Th tip="The last date to commit to the recommended action.">Decide by</Th>
             </tr>
           </thead>
@@ -141,6 +129,23 @@ export default function FleetScreen({
             ))}
           </tbody>
         </table>
+      </div>
+
+      <WhatYouCanDo
+        extension={extension}
+        budget={budget}
+        onBudget={onBudget}
+        budgetPlan={budgetPlan}
+        choices={choices}
+        proposals={proposals}
+        onProposals={onProposals}
+        whatIf={whatIf}
+      />
+
+      {/* What the answers rest on, and how firm they are: justification, under what it justifies. */}
+      <div className="mt-6">
+        <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
+        <HowFirm robustness={robustness} pending={robustnessPending} />
       </div>
 
     </main>
@@ -173,7 +178,7 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
       </td>
       {beyond ? (
         <>
-          <td className="px-2 py-2 text-right text-xs text-slate-400" colSpan={3}>
+          <td className="px-2 py-2 text-right text-xs text-slate-400" colSpan={2}>
             beyond the {RETURNING_WINDOW_MONTHS}-month window — not forecast
           </td>
           <td className="px-2 py-2 text-slate-300">—</td>
@@ -183,10 +188,6 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           <td className="px-2 py-2 text-right">
             <span className="font-semibold tabular-nums">{money(r.exposure)}</span>
             <Breakdown t={t} />
-          </td>
-          <td className="px-2 py-2 text-right tabular-nums">
-            <span className={t.qmeDelta > 0 ? 'font-semibold text-amber-800' : 'text-slate-500'}>{money(t.asLeaseAllows.exposure)}</span>
-            {t.qmeDelta > 0 && <div className="text-[11px] text-amber-700">+{money(t.qmeDelta)}</div>}
           </td>
           <td className="px-2 py-2 text-right">
             {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
@@ -199,13 +200,12 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
       )}
       <td className="px-2 py-2">
         {t.qmeFlag ? (
-          <span className="inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[11px] leading-tight font-medium text-amber-800">
-            {t.qmePositions.join(', ')}
-            <br />
-            not evidenced
-          </span>
+          <div className="text-[12px] leading-tight">
+            <div className="font-medium text-amber-800">not recognised: {t.qmePositions.join(', ')}</div>
+            {!beyond && t.qmeDelta > 0 && <div className="text-amber-700 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
+          </div>
         ) : (
-          <span className="text-slate-300">—</span>
+          <span className="text-xs text-slate-400">recognised</span>
         )}
       </td>
       <td className="px-2 py-2 whitespace-nowrap">
@@ -266,7 +266,7 @@ function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; r
   const rec = plan?.role === 'own' ? plan.recommendation : null;
   return (
     <tr className="border-t border-slate-100 bg-slate-50/60">
-      <td colSpan={11} className="px-3 py-3">
+      <td colSpan={10} className="px-3 py-3">
         <div className="grid gap-3">
           {plan && (
             <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
@@ -350,16 +350,20 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
       <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 px-3 py-2">
         <div>
           <span className="font-semibold">{c.position}</span> <span className="text-slate-500">· {kindLabel[c.kind]} · {c.serial}</span>
-          {flagged && <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">last shop visit not evidenced as a QME</span>}
+          {flagged && (
+            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
+              the lease does not recognise its last shop visit: the records do not meet its definition of a qualifying event, so the clock does not reset
+            </span>
+          )}
         </div>
         <div className="text-sm tabular-nums">
           <span className="font-semibold">{money(c.exposure)}</span>
-          <span className="text-slate-500"> as recorded</span>
           {flagged && (
             <>
+              <span className="text-slate-500"> if the reset counts</span>
               <span className="mx-2 text-slate-300">·</span>
               <span className="font-semibold text-amber-800">{money(lease.exposure)}</span>
-              <span className="text-slate-500"> as the lease allows</span>
+              <span className="text-slate-500"> under the lease, where it does not</span>
             </>
           )}
         </div>
@@ -376,7 +380,7 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
             <Th right>Gap</Th>
             <Th right>Compensation</Th>
             <Th right>Over-delivery</Th>
-            {flagged && <Th right>As the lease allows</Th>}
+            {flagged && <Th right>Under the lease</Th>}
           </tr>
         </thead>
         <tbody>
@@ -387,7 +391,7 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
       </table>
       <div className="border-t border-slate-100 px-3 py-1.5">
         <Working>
-          {[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`As the lease allows: ${lease.trace}`] : [])].join('\n\n')}
+          {[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`Under the lease, where the reset does not count: ${lease.trace}`] : [])].join('\n\n')}
         </Working>
       </div>
     </div>

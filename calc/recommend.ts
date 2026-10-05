@@ -220,6 +220,14 @@ export interface FleetRecommendation {
     after: number;
     /** doNothing − after. */
     avoidable: number;
+    /**
+     * avoidable, split by whether the tail chose to act. Chosen: what the actions the tails choose
+     * save against paying at handback — the saves in the list of recommended actions add up to it.
+     * Forced: the difference on tails that must act, measured against a do-nothing that cannot
+     * happen (a donor to a forced tail's swap counts with it).
+     */
+    avoidableChosen: number;
+    avoidableForced: number;
     /** Cash payable at handback if nothing changes, and the life already bought and handed over. */
     doNothingCash: number;
     doNothingLife: number;
@@ -444,6 +452,9 @@ export function recommendFleet(
   });
 
   const sum = (f: (p: TailPlan) => number) => plans.reduce((s, p) => s + f(p), 0);
+  const forcedTails = new Set(plans.filter((p) => p.forced).map((p) => p.tail));
+  for (const [donor, gift] of gives) if (forcedTails.has(gift.to)) forcedTails.add(donor);
+  const avoidableForced = sum((p) => (forcedTails.has(p.tail) ? p.avoidable : 0));
   const doNothing = sum((p) => p.doNothing);
   const after = sum((p) => p.after);
   const doNothingCash = sum((p) => p.doNothingCash);
@@ -454,6 +465,8 @@ export function recommendFleet(
     doNothing,
     after,
     avoidable: doNothing - after,
+    avoidableChosen: doNothing - after - avoidableForced,
+    avoidableForced,
     doNothingCash,
     doNothingLife: doNothing - doNothingCash,
     avoidableCash,

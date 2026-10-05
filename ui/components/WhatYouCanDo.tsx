@@ -1,19 +1,15 @@
 import type { BudgetPlan } from '../../calc/budget';
-import type { ClosingDecisions } from '../../calc/deadlines';
 import type { ExtensionEffects } from '../../calc/robustness';
 import type { Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { date, money } from '../format';
-import { RunningOutOfTime } from './RunningOutOfTime';
 import { WhatIf } from './WhatIf';
 
 /**
- * What you can do, and when it has to be decided. Left: the customer's own decisions — a what-if
- * of his own actions against today's plan, and this year's budget. Right: his calendar, the
- * decisions closing soonest. How firm the answers are is the model assessing itself, and sits
- * collapsed above (HowFirm).
+ * What you can do: the head of fleet's own decisions, under the recommended actions and the
+ * tails they rest on. A what-if of his own actions against today's plan, and this year's budget.
  */
-export function RobustnessPanel({
+export function WhatYouCanDo({
   extension,
   choices,
   proposals,
@@ -22,7 +18,6 @@ export function RobustnessPanel({
   budget,
   onBudget,
   budgetPlan,
-  closing,
 }: {
   extension: ExtensionEffects | null;
   choices: TailChoices[];
@@ -32,19 +27,14 @@ export function RobustnessPanel({
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
-  closing: ClosingDecisions;
 }) {
-
   return (
-    <section className="mb-5 grid gap-4 rounded-lg border border-slate-200 bg-white px-4 py-3 lg:grid-cols-[1fr_2fr]">
-      <div>
-        <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">What you can do</h2>
+    <section className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-3">
+      <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">What you can do</h2>
+      <div className="grid gap-6 lg:grid-cols-2">
         <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
-
         <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} />
       </div>
-
-      <RunningOutOfTime closing={closing} />
     </section>
   );
 }
@@ -52,7 +42,7 @@ export function RobustnessPanel({
 /** This year's return-related maintenance budget: what it funds, and what it leaves out at what cost. */
 function Budget({ budget, onBudget, plan }: { budget: number | null; onBudget: (b: number | null) => void; plan: BudgetPlan }) {
   return (
-    <div className="mt-3 border-t border-slate-100 pt-2">
+    <div>
       <div className="flex flex-wrap items-center gap-2 text-sm text-slate-800">
         <span>Maintenance budget to {date(plan.windowEnd)}</span>
         <span className="inline-flex items-center gap-1">

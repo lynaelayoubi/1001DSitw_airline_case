@@ -16,8 +16,8 @@ built.
 | 1 | **Fleet overview** — the fleet, the components, where they're at and where they could be | *"That sounds spot on."* | **done** — table, whole-fleet toggle, component cards |
 | 2 | **Exposure by tail, at a glance** | *"One of the key things our senior stakeholders just want to be able to see at a glance by tail."* | **done** — ranked by money |
 | 3 | **The total if nothing is done** | *"If you just show the total, assuming we don't do any intervention essentially."* | **done** — headline tile |
-| 4 | **Then the upside if optimised** | *"And then your system can show — if we optimise in this way, here's the potential, the value that we could work out for."* | **done** — after-recommendations and avoidable tiles |
-| 5 | **A recommendation, not just a view** | *"It'd be nice if the system would just suggest to us — this is the recommendation."* | **done** — four levers, runner-up, deadline; "Running out of time" under the headline lists every dated decision, soonest first, with what each date passing costs |
+| 4 | **Then the upside if optimised** | *"And then your system can show — if we optimise in this way, here's the potential, the value that we could work out for."* | **done** — the avoidable total beside the recommended actions at the top, split so their savings add up to it; after-recommendations in the headline |
+| 5 | **A recommendation, not just a view** | *"It'd be nice if the system would just suggest to us — this is the recommendation."* | **done** — four levers, runner-up, deadline; the screen leads with the recommended actions, soonest first — tail, action, date, forced or what it saves — and the tip on each date says what passing it costs |
 | 6 | **Scenario planning** — maintenance cost, utilisation, extend a lease by six months | *"Does that change anything?"* | **done** — answered by computation: for every assumption, how far it would have to move before any recommendation changes; the customer's own decisions — swap, shop visit, route, return date, several at once — go in a what-if priced against today's plan, which says what each change moves and refuses what cannot happen; every assumption is stated with its provenance and can be overridden, in one collapsed table above the panel that also says which of them change any answer inside their evidence |
 | 7 | **Readiness checklist** for the leasing team and whoever runs the return | *"All of the other smaller pieces."* | **NOT BUILT** |
 | 8 | **Lease management basics** — see the fleet, see the leases, and trace a recommendation to the actual lease | *"Be confident the recommendations are really based on the actual leases. That's going to be important to get their buy-in."* | **partial** — clause references on every requirement row; no lease view yet |
@@ -52,8 +52,10 @@ system plus MRO extracts including PDF reports · automated feeds come later, no
 
 1. **Qualified maintenance events.** *"We felt we did the right maintenance. But when we looked
    at the actual PDF reports and what was recorded… didn't quite meet the criteria. So the
-   lifetime wasn't then reset appropriately from a legal point of view."* → **built**, shown
-   as two numbers side by side.
+   lifetime wasn't then reset appropriately from a legal point of view."* → **built**, and said
+   in plain words wherever it appears: whether the lease recognises the clock reset, and the money
+   that turns on it — a headline tile ("resets the lease does not recognise", +$54.4M on six
+   tails), a column on every tail, and the component cards.
 2. **Over-delivery**, which they worked out during the call itself. *"Sometimes we'll do some
    maintenance and actually the part has a lot more life on it when we hand it back…
    the cost of doing the maintenance is essentially fixed."* → **built**, priced separately
