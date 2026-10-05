@@ -115,7 +115,9 @@ describe('recommendFleet', () => {
     const r = recommendFleet(data, assessFleet({ asOf: AS_OF, ...data }), assumptions());
     expect(r.totals.after).toBeCloseTo(r.plans.reduce((s, p) => s + p.after, 0), 3);
     expect(r.totals.avoidable).toBeCloseTo(r.totals.doNothing - r.totals.after, 3);
-    expect(r.totals.acting + r.totals.paying + r.totals.donors).toBe(2);
+    expect(r.totals.acting + r.totals.forced + r.totals.paying + r.totals.donors).toBe(2);
+    // Both fixture tails have an ENG2 that runs out at month 5: both are forced, neither chose.
+    expect(r.totals.forced).toBe(2);
   });
 });
 
@@ -183,5 +185,31 @@ describe('compareRecommendations — SPEC §3.4, which tails change what they ar
   it('names the action, not the month: the same visit a month later is the same decision', () => {
     const plan = atRest.byTail['A6-DLL']!;
     expect(actionOf(plan)).toBe('visit:ENG1:build-for-cash');
+  });
+});
+
+describe('the money in play and the forced cases', () => {
+  const data = dataset as unknown as Dataset;
+  const r = recommendFleet(data, assessFleet(data));
+
+  it('splits every avoidable figure into cash and life, and the totals likewise', () => {
+    for (const p of r.plans) expect(p.avoidable).toBeCloseTo(p.avoidableCash + p.avoidableLife, 3);
+    expect(r.totals.avoidable).toBeCloseTo(r.totals.avoidableCash + r.totals.avoidableLife, 3);
+    expect(r.totals.doNothing).toBeCloseTo(r.totals.doNothingCash + r.totals.doNothingLife, 3);
+    expect(r.totals.avoidableCashShare).toBeCloseTo(r.totals.avoidableCash / r.totals.doNothingCash, 9);
+  });
+
+  it('moves no life where the units stay where they are: sunk over-delivery cancels', () => {
+    for (const p of r.plans) if (!p.recommendation.recommended.move) expect(p.avoidableLife).toBeCloseTo(0, 3);
+  });
+
+  it('labels the tails that cannot reach handback as forced, not recommended', () => {
+    // A6-DLL ENG1, 9H-KVJ ENG2 and 9H-ZUU ENG2 each run out before handback.
+    expect(r.plans.filter((p) => p.forced).map((p) => p.tail).sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL']);
+    for (const p of r.plans.filter((x) => x.forced)) {
+      expect(p.forced).toContain('doing nothing is not an option');
+      expect(p.recommendation.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
+    }
+    expect(r.byTail['9H-ZUU']!.trace).toContain('not choosing the dearer option');
   });
 });

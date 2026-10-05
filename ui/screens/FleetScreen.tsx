@@ -188,9 +188,25 @@ function AfterRecommendation({ plan, before }: { plan: TailPlan; before?: TailPl
       <Trace text={plan.trace} align="right" className="font-semibold tabular-nums">
         {money(plan.after)}
       </Trace>
-      {plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
-      {plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
-      <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>{plan.label}</div>
+      {plan.forced ? (
+        // Not a saving or a loss the tool chose: the do-nothing figure it is measured against cannot happen.
+        plan.avoidable !== 0 && (
+          <div className="text-[11px] text-slate-500 tabular-nums">
+            {plan.avoidable > 0 ? '−' : '+'}
+            {money(Math.abs(plan.avoidable))} vs a do-nothing that cannot happen
+          </div>
+        )
+      ) : (
+        <>
+          {plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
+          {plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
+        </>
+      )}
+      <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>
+        {plan.forced && <span className="mr-1 rounded bg-slate-800 px-1 py-px text-[10px] font-medium text-white">forced</span>}
+        {plan.label}
+      </div>
+      {plan.forced && <div className="text-[11px] leading-tight text-slate-500">{plan.forced}</div>}
       {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
     </div>
   );

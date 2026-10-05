@@ -22,12 +22,22 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
       <Tile
         label="After recommendations"
         value={<Trace text={plans.trace}>{money(r.after)}</Trace>}
-        sub={`Work, downtime and what is still owed · ${r.acting} act, ${r.paying} pay at handback${r.donors ? `, ${r.donors} lend a unit` : ''}`}
+        sub={`Work, downtime and what is still owed · ${r.acting} act, ${r.forced} forced, ${r.paying} pay at handback${r.donors ? `, ${r.donors} lend a unit` : ''}`}
       />
       <Tile
         label="Avoidable"
         value={<Trace text={plans.trace}>{money(r.avoidable)}</Trace>}
-        sub="If nothing changes, less the best feasible option on each tail"
+        sub={
+          <>
+            <span className="block">
+              Cash: {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable at handback ({Math.round(r.avoidableCashShare * 100)}%)
+            </span>
+            <span className="block">
+              Life: {r.avoidableLife < 0 ? '−' : ''}
+              {money(Math.abs(r.avoidableLife))} — spares handed over in swaps, net of units kept in the pool
+            </span>
+          </>
+        }
         good={r.avoidable > 0}
       />
       <Tile
@@ -43,17 +53,17 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
       </div>
       <p className="mt-2 text-sm text-slate-600">
         Of the <Trace text={fleet.trace}>{money(t.doNothing)}</Trace> if nothing changes,{' '}
-        <span className="font-semibold text-slate-900">{money(t.compensation)}</span> is cash payable to lessors at handback and{' '}
-        <span className="font-semibold text-slate-900">{money(t.overDelivery)}</span> is life already bought and handed over — LLP life past shop visits
+        <span className="font-semibold text-slate-900">{money(t.compensation)}</span> is cash payable to lessors at handback — the money in play — and{' '}
+        <span className="font-semibold text-slate-900">{money(t.overDelivery)}</span> is life already bought and handed over: LLP life past shop visits
         bought beyond the cheapest workscope that would have cleared the contract
-        {fleet.assumptions.countOverDeliveryAsLoss ? '' : ' (not counted in this scenario)'}. That part is sunk: it cancels out of the avoidable figure
-        unless a swap keeps the unit in the pool.
+        {fleet.assumptions.countOverDeliveryAsLoss ? '' : ' (not counted in this scenario)'}. That part is sunk; only a swap that sends a unit to the
+        pool keeps any of it.
       </p>
     </section>
   );
 }
 
-function Tile({ label, value, sub, flag, good }: { label: string; value: React.ReactNode; sub: string; flag?: boolean; good?: boolean }) {
+function Tile({ label, value, sub, flag, good }: { label: string; value: React.ReactNode; sub: React.ReactNode; flag?: boolean; good?: boolean }) {
   return (
     <div className={`rounded-lg border px-4 py-3 ${flag ? 'border-amber-300 bg-amber-50' : good ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
       <div className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">{label}</div>

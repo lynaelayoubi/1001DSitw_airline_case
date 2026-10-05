@@ -496,3 +496,22 @@ hid its numbers as "not forecast", when an extended lease is still a planned han
 **The extension's rent is not modelled.** · Rejected: adding lease rent to the dataset. · Because
 it is a commercial term the leasing team prices, not a maintenance cost, and the brief's question is
 what the extension does to the return position — "Does that change anything?"
+
+## Step 7 · reading the avoidable figure — Monday 5 October
+
+**The avoidable figure keeps its absolute number and is shown in its two parts, each against its
+own pot: cash, as a share of the cash payable at handback, and life.** · Rejected: one share of
+the do-nothing total (12%, mixing cash with sunk life), and one share of the cash in play alone
+(27%). · Because the second assumed sunk over-delivery cancels everywhere, and it does not: of the
+$8.58M, the cash part is $16.9M — 52% of the $32.3M payable at handback — and the life part is
+−$8.3M, the spare engines handed over in the two forced swaps ($13.1M) net of the sunk life kept by
+the two swaps that send an engine to the pool ($4.8M). A share of cash alone would have hidden what
+the cash saving is paid for with.
+
+**A recommendation is marked forced when a component runs out before handback and a lever keeps it
+flying; the row says why, and its difference from doing nothing is shown as measured against a
+do-nothing that cannot happen, not as a saving or a loss.** · Rejected: showing forced and chosen
+actions alike. · Because 9H-ZUU's swap costs $829K more than a figure it could never have had, and
+read as a recommendation it looks like the tool choosing the dearer option. A6-DLL and 9H-KVJ are
+forced too — 9H-KVJ's $30K swap is not a marginal choice but the cheapest way to replace an ENG2
+that runs out of LLP life at month 8.2. The headline counts them separately: 2 act, 3 forced.

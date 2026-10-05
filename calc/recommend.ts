@@ -41,6 +41,11 @@ export interface TailRecommendation {
   unavoidable: number;
   /** doNothing − unavoidable. */
   avoidable: number;
+  /**
+   * Set when a component runs out before handback and a lever can keep it flying: the
+   * recommendation is then a forced removal, not a choice, and doing nothing is not on the table.
+   */
+  forced: { position: string; clock: string; months: number; why: string } | null;
   trace: string;
 }
 
@@ -53,14 +58,16 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   // levers applied to it. If none can keep it flying, fall back to the plain ranking.
   const timeout = firstTimeout(ctx.baseline);
   let offered = all(ctx);
-  let forced = '';
+  let preamble = '';
+  let forced: TailRecommendation['forced'] = null;
   if (timeout) {
     const focused = all({ ...ctx, focus: ctx.ac.components.findIndex((c) => c.position === timeout.position) });
     const at = `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
     if (focused.some((o) => o.feasible)) {
       offered = focused;
-      forced = `${at}, so the options are the ones that keep it flying; paying at handback is not one of them. `;
-    } else forced = `${at}, and no lever can keep it flying, so the plain ranking stands: see the caution on paying. `;
+      preamble = `Forced: ${at}, so the options are the ones that keep it flying; paying at handback is not one of them. `;
+      forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
+    } else preamble = `${at}, and no lever can keep it flying, so the plain ranking stands: see the caution on paying. `;
   }
   const options = offered.sort(
     (x, y) => Number(y.feasible) - Number(x.feasible) || x.total - y.total || LEVER_ORDER.indexOf(x.lever) - LEVER_ORDER.indexOf(y.lever),
@@ -83,17 +90,19 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       ? `${o.label}: ${usd(o.cost)} cost + ${usd(o.downtimeCost)} downtime + ${usd(o.newExposure)} still owed = ${usd(o.total)}`
       : `${o.label}: not available — ${o.trace}`;
   const trace =
-    `${ctx.ac.tail}: ${forced}${recommended.label}, ${usd(unavoidable)} all-in against ${usd(doNothing)} if nothing changes` +
-    (avoidable > 0
-      ? `, so ${usd(avoidable)} is avoidable. `
-      : avoidable < 0
-        ? ` — ${usd(-avoidable)} more, because the do-nothing figure assumed it could fly to handback. `
+    `${ctx.ac.tail}: ${preamble}${recommended.label}, ${usd(unavoidable)} all-in against ${usd(doNothing)} if nothing changes` +
+    (forced
+      ? avoidable >= 0
+        ? ` — a figure that assumed it could fly to handback, so the ${usd(avoidable)} difference is not a saving the tool chose. `
+        : ` — ${usd(-avoidable)} more, because the do-nothing figure assumed it could fly to handback. The tool is not choosing the dearer option; it is the cheapest way to keep flying. `
+      : avoidable > 0
+        ? `, so ${usd(avoidable)} is avoidable. `
         : ': nothing is avoidable. ') +
     (runnerUp ? `Runner-up: ${runnerUp.label}, ${usd(delta)} more${runnerUp.deadline ? `, open until ${runnerUp.deadline}` : ''}. ` : '') +
     (decisionDeadline ? `Decide by ${decisionDeadline}.` : 'Nothing to book.') +
     `\n\n${options.map((o, k) => `${o.feasible ? `${k + 1}.` : '–'} ${line(o)}`).join('\n')}` +
     `\n\n${recommended.trace}`;
-  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, trace };
+  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, trace };
 }
 
 export interface TailPlan {
@@ -112,6 +121,20 @@ export interface TailPlan {
    */
   after: number;
   avoidable: number;
+  /** Cash payable to the lessor at handback if nothing changes — the money in play. */
+  doNothingCash: number;
+  /** The cash part of after: this tail's maintenance, removal, downtime and compensation still payable. */
+  afterCash: number;
+  /** doNothingCash − afterCash. */
+  avoidableCash: number;
+  /**
+   * avoidable − avoidableCash: life already bought that the plan keeps from being handed over (a
+   * unit sent to the pool), net of any spare's life given in its place. Zero for every plan that
+   * leaves the units where they are: sunk over-delivery cancels there.
+   */
+  avoidableLife: number;
+  /** Why the action is forced rather than chosen, or null. */
+  forced: string | null;
   decisionDeadline: ISODate | null;
   trace: string;
 }
@@ -126,7 +149,16 @@ export interface FleetRecommendation {
     after: number;
     /** doNothing − after. */
     avoidable: number;
+    /** Cash payable at handback if nothing changes, and the life already bought and handed over. */
+    doNothingCash: number;
+    doNothingLife: number;
+    avoidableCash: number;
+    avoidableLife: number;
+    /** avoidableCash ÷ doNothingCash: the saving as a share of the money actually in play. */
+    avoidableCashShare: number;
+    /** Tails acting by choice, tails forced to act, tails paying, tails giving a unit to a swap. */
     acting: number;
+    forced: number;
     paying: number;
     donors: number;
   };
@@ -227,6 +259,7 @@ export function recommendFleet(
     if (gift) {
       const d = gift.option.move!.donor!;
       const after = d.cost + d.downtimeCost + d.exposureAfter;
+      const afterCash = d.cost + d.downtimeCost + d.compensationAfter;
       return {
         tail: t.tail,
         role: 'donor',
@@ -235,6 +268,11 @@ export function recommendFleet(
         doNothing,
         after,
         avoidable: doNothing - after,
+        doNothingCash: t.asRecorded.compensation,
+        afterCash,
+        avoidableCash: t.asRecorded.compensation - afterCash,
+        avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
+        forced: null,
         decisionDeadline: settled.get(gift.to)!.decisionDeadline,
         trace:
           `${t.tail} gives ${d.position} to ${gift.to} and takes ${gift.option.move!.outgoing.serial} in its place, as part of ${gift.to}'s swap ` +
@@ -246,6 +284,7 @@ export function recommendFleet(
     const o = rec.recommended;
     const own = o.move?.own;
     const after = own ? own.cost + own.downtimeCost + own.newExposure : o.total;
+    const afterCash = own ? own.cost + own.downtimeCost + own.newCompensation : o.cost + o.downtimeCost + o.newCompensation;
     return {
       tail: t.tail,
       role: 'own',
@@ -254,6 +293,11 @@ export function recommendFleet(
       doNothing,
       after,
       avoidable: doNothing - after,
+      doNothingCash: t.asRecorded.compensation,
+      afterCash,
+      avoidableCash: t.asRecorded.compensation - afterCash,
+      avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
+      forced: rec.forced?.why ?? null,
       decisionDeadline: rec.decisionDeadline,
       trace:
         rec.trace +
@@ -263,21 +307,36 @@ export function recommendFleet(
     };
   });
 
-  const doNothing = plans.reduce((s, p) => s + p.doNothing, 0);
-  const after = plans.reduce((s, p) => s + p.after, 0);
+  const sum = (f: (p: TailPlan) => number) => plans.reduce((s, p) => s + f(p), 0);
+  const doNothing = sum((p) => p.doNothing);
+  const after = sum((p) => p.after);
+  const doNothingCash = sum((p) => p.doNothingCash);
+  const avoidableCash = sum((p) => p.avoidableCash);
+  const avoidableLife = sum((p) => p.avoidableLife);
+  const own = plans.filter((p) => p.role === 'own');
   const totals = {
     doNothing,
     after,
     avoidable: doNothing - after,
-    acting: plans.filter((p) => p.role === 'own' && p.recommendation.recommended.lever !== 'pay').length,
-    paying: plans.filter((p) => p.role === 'own' && p.recommendation.recommended.lever === 'pay').length,
+    doNothingCash,
+    doNothingLife: doNothing - doNothingCash,
+    avoidableCash,
+    avoidableLife,
+    avoidableCashShare: doNothingCash > 0 ? avoidableCash / doNothingCash : 0,
+    acting: own.filter((p) => !p.forced && p.recommendation.recommended.lever !== 'pay').length,
+    forced: own.filter((p) => p.forced).length,
+    paying: own.filter((p) => p.recommendation.recommended.lever === 'pay').length,
     donors: plans.filter((p) => p.role === 'donor').length,
   };
+  const pct = (x: number) => `${Math.round(x * 100)}%`;
   const trace =
-    `${plans.length} tails returning. If nothing changes ${usd(doNothing)}. After recommendations ${usd(after)} all-in — maintenance less ` +
-    `reserves, downtime, and what is still owed at handback — so ${usd(totals.avoidable)} is avoidable. ${totals.acting} act, ` +
+    `${plans.length} tails returning. If nothing changes ${usd(doNothing)}: ${usd(doNothingCash)} of cash payable at handback — the money in play — ` +
+    `and ${usd(totals.doNothingLife)} of life already bought and handed over, which is sunk. After recommendations ${usd(after)} all-in — ` +
+    `maintenance less reserves, downtime, and what is still owed at handback — so ${usd(totals.avoidable)} is avoidable: ` +
+    `${usd(avoidableCash)} of it cash, ${pct(totals.avoidableCashShare)} of the money in play, and ${usd(avoidableLife)} life kept by sending units to the pool ` +
+    `rather than handing them over. ${totals.acting} act by choice, ${totals.forced} are forced (a component runs out before handback), ` +
     `${totals.paying} pay at handback${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. Each spare and each tail is used once; ` +
-    `tails with a component that runs out before handback chose first.\n\n` +
-    plans.map((p) => `${p.tail}: ${p.label} — ${usd(p.doNothing)} → ${usd(p.after)}`).join('\n');
+    `forced tails chose first.\n\n` +
+    plans.map((p) => `${p.tail}: ${p.forced ? 'forced — ' : ''}${p.label} — ${usd(p.doNothing)} → ${usd(p.after)}`).join('\n');
   return { plans, byTail: Object.fromEntries(plans.map((p) => [p.tail, p])), totals, trace };
 }

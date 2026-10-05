@@ -22,6 +22,10 @@ object from `calc/`; the UI formats, it never calculates.
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
   could fly to handback. The option's name sits underneath; the trace ranks all five.
 - The headline's "after recommendations" and "avoidable" tiles add those rows up (SPEC §2.8).
+  Avoidable is shown in its two parts — cash, as a share of the cash payable at handback, and
+  life (spares handed over, net of units kept in the pool) — so the two are not read as one pot.
+- A row marked **forced** has a component that runs out before handback: doing nothing is not an
+  option, and its difference from the do-nothing figure is not a saving the tool chose.
 - A line under the headline splits the do-nothing figure into cash payable to lessors at handback
   and life already bought and handed over — different kinds of loss, the second sunk.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing

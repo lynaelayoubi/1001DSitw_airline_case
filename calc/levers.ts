@@ -61,7 +61,7 @@ export interface SwapDetail {
   outgoing: { id: string; serial: string };
   incoming: { id: string; serial: string; from: 'pool' | 'tail'; tail?: string; position?: string };
   /** This tail's share: removal and installation, its own downtime, its exposure afterwards. */
-  own: { cost: number; downtimeDays: number; downtimeCost: number; newExposure: number };
+  own: { cost: number; downtimeDays: number; downtimeCost: number; newExposure: number; newCompensation: number };
   /** The other tail's share, for a swap between two aircraft. */
   donor?: {
     tail: string;
@@ -71,6 +71,8 @@ export interface SwapDetail {
     downtimeCost: number;
     exposureBefore: number;
     exposureAfter: number;
+    compensationBefore: number;
+    compensationAfter: number;
     trace: string;
   };
 }
@@ -106,6 +108,11 @@ export interface LeverOption {
   downtimeCost: number;
   /** This tail's exposure at handback after the option. */
   newExposure: number;
+  /**
+   * The part of newExposure that is cash payable to the lessor at handback; the rest is life
+   * already bought and handed over (over-delivery, or a spare's life given with it).
+   */
+  newCompensation: number;
   /** cost + downtimeCost + newExposure — SPEC §2.7's totalCost. */
   total: number;
   /** Exposure if nothing changes, less total. */
@@ -176,6 +183,7 @@ function unavailable(ctx: LeverContext, lever: LeverId, label: string, why: stri
     downtimeDays: 0,
     downtimeCost: 0,
     newExposure: ctx.baseline.asRecorded.exposure,
+    newCompensation: ctx.baseline.asRecorded.compensation,
     feasible: false,
     deadline: null,
     trace: why,
@@ -242,6 +250,7 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
     downtimeDays: 0,
     downtimeCost: 0,
     newExposure: r.exposure,
+    newCompensation: r.compensation,
     feasible: true,
     deadline: null,
     actionKey: 'pay',
@@ -354,6 +363,7 @@ interface Visit {
   before: ComponentResult;
   after: ComponentResult;
   newExposure: number;
+  newCompensation: number;
   cost: number;
   total: number;
   trace: string;
@@ -470,6 +480,7 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
     before,
     after,
     newExposure,
+    newCompensation: baseline.asRecorded.compensation - before.compensation + after.compensation,
     cost,
     total: cost + downtimeCost + newExposure,
     trace,
@@ -512,6 +523,7 @@ export function doTheWork(ctx: LeverContext): LeverOption {
     downtimeDays: v.downtimeDays,
     downtimeCost: v.downtimeCost,
     newExposure: v.newExposure,
+    newCompensation: v.newCompensation,
     feasible: true,
     deadline,
     position: v.position,
@@ -586,6 +598,7 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     downtimeDays: v.downtimeDays,
     downtimeCost: v.downtimeCost,
     newExposure: v.newExposure,
+    newCompensation: v.newCompensation,
     feasible: true,
     deadline,
     position: v.position,
@@ -647,6 +660,7 @@ export function flyItDifferently(ctx: LeverContext): LeverOption {
     downtimeDays,
     downtimeCost: downtimeDays * a.downtimeCostPerDay[ac.bodyClass],
     newExposure: r.exposure,
+    newCompensation: r.compensation,
     feasible: true,
     deadline: p.asOf,
     actionKey: `route:${r.profile}`,
@@ -707,6 +721,7 @@ interface Swap {
   downtimeDays: number;
   downtimeCost: number;
   newExposure: number;
+  newCompensation: number;
   total: number;
   fit: string;
   trace: string;
@@ -727,6 +742,7 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
     downtimeDays: dd,
     downtimeCost: dd * a.downtimeCostPerDay[ac.bodyClass],
     newExposure: baseline.asRecorded.exposure - before.exposure + given.exposure,
+    newCompensation: baseline.asRecorded.compensation - before.compensation + after.compensation,
   };
 
   // A swap that installs a unit which runs out before handback only moves the problem forward.
@@ -754,6 +770,8 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
       downtimeCost: dd * a.downtimeCostPerDay[d.ac.bodyClass],
       exposureBefore,
       exposureAfter,
+      compensationBefore: d.baseline.asRecorded.compensation,
+      compensationAfter: d.baseline.asRecorded.compensation - dBefore.compensation + dAfter.compensation,
       trace:
         `On ${d.ac.tail}, ${c.serial} in ${theirs.position} would owe ${usd(dAfter.compensation)} with ${usd(dAfter.overDelivery)} of avoidable LLP life, ` +
         `against ${usd(dBefore.exposure)} for ${theirs.serial}: ${d.ac.tail} exposure ${usd(exposureBefore)} → ${usd(exposureAfter)}.`,
@@ -794,6 +812,7 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
     downtimeDays,
     downtimeCost,
     newExposure: own.newExposure,
+    newCompensation: own.newCompensation,
     total: cost + downtimeCost + own.newExposure,
     fit,
     trace,
@@ -851,6 +870,7 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
     downtimeDays: s.downtimeDays,
     downtimeCost: s.downtimeCost,
     newExposure: s.newExposure,
+    newCompensation: s.newCompensation,
     feasible: true,
     deadline,
     position: c.position,
