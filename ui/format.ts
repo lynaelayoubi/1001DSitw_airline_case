@@ -1,5 +1,7 @@
 // On-screen number formatting. British copy; USD figures because leases are in USD.
 
+import type { AssumptionInput } from '../calc/constants';
+
 export function money(n: number, opts: { compact?: boolean } = {}): string {
   const abs = Math.abs(n);
   const sign = n < 0 ? '−' : '';
@@ -34,3 +36,20 @@ export const kindLabel: Record<string, string> = {
   airframe: 'Airframe',
   apu: 'APU',
 };
+
+/** An assumption as a person says it: shop costs and utilisation as a move on the stated figures, the rest in their own unit. */
+export function inputShown(input: AssumptionInput, v: number): string {
+  switch (input.unit) {
+    case 'multiplier':
+      return input.id === 'lessorMarkup' ? `× ${v.toFixed(2)}` : `${v >= 1 ? '+' : '−'}${Math.round(Math.abs(v - 1) * 100)}%`;
+    case 'usd-per-day':
+      return `${money(v)}/day`;
+    case 'share':
+      return `${Math.round(v * 100)}%`;
+    case 'months':
+      return `${v} months`;
+  }
+}
+
+/** The value in use: a multiplier reads as a multiple, so the stated figures read × 1.00 rather than +0%. */
+export const inputValue = (input: AssumptionInput, v: number): string => (input.unit === 'multiplier' ? `× ${v.toFixed(2)}` : inputShown(input, v));

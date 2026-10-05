@@ -1,20 +1,23 @@
 import { useState } from 'react';
 
 import type { BudgetPlan } from '../../calc/budget';
+import type { ClosingDecisions } from '../../calc/deadlines';
 import { LEASE_EXTENSION_CONTROL } from '../../calc/constants';
 import type { ScenarioComparison } from '../../calc/recommend';
-import type { ExtensionEffects, Robustness } from '../../calc/robustness';
+import { inputsLine, type ExtensionEffects, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
 import { date, money } from '../format';
+import { RunningOutOfTime } from './RunningOutOfTime';
 import { Trace } from './Trace';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
 /**
- * What you can do, and how firm the answers are. What used to be a panel of sliders. The numbers behind them — MRO rates, the schedule, the cost
- * of a day on the ground — are held by the customer's own teams, so instead of asking for them the
- * screen says how far each would have to move before any answer changes, and where the real number
- * would come from. One control stays: extending a named lease is the customer's own decision.
+ * What you can do, and when it has to be decided. Left: the customer's own decisions — extend a
+ * named lease, set this year's budget. Right, on top: the customer's calendar, the decisions closing
+ * soonest. Under it, subordinate: the model's view of how firm its answers are — how far each
+ * assumption would have to move before an answer changes, since the numbers behind them are held
+ * by the customer's own teams rather than asked for here.
  */
 export function RobustnessPanel({
   robustness,
@@ -27,6 +30,7 @@ export function RobustnessPanel({
   budget,
   onBudget,
   budgetPlan,
+  closing,
 }: {
   robustness: Robustness | null;
   extension: ExtensionEffects | null;
@@ -38,6 +42,7 @@ export function RobustnessPanel({
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
+  closing: ClosingDecisions;
 }) {
   const [extended, setExtended] = useState(tails[0]?.tail ?? '');
   const months = assumptions.leaseExtensionMonths[extended] ?? 0;
@@ -113,56 +118,48 @@ export function RobustnessPanel({
         <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} />
       </div>
 
-      <div className={pending ? 'opacity-60' : ''}>
-        <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">
-          How firm are these answers {pending && <span className="normal-case">— rechecking…</span>}
-        </h2>
-        {!r ? (
-          <p className="text-sm text-slate-500">Checking how far each assumption would have to move before an answer changes…</p>
-        ) : (
-          <>
-            <p className="text-sm">
-              <Trace text={r.trace}>
-                <span className="font-semibold">{r.firm.length} firm</span> · <span className="font-semibold">{r.close.length} close</span> ·{' '}
-                <span className="font-semibold">{r.tooClose.length} too close to call</span>
-              </Trace>{' '}
-              <span className="text-slate-500">of {r.tails} recommendations</span>
-            </p>
-            <CallList
-              title="Too close to call — the answer changes inside the data's own noise"
-              calls={r.tooClose}
-              tone="text-red-800"
-            />
-            <CallList title="Close — outside the noise, inside the evidence" calls={r.close} tone="text-violet-800" />
-            <div className="mt-3 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Binding soonest</div>
-            {r.binding.length === 0 ? (
-              <p className="text-sm text-slate-500">No assumption changes any answer anywhere inside its evidence.</p>
-            ) : (
-              <ol className="mt-1 space-y-1 text-[13px]">
-                {r.binding.map((x, i) => (
-                  <li key={x.input.id}>
-                    <span className="text-slate-400">{i + 1}.</span> <span className="font-medium">{x.input.label}</span> at {x.first!.change}{' '}
-                    <span className="text-slate-400">(reach {pct(x.first!.reach)})</span> flips {x.first!.tails.map((t) => t.tail).join(', ')}.{' '}
-                    <span className="text-slate-500">Real number: {x.input.source}.</span>
-                  </li>
-                ))}
-              </ol>
-            )}
-            <p className="mt-2 text-xs text-slate-500">
-              Each assumption moves on its own here. In practice they move together — a busy summer raises flying and shop demand at once — so
-              read this as a lower bound on how fragile the answers are: correlated moves would flip them sooner.
-            </p>
-            {r.binding.length < 3 && (
-              <p className="mt-1 text-xs text-slate-500">
-                {r.inputs
-                  .filter((x) => !x.first)
-                  .map((x) => x.input.label)
-                  .join(', ')}{' '}
-                change no answer anywhere inside their evidence.
+      <div>
+        <RunningOutOfTime closing={closing} />
+        <div className={`mt-3 border-t border-slate-100 pt-2 text-slate-600 ${pending ? 'opacity-60' : ''}`}>
+          <h3 className="mb-1 text-[10.5px] font-medium tracking-wide text-slate-400 uppercase">
+            How firm are these answers {pending && <span className="normal-case">— rechecking…</span>}
+          </h3>
+          {!r ? (
+            <p className="text-xs text-slate-500">Checking how far each assumption would have to move before an answer changes…</p>
+          ) : (
+            <>
+              <p className="text-xs">
+                <Trace text={r.trace}>
+                  <span className="font-semibold">{r.firm.length} firm</span> · <span className="font-semibold">{r.close.length} close</span>
+                </Trace>
+                {r.undecided.length > 0 && (
+                  <span className="text-slate-500">
+                    {' '}
+                    · {r.undecided.length} with no recommendation
+                  </span>
+                )}
               </p>
-            )}
-          </>
-        )}
+              <CallList title="Close — an input inside its evidenced range would change the answer" calls={r.close} tone="text-violet-800" />
+              {r.undecided.length > 0 && (
+                <div className="mt-1">
+                  <div className="text-xs text-slate-500">No recommendation — the options cannot be told apart within the cost estimates' precision</div>
+                  <ul className="space-y-0.5 text-xs">
+                    {r.undecided.map((x) => (
+                      <li key={x.tail}>
+                        <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.why}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <p className="mt-2 text-xs">{inputsLine(r.changing, r.holding)}</p>
+              <p className="mt-2 text-xs text-slate-500">
+                Each assumption moves on its own here. In practice they move together — a busy summer raises flying and shop demand at once — so
+                read this as a lower bound on how fragile the answers are: correlated moves would flip them sooner.
+              </p>
+            </>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -173,7 +170,7 @@ function CallList({ title, calls, tone }: { title: string; calls: Robustness['cl
   return (
     <div className="mt-1">
       <div className="text-xs text-slate-500">{title}</div>
-      <ul className="space-y-0.5 text-[13px]">
+      <ul className="space-y-0.5 text-xs">
         {calls.map((c) => (
           <li key={c.tail}>
             <span className="font-medium">{c.tail}</span> <span className="text-slate-500">{c.label}</span> → <span className={tone}>{c.flip.to}</span> if{' '}

@@ -615,3 +615,88 @@ swaps at $28,500 each, so the budget bites on the forced visit long before it bi
 budget year.** · Rejected: a list of left-out tails alone. · Because inside the year leaving an
 action out loses the option, while after it the next budget can still take it — 9H-MMC's decision
 closes on 15 August 2027, A6-GPZ's not until January 2028.
+
+## Step 11 · one rule for whether there is a recommendation — Monday 5 October
+
+**A recommendation stands only if its advantage over the next best option is larger than the
+uncertainty in the costs that produced it: ±10.1% of the estimated money on which the two options
+differ.** · Rejected: the materiality floor (still beat paying at ±10% utilisation and ±10% shop
+costs) and "too close to call" (an input flips the answer inside the same ±10%). · Because both were
+calibrated on the ±10% utilisation noise in the generator — how the synthetic data was made, not
+how uncertain real costs are. One rule, one threshold, one explanation, in money.
+
+**The ±10.1% is derived from the quality of the cost estimates in ASSUMPTIONS §0, not chosen:**
+each event type's escalation range compounded over the eight years, combined in quadrature with
+the spread of the 2018 appraiser ranges, weighted by share of maintenance cost. · Rejected: a single
+judgement figure. · Because LLPs (±11.7%, over half the cost) and engine restoration (±8.4%) carry
+almost all of it, and the figure should move if a range does — `costEstimateQuality` computes it.
+The derivation also exposed that §0's airframe factor, ×1.40, sits above its own published range
+(×1.22–1.32); flagged, not yet changed.
+
+**The uncertainty applies to the money on which the two options differ, not to their totals.** ·
+Rejected: ±10.1% of the dearer option's total. · Because money common to both — the sunk
+over-delivery, compensation on a component neither touches — moves both options alike and cancels
+out of the advantage. On the totals, A6-MXM's $0.97M advantage would sit just inside ±$0.98M almost
+entirely because of $8.8M of over-delivery present in both options; on what differs, it carries
+±$0.09M.
+
+**Below the threshold there is no recommendation: where paying is one of the two, the tail pays;
+where both are actions, the cheaper stands in for the pair, labelled as such.** · Rejected: showing
+the point estimate as a recommendation. · Because a recommendation the estimates cannot support is
+not one. On this fleet that is A6-YTM, 9H-RYM and 9H-PJS, whose only alternative is a route change
+that comes to the same money; every recommendation with a real alternative stands by a wide margin.
+
+**Firm and close stay, as the separate question they are: given that the options can be told
+apart, how far would an input have to move to change the answer.** · Rejected: folding them into
+the money rule. · Because one asks whether the estimates can separate the options today, the other
+how settled the answer is if the world moves. On this fleet: four firm, three close (A6-MXM +1%
+flying, A6-MVC +8%, 9H-MMC +11%).
+
+**The "binding soonest" block is replaced by one computed line: which inputs change any answer
+anywhere inside their evidence, and which change none.** · Rejected: ranking up to three inputs by
+the reach of their first flip. · Because it restated the close block — the same flips with the same
+reaches, re-sorted by input — and with only two inputs ever flipping anything, its second entry sat
+at a reach no reading of "soonest" supports. The question the block was reaching for is simpler:
+which of the inputs the customer's teams hold matter at all. The one-at-a-time caveat stays.
+
+**What the answers assume is a collapsed, read-only table directly above the robustness panel,
+labelled with its finding — "7 inputs · 5 change no answer anywhere", counted from the sweep.** ·
+Rejected: sliders or fields in that place. · Because the robustness sweep already moves every input
+across its whole evidenced range, which is strictly more than a slider does; a control would
+invite the customer to test one point the sweep has already covered. Each row reads its value,
+range and source from ASSUMPTION_INPUTS and its yes/no from the sweep. The overridable panel below
+the table stays for now, because the brief asks that the customer can set the cost of downtime.
+
+**"Running out of time" lists every recommended action with a decision date, soonest first, under
+the headline — computed in `calc/deadlines.ts`, not taken from the mockup.** · Rejected: the
+mockup's three rows and figures. · Because nothing on screen is typed by hand, and the model
+disagrees with it: A6-MVC's recommendation is to pay (no date), A6-DLL's is a forced engine visit
+(not gear), and 9H-MMC's swap closes on 15 Aug 2027 and saves $1.31M. · No window: every open
+decision is listed with its date. · Rejected: a cut-off such as six months. · Because any cut-off
+would be a round number with no source, and on this fleet the list is five rows.
+
+**Each row says its own consequence; there is no single footer line.** · Rejected: "After each date
+the shop slot is gone and the tail pays at handback." · Because that is true only of a chosen
+action. The three soonest dates are forced removals: missing one does not mean paying at handback,
+it means an engine running out with nothing booked. A chosen action falls back to the cheapest
+option still open after its date (computed — on this fleet, paying), and forced rows show no
+saving, because their benchmark is a do-nothing that cannot happen.
+
+**The calendar is the top line of the panel; how firm the answers are sits under it, smaller.** ·
+Rejected: "Running out of time" as its own block under the headline, with the robustness states
+leading the panel. · Because the panel's first line should be the customer's calendar, not the
+model's self-assessment. The firm/close counts, the close list, the inputs line and the caveat stay,
+subordinate. The fallback after a date is still found by filtering the recommendation's own
+options, not by the runner-up alone — A6-GPZ's runner-up is a route change that closes today, so
+the runner-up would name an option already gone.
+
+**The overridable assumptions panel is merged into the collapsed disclosure above the panel: one
+table, seven rows, each with value, evidenced range, source, whether it changes an answer, and an
+override.** · Rejected: a read-only disclosure with the overrides kept in a second panel below the
+table. · Because the same seven assumptions in two places make neither authoritative. An override
+recomputes everything downstream, the sweep included (the worker is sent the live assumptions).
+
+**An override is held inside its evidenced range.** · Rejected: any value. · Because the evidenced
+range is the ground the sweep covers; a value past an edge has no evidenced room on that side. The
+sweep also now steps only toward an edge that lies in its direction, so it can never walk the wrong
+way from an override.

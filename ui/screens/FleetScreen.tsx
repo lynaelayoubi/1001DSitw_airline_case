@@ -4,19 +4,21 @@ import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
 import { actionOf, type FleetRecommendation, type ScenarioComparison, type TailPlan } from '../../calc/recommend';
 import type { BudgetPlan } from '../../calc/budget';
+import type { ClosingDecisions } from '../../calc/deadlines';
 import { describeInput, type ExtensionEffects, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
-import { AssumptionsPanel } from '../components/AssumptionsPanel';
 import { Headline } from '../components/Headline';
 import { RobustnessPanel } from '../components/RobustnessPanel';
 import { Trace } from '../components/Trace';
+import { WhatThisAssumes } from '../components/WhatThisAssumes';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
 
 /**
  * SPEC §3.1 — one row per returning tail, ranked by money. The full fleet sits behind a
  * toggle; tails beyond the window show no figure, because a projection across years with no
- * shop visit in it is not a forecast. Above it: the one decision the customer makes here (extend a
- * lease) and how firm the answers are; below it, the assumptions with their provenance. A row
+ * shop visit in it is not a forecast. Above it: what the answers assume (collapsed: each input with its
+ * evidence, source and override), then the customer's own decisions (extend a lease, a budget)
+ * beside their calendar — the decisions closing soonest — with how firm the answers are under that. A row
  * whose recommended action differs from the plan at rest says what it was.
  */
 export default function FleetScreen({
@@ -32,6 +34,7 @@ export default function FleetScreen({
   budget,
   onBudget,
   budgetPlan,
+  closing,
 }: {
   fleet: FleetExposure;
   plans: FleetRecommendation;
@@ -45,6 +48,7 @@ export default function FleetScreen({
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
+  closing: ClosingDecisions;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -74,6 +78,7 @@ export default function FleetScreen({
         </div>
       </header>
 
+      <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
       <RobustnessPanel
         robustness={robustness}
         extension={extension}
@@ -85,6 +90,7 @@ export default function FleetScreen({
         onChange={onAssumptions}
         tails={fleet.returning.map((t) => ({ tail: t.tail, type: t.type })).sort((x, y) => x.tail.localeCompare(y.tail))}
         comparison={comparison}
+        closing={closing}
       />
 
       <Headline fleet={fleet} plans={plans} />
@@ -130,8 +136,6 @@ export default function FleetScreen({
         component is capped at the cheapest work that would put it right. After recommendation is all-in: the work, its downtime, and what is still owed at
         handback.
       </p>
-
-      <AssumptionsPanel assumptions={assumptions} onChange={onAssumptions} />
     </main>
   );
 }
@@ -238,6 +242,9 @@ function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before
         {plan.label}
       </div>
       {plan.forced && <div className="text-[11px] leading-tight text-slate-500">{plan.forced}</div>}
+      {plan.role === 'own' && !plan.recommendation.call.stands && (
+        <div className="text-[11px] leading-tight text-amber-800">{plan.recommendation.call.why}</div>
+      )}
       {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
       {leftOut && <div className="text-[11px] leading-tight font-medium text-red-800">left out of the budget — pays at handback</div>}
     </div>
@@ -285,8 +292,7 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
     if (Math.abs(edge - input.current) < 1e-12) return <span className="text-slate-300">—</span>;
     return f ? (
       <span>
-        <span className={`font-medium ${f.withinNoise ? 'text-red-800' : 'text-violet-800'}`}>{f.change}</span> → {f.to}{' '}
-        <span className="text-slate-400">(reach {Math.round(f.reach * 100)}%{f.withinNoise ? ', inside the noise' : ''})</span>
+        <span className="font-medium text-violet-800">{f.change}</span> → {f.to} <span className="text-slate-400">(reach {Math.round(f.reach * 100)}%)</span>
       </span>
     ) : (
       <span className="text-slate-400">holds to {describeInput(input.input, edge, input.current)}</span>
@@ -297,7 +303,7 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
       <div className="flex items-baseline justify-between border-b border-slate-100 px-3 py-2">
         <span className="text-sm font-semibold">How far each input would have to move before this answer changes</span>
         <span className="text-xs text-slate-500">
-          {robustness.byTail[tail] === 'too-close' ? 'too close to call' : robustness.byTail[tail] === 'close' ? 'close' : 'firm'} · one input at a time, so a lower bound
+          {robustness.byTail[tail] ?? 'firm'} · one input at a time, so a lower bound
         </span>
       </div>
       <table className="w-full text-xs">

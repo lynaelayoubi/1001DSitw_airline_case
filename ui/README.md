@@ -26,6 +26,8 @@ object from `calc/`; the UI formats, it never calculates.
   life (spares handed over, net of units kept in the pool) — so the two are not read as one pot.
 - A row marked **forced** has a component that runs out before handback: doing nothing is not an
   option, and its difference from the do-nothing figure is not a saving the tool chose.
+- A row with **no recommendation** has a best option whose advantage over the next is inside the
+  cost estimates' ±10.1% (ASSUMPTIONS §0): the row says the options cannot be told apart, and why.
 - A line under the headline splits the do-nothing figure into cash payable to lessors at handback
   and life already bought and handed over — different kinds of loss, the second sunk.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
@@ -39,12 +41,17 @@ in whole months, which says plainly when an extension changes nothing), and a ma
 for the next twelve months — what it funds, what it leaves out, and whether a left-out decision
 closes inside the year. Then, computed
 in a worker, how many recommendations hold under every plausible assumption, the close calls by
-name, and the inputs that bind soonest with where the real number would come from. Each tail's
+name, and one line naming the inputs that change any answer inside their evidence and those that change none. Each tail's
 detail opens with how far every input would have to move before its answer changes.
 
-**Assumptions** (`components/AssumptionsPanel.tsx`), below the table and collapsed: every
-assumption with its value, plausible range and basis, and its source in deployment, each
-overridable.
+**What this assumes** (`components/WhatThisAssumes.tsx`), directly above that panel and collapsed:
+the one place the seven assumptions live. The label carries the finding — how many inputs there
+are and how many change no answer anywhere — and, open, each row has the value used, the evidenced
+range (hover for why it stops there), the system the real number should come from, whether the
+sweep found any recommendation it changes, and an override. An override recomputes everything
+downstream — fleet, recommendations, calendar, budget, and the sweep in the worker — and stays
+inside the evidenced range, the ground the sweep covers. The lease-extension stepper is not an
+assumption and stays under "What you can do".
 
 **Trace on hover** (`components/Trace.tsx`). Every figure carries the string the calc layer
 attached to it — the inputs and the arithmetic. This is the answer to "where did that number

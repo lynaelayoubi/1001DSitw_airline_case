@@ -45,6 +45,39 @@ escalation rate for that event type, and the factor is in the table above. Using
 2018 engine figure as a 2026 figure understates by 45–70% — a bigger error than any
 cross-engine distinction in the dataset.
 
+### How good the cost estimates are — and when there is no recommendation
+
+Every cost in the model is a 2018 appraiser figure escalated to 2026, so each carries two errors.
+**Escalation:** the factor above sits inside the published annual range for its event type;
+compounded over the eight years, that range is ± this much around the factor used. **Appraiser:**
+the 2018 figure is itself published as a range; half its width over its midpoint, averaged over
+the types this fleet flies (LLPs are OEM list prices — a single figure). The two are independent
+and combine in quadrature; the event types are weighted by their share of direct maintenance cost
+(§11–§12).
+
+| event type | factor | 2026 range from the published rates | escalation | appraiser | combined | share |
+|---|---|---|---|---|---|---|
+| Engine performance restoration | ×1.55 | ×1.422–1.655 (4.5–6.5%/yr) | ±7.5% | ±3.8% | ±8.4% | 37.5% |
+| Engine LLPs | ×1.60 | ×1.477–1.851 (5–8%/yr) | ±11.7% | — | ±11.7% | 52.5% |
+| Landing gear | ×1.45 | ×1.317–1.535 (3.5–5.5%/yr) | ±7.5% | ±5.6% | ±9.4% | 2.5% |
+| APU | ×1.45 | ×1.422–1.655 (4.5–6.5%/yr) | ±8.0% | ±8.1% | ±11.4% | 1.5% |
+| Airframe heavy check | ×1.40 | ×1.218–1.317 (2.5–3.5%/yr) — **the factor used sits above its own range** | ±3.5% | ±5.8% | ±6.8% | 5.0% |
+| **Weighted** | | | | | **±10.1%** | |
+
+**The rule.** A recommendation stands only if its advantage over the next best option is larger
+than **±10.1% of the estimated money on which the two options differ** — maintenance spend,
+compensation, life handed over, exposure moved to another tail. Money common to both options (the
+sunk over-delivery, compensation on a component neither touches) moves both alike and cancels out
+of the advantage, so it adds no uncertainty to it. Downtime is a declared input, not a cost
+estimate: how far it would have to move is the robustness question (§14). Below the threshold there
+is no recommendation: the screen says the options cannot be told apart, and why. Where paying is
+one of the two, the tail pays; where both are actions, the cheaper stands in for the pair.
+
+This replaces both the materiality floor and "too close to call", which leant on the ±10%
+utilisation noise in the generator — an artefact of how the synthetic data was made, not a
+statement about real uncertainty. `calc/constants.ts` computes the figure from the table
+(`costEstimateQuality`), so it moves if a range does.
+
 ---
 
 ## 1 · Figures taken from the customer — use exactly
@@ -558,7 +591,9 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 
 The screen no longer asks for these numbers: the customer's own teams hold them. Each is stated
 with its provenance below and can be overridden, and the robustness check says how far each would
-have to move before any recommendation changes. **One control stays on screen:** extend the lease
+have to move before any recommendation changes. One collapsed table directly above the robustness
+panel is the only place they live: each with its value, evidenced range and source, whether the
+sweep found any recommendation it changes, and an override held inside the evidenced range. **One control stays on screen:** extend the lease
 on a named returning tail, 0–12 months — the customer's own decision and example.
 
 | assumption | value used | plausible range | basis of the ends | in deployment, from |
@@ -590,17 +625,17 @@ a different month or spare).
 **Reach** = how far the input moved before the breakeven ÷ how far the evidence lets it move on
 that side. It puts different inputs on one scale, each read against its own evidence.
 
-Three states, from the breakevens:
+Given that a recommendation stands (§0, "How good the cost estimates are"), how far would an input
+have to move to change it?
 
-| state | when | reason |
-|---|---|---|
-| **Too close to call** | an input flips the answer inside the model's own noise: **±10% utilisation** (the per-tail noise the generator puts into the data, §9) or **±10% shop costs** (the spread of the published escalation around the 2026 factors, §0) | inside the noise the data cannot tell the options apart. The same rule a materiality floor would use — one rule, not two |
-| **Close** | the nearest flip is outside the noise but inside the evidenced range | the evidence allows a value at which the answer is different |
-| **Firm** | no input flips it anywhere inside its evidenced range | |
+| state | when |
+|---|---|
+| **Close** | an input flips the answer inside its evidenced range |
+| **Firm** | no input flips it anywhere inside its evidenced range |
 
-The other inputs (downtime, the lessor markup, reserves, lead time) are declared or negotiated
-values with no noise of their own; their uncertainty is their plausible range. The inputs shown as
-**binding soonest** are the three whose first flip of any tail has the smallest reach.
+Tails with no recommendation — options the cost estimates cannot tell apart — are not asked. One
+line under the results, computed from the sweep, says which inputs change any answer anywhere
+inside their evidence and which change none.
 
 **One at a time, so a lower bound.** Each input moves on its own. Real assumptions move together —
 a busy summer raises flying and shop demand at once — so the sweep is a lower bound on fragility:

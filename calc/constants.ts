@@ -423,7 +423,7 @@ export const ASSUMPTION_INPUTS: AssumptionInput[] = [
   },
   {
     id: 'downtimeNarrowbody',
-    label: 'A day on the ground, narrowbody',
+    label: 'Narrowbody day on the ground',
     unit: 'usd-per-day',
     range: { min: 0, max: 100_000, step: 5_000 },
     basis: 'Declared, not sourced (§13): from zero (a spare aircraft) to a little over twice the default.',
@@ -431,7 +431,7 @@ export const ASSUMPTION_INPUTS: AssumptionInput[] = [
   },
   {
     id: 'downtimeWidebody',
-    label: 'A day on the ground, widebody',
+    label: 'Widebody day on the ground',
     unit: 'usd-per-day',
     range: { min: 0, max: 300_000, step: 10_000 },
     basis: 'Declared, not sourced (§13): from zero (a spare aircraft) to a little over twice the default.',
@@ -464,19 +464,78 @@ export const ASSUMPTION_INPUTS: AssumptionInput[] = [
 ];
 
 /**
- * The model's own precision. Inside these moves the data cannot tell the options apart, so an
- * answer that changes there is too close to call — and, applied as a materiality floor, a
- * recommendation that does not survive them is not one. One rule for both.
- *   utilisation: the ±10% per-tail noise the generator puts into the data (§9);
- *   shop costs:  the spread of the published escalation around the 2026 factors (§0 — engine
- *                restoration ×1.55 inside 1.45–1.70, about −6% to +10%).
- * The other inputs are declared or negotiated values with no noise of their own; their
- * uncertainty is their plausible range. ASSUMPTIONS §14.
+ * How good the cost estimates are (ASSUMPTIONS §0). Every cost in the model is a 2018 appraiser
+ * figure escalated to 2026, so each carries two errors:
+ *   escalation — §0's factor sits inside the published annual range for its event type; compounded
+ *                over the eight years, that range is ± this much around the factor used;
+ *   appraiser  — the 2018 figure is itself published as a range (Ackert); half its width over its
+ *                midpoint, averaged over the types this fleet flies. LLPs are OEM list: no range.
+ * The two are independent, so they combine in quadrature, and the event types are weighted by
+ * their share of direct maintenance cost (§11–§12). The result is COST_ESTIMATE_UNCERTAINTY.
  */
-export const MODEL_NOISE: Partial<Record<AssumptionInputId, number>> = {
-  utilisation: UTILISATION_NOISE,
-  maintenanceCost: 0.1,
-};
+export const COST_ESTIMATE_QUALITY = {
+  years: 8,
+  eventTypes: [
+    {
+      id: 'enginePR',
+      label: 'Engine performance restoration',
+      factor: ESCALATION_2018_TO_2026.enginePR,
+      annual: [0.045, 0.065],
+      // CFM56-7B26E, LEAP-1A26/33, GEnx-1B76, Trent XWB-84, GE90-115B, first- and mature-run ($M, 2018)
+      appraiserRanges: [[3.2, 3.4], [3.4, 3.6], [3.3, 3.6], [4.0, 4.4], [3.3, 3.6], [4.0, 4.4], [6.1, 6.5], [7.5, 8.0], [6.4, 6.8], [7.7, 8.2], [9.5, 10.5], [11.0, 12.0]],
+      share: 0.375,
+    },
+    { id: 'engineLLP', label: 'Engine LLPs', factor: ESCALATION_2018_TO_2026.engineLLP, annual: [0.05, 0.08], appraiserRanges: [], share: 0.525 },
+    {
+      id: 'landingGear',
+      label: 'Landing gear',
+      factor: ESCALATION_2018_TO_2026.landingGear,
+      annual: [0.035, 0.055],
+      // A320neo, 737NG, A350, 777, 787 overhaul ($K, 2018)
+      appraiserRanges: [[450, 490], [400, 440], [1050, 1150], [1000, 1200], [850, 950]],
+      share: 0.025,
+    },
+    {
+      id: 'apu',
+      label: 'APU',
+      factor: ESCALATION_2018_TO_2026.apu,
+      annual: [0.045, 0.065],
+      // A320/737NG, A350/787, 777 ($K, 2018)
+      appraiserRanges: [[320, 360], [450, 550], [550, 650]],
+      share: 0.015,
+    },
+    {
+      id: 'airframe',
+      label: 'Airframe heavy check',
+      factor: ESCALATION_2018_TO_2026.airframe,
+      annual: [0.025, 0.035],
+      // A320 6Y/12Y, A321 6Y/12Y, 737-800 8Y ($K), A350 12Y, 787-9 12Y, 777-300 8Y ($M), 2018
+      appraiserRanges: [[800, 900], [850, 950], [825, 925], [875, 975], [650, 750], [2.7, 3.0], [2.4, 2.7], [3.4, 3.8]],
+      share: 0.05,
+    },
+  ],
+} as const;
+
+export function costEstimateQuality() {
+  const { years } = COST_ESTIMATE_QUALITY;
+  const types = COST_ESTIMATE_QUALITY.eventTypes.map((t) => {
+    const low = (1 + t.annual[0]) ** years;
+    const high = (1 + t.annual[1]) ** years;
+    const escalation = (high - low) / 2 / t.factor;
+    const r = t.appraiserRanges as readonly (readonly [number, number])[];
+    const appraiser = r.length ? r.reduce((s, [x, y]) => s + (y - x) / (x + y), 0) / r.length : 0;
+    return { ...t, low, high, escalation, appraiser, combined: Math.hypot(escalation, appraiser), factorInsideRange: t.factor >= low && t.factor <= high };
+  });
+  const weight = types.reduce((s, t) => s + t.share, 0);
+  return { types, uncertainty: types.reduce((s, t) => s + t.share * t.combined, 0) / weight };
+}
+
+/**
+ * ±10.1%: how far the costs behind a recommendation could be off (costEstimateQuality). A
+ * recommendation stands only if its advantage over the next best option is larger than this share
+ * of the estimated money on which the two options differ. ASSUMPTIONS §0.
+ */
+export const COST_ESTIMATE_UNCERTAINTY = costEstimateQuality().uncertainty;
 
 /** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
 export const DEFAULT_ASSUMPTIONS: Assumptions = {

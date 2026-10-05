@@ -2,6 +2,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fitToBudget } from '../calc/budget';
 import { DEFAULT_ASSUMPTIONS } from '../calc/constants';
+import { closingDecisions } from '../calc/deadlines';
 import { assessFleet } from '../calc/exposure';
 import { compareRecommendations, recommendFleet } from '../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../calc/robustness';
@@ -24,6 +25,7 @@ export default function App() {
   // A budget is a constraint on what to fund, not a model assumption; no limit until one is entered.
   const [budget, setBudget] = useState<number | null>(null);
   const budgetPlan = useMemo(() => fitToBudget(plans, budget ?? Infinity, data.asOf), [plans, budget]);
+  const closing = useMemo(() => closingDecisions(plans, data.asOf), [plans]);
 
   const [robustness, setRobustness] = useState<{ id: number; result: Robustness; extension: ExtensionEffects } | null>(null);
   const worker = useRef<Worker | null>(null);
@@ -59,6 +61,7 @@ export default function App() {
       budget={budget}
       onBudget={setBudget}
       budgetPlan={budgetPlan}
+      closing={closing}
       assumptions={assumptions}
       onAssumptions={setAssumptions}
     />

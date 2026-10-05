@@ -8,7 +8,9 @@ import { assessFleet, assessTail } from './exposure';
 import { AS_OF, aircraft, assumptions, component, conditions, lessor, spare } from './fixtures.test-helpers';
 import type { LeverContext } from './levers';
 import { addMonths } from './projection';
-import { actionOf, compareRecommendations, recommendFleet, recommendTail } from './recommend';
+import { COST_ESTIMATE_UNCERTAINTY, costEstimateQuality } from './constants';
+import type { LeverOption } from './levers';
+import { actionOf, compareRecommendations, recommendFleet, recommendTail, tellApart } from './recommend';
 import type { Aircraft, Component, Dataset } from './types';
 
 const full = aircraft();
@@ -211,5 +213,87 @@ describe('the money in play and the forced cases', () => {
       expect(p.recommendation.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
     }
     expect(r.byTail['9H-ZUU']!.trace).toContain('not choosing the dearer option');
+  });
+});
+
+describe('how good the cost estimates are — ASSUMPTIONS §0', () => {
+  const q = costEstimateQuality();
+
+  it('derives ±10.1% from escalation ranges and appraiser spreads, weighted by share of cost', () => {
+    const pr = q.types.find((t) => t.id === 'enginePR')!;
+    // Engine restoration: 4.5–6.5%/yr over eight years is ×1.422–1.655 around the ×1.55 used: ±7.5%;
+    // the 2018 appraiser ranges add ±3.8%; together ±8.4%.
+    expect(pr.escalation).toBeCloseTo((1.065 ** 8 - 1.045 ** 8) / 2 / 1.55, 9);
+    expect(pr.combined).toBeCloseTo(Math.hypot(pr.escalation, pr.appraiser), 9);
+    // LLPs carry the most: 5–8%/yr compounds to ±11.7%, and they are over half of the cost.
+    expect(q.types.find((t) => t.id === 'engineLLP')!.combined).toBeCloseTo(0.1167, 3);
+    expect(COST_ESTIMATE_UNCERTAINTY).toBeCloseTo(0.1014, 3);
+  });
+
+  it("flags that §0's airframe factor sits above its own published escalation range", () => {
+    expect(q.types.find((t) => t.id === 'airframe')!.factorInsideRange).toBe(false);
+    expect(q.types.filter((t) => t.id !== 'airframe').every((t) => t.factorInsideRange)).toBe(true);
+  });
+});
+
+describe('tellApart — one rule, in money, for whether there is a recommendation', () => {
+  const option = (lever: LeverOption['lever'], over: Partial<LeverOption>): LeverOption => ({
+    lever, label: lever, cost: 0, downtimeDays: 0, downtimeCost: 0, newExposure: 0, newCompensation: 0, spend: 0, spendDate: null,
+    total: 0, saving: 0, feasible: true, deadline: null, trace: '', actionKey: lever, ...over,
+  });
+
+  it('stands when the advantage is larger than ±10.1% of the money on which the two options differ', () => {
+    // Pay owes $1M of compensation; the work spends $0.5M and owes nothing: they differ on $1.5M,
+    // so the advantage of $0.5M must beat ±$152K. It does.
+    const work = option('L1', { spend: 500_000, cost: 500_000, total: 500_000 });
+    const pay = option('pay', { newCompensation: 1_000_000, newExposure: 1_000_000, total: 1_000_000 });
+    const c = tellApart(work, pay);
+    expect(c.differing).toBeCloseTo(1_500_000, 3);
+    expect(c.uncertainty).toBeCloseTo(1_500_000 * COST_ESTIMATE_UNCERTAINTY, 3);
+    expect(c.stands).toBe(true);
+  });
+
+  it('does not stand when the advantage is inside that uncertainty', () => {
+    // The work spends $0.95M against $1M of compensation: $50K ahead, inside ±$198K.
+    const work = option('L1', { spend: 950_000, cost: 950_000, total: 950_000 });
+    const pay = option('pay', { newCompensation: 1_000_000, newExposure: 1_000_000, total: 1_000_000 });
+    const c = tellApart(work, pay);
+    expect(c.stands).toBe(false);
+    expect(c.why).toContain('cannot be told apart');
+  });
+
+  it('ignores money both options carry alike: it moves both and cancels', () => {
+    // $8M of sunk over-delivery in both: it adds nothing to the uncertainty of the $0.5M advantage.
+    const work = option('L1', { spend: 500_000, cost: 500_000, newExposure: 8_000_000, total: 8_500_000 });
+    const pay = option('pay', { newCompensation: 1_000_000, newExposure: 9_000_000, total: 9_000_000 });
+    expect(tellApart(work, pay).differing).toBeCloseTo(1_500_000, 3);
+  });
+
+  it('stands when there is no other option', () => {
+    expect(tellApart(option('L3', {}), null).stands).toBe(true);
+  });
+});
+
+describe('the rule on the generated fleet', () => {
+  const data = dataset as unknown as Dataset;
+  const r = recommendFleet(data, assessFleet(data));
+
+  it('gives no recommendation where the options cannot be told apart, and pays', () => {
+    // A6-YTM, 9H-RYM and 9H-PJS: the only alternative is a route change that comes to the same money.
+    for (const t of ['A6-YTM', '9H-RYM', '9H-PJS']) {
+      const p = r.byTail[t]!;
+      expect(p.recommendation.call.stands, t).toBe(false);
+      expect(p.label).toBe('No recommendation — pay at handback');
+      expect(p.recommendation.recommended.lever).toBe('pay');
+    }
+    expect(r.totals.undecided).toBe(3);
+  });
+
+  it('lets every recommendation with a real alternative stand, by a wide margin', () => {
+    for (const t of ['9H-KVJ', 'A6-MXM', 'A6-GPZ', '9H-MMC', 'A6-MVC']) {
+      const c = r.byTail[t]!.recommendation.call;
+      expect(c.stands, t).toBe(true);
+      expect(c.advantage, t).toBeGreaterThan(c.uncertainty * 1.5);
+    }
   });
 });

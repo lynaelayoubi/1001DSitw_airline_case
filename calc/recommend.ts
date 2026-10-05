@@ -9,7 +9,7 @@
 // are settled first, soonest first — they have to act, the rest are choosing. Then the others,
 // in order of what they could save with everything available. Each chooses from what is left.
 
-import { DEFAULT_ASSUMPTIONS } from './constants';
+import { COST_ESTIMATE_UNCERTAINTY, DEFAULT_ASSUMPTIONS } from './constants';
 import type { FleetExposure, TailResult } from './exposure';
 import { num, usd } from './format';
 import {
@@ -46,7 +46,50 @@ export interface TailRecommendation {
    * recommendation is then a forced removal, not a choice, and doing nothing is not on the table.
    */
   forced: { position: string; clock: string; months: number; why: string } | null;
+  /** Can the best option be told apart from the next best, given how good the cost estimates are? (tellApart) */
+  call: Call;
   trace: string;
+}
+
+/**
+ * The one rule for whether there is a recommendation at all. A recommendation stands only if its
+ * advantage over the next best option is larger than the uncertainty in the costs that produced
+ * it: COST_ESTIMATE_UNCERTAINTY (±10.1%, from the quality of the escalated appraiser figures,
+ * ASSUMPTIONS §0) of the estimated money on which the two options differ — maintenance spend,
+ * compensation, life handed over, exposure moved to another tail. Money common to both options
+ * moves both alike and cancels out of the advantage, so it carries no uncertainty into it.
+ * Downtime is a declared input, not a cost estimate: how far it would have to move is the
+ * robustness question (calc/robustness.ts), not this one.
+ */
+export interface Call {
+  stands: boolean;
+  /** runnerUp.total − best.total; 0 with no runner-up. */
+  advantage: number;
+  /** Estimated money on which the two options differ. */
+  differing: number;
+  /** COST_ESTIMATE_UNCERTAINTY × differing. */
+  uncertainty: number;
+  /** The two options, when they cannot be told apart. */
+  between: [string, string] | null;
+  why: string;
+}
+
+export function tellApart(best: LeverOption, next: LeverOption | null): Call {
+  if (!next) return { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: 'it is the only feasible option' };
+  const lines = (o: LeverOption) => [o.spend, o.newCompensation, o.newExposure - o.newCompensation, o.cost - o.spend];
+  const a = lines(best);
+  const b = lines(next);
+  const differing = a.reduce((s, x, i) => s + Math.abs(x - b[i]!), 0);
+  const uncertainty = COST_ESTIMATE_UNCERTAINTY * differing;
+  const advantage = next.total - best.total;
+  const stands = advantage > uncertainty + 1e-6;
+  const u = `±${num(COST_ESTIMATE_UNCERTAINTY * 100, 1)}%`;
+  const why = stands
+    ? `${usd(advantage)} ahead of ${next.label}, more than the ±${usd(uncertainty)} the cost estimates could move it (${u} of the ${usd(differing)} on which the two differ)`
+    : differing < 1 && Math.abs(advantage) < 1
+      ? `${next.label} comes to the same money: nothing to choose between them`
+      : `${next.label} comes within ${usd(advantage)}, inside the ±${usd(uncertainty)} the cost estimates could move it (${u} of the ${usd(differing)} on which the two differ): the options cannot be told apart`;
+  return { stands, advantage, differing, uncertainty, between: stands ? null : [best.label, next.label], why };
 }
 
 const LEVER_ORDER = ['pay', 'L1', 'L2', 'L3', 'L4'];
@@ -75,8 +118,13 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   // Lever 4 can land on lever 1's month and workscope; the same action is ranked once.
   const distinct: LeverOption[] = [];
   for (const o of options) if (o.feasible && !distinct.some((d) => d.actionKey === o.actionKey)) distinct.push(o);
-  const recommended = distinct[0]!; // paying is feasible unless a focused lever is
-  const runnerUp = distinct[1] ?? null;
+  const best = distinct[0]!; // paying is feasible unless a focused lever is
+  const call = tellApart(best, distinct[1] ?? null);
+  // Below the estimates' precision there is no recommendation. Where paying is one of the two, the
+  // tail does nothing; where both are actions (it must act), the cheaper stands in for the pair.
+  const fallBack = !call.stands && !forced ? distinct.slice(0, 2).find((o) => o.lever === 'pay') : undefined;
+  const recommended = fallBack ?? best;
+  const runnerUp = fallBack ? best : (distinct[1] ?? null);
   const delta = runnerUp ? runnerUp.total - recommended.total : 0;
   // Not SPEC's min over every option: a route change is worth most if started now, so its
   // deadline is always today, and the minimum would put today on every tail.
@@ -90,6 +138,7 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       ? `${o.label}: ${usd(o.cost)} cost + ${usd(o.downtimeCost)} downtime + ${usd(o.newExposure)} still owed = ${usd(o.total)}`
       : `${o.label}: not available — ${o.trace}`;
   const trace =
+    (call.stands ? '' : `No recommendation: ${call.why}. `) +
     `${ctx.ac.tail}: ${preamble}${recommended.label}, ${usd(unavoidable)} all-in against ${usd(doNothing)} if nothing changes` +
     (forced
       ? avoidable >= 0
@@ -100,9 +149,10 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
         : ': nothing is avoidable. ') +
     (runnerUp ? `Runner-up: ${runnerUp.label}, ${usd(delta)} more${runnerUp.deadline ? `, open until ${runnerUp.deadline}` : ''}. ` : '') +
     (decisionDeadline ? `Decide by ${decisionDeadline}.` : 'Nothing to book.') +
+    (call.stands && runnerUp ? ` It stands: ${call.why}.` : '') +
     `\n\n${options.map((o, k) => `${o.feasible ? `${k + 1}.` : '–'} ${line(o)}`).join('\n')}` +
     `\n\n${recommended.trace}`;
-  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, trace };
+  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, call, trace };
 }
 
 export interface TailPlan {
@@ -159,10 +209,11 @@ export interface FleetRecommendation {
     avoidableLife: number;
     /** avoidableCash ÷ doNothingCash: the saving as a share of the money actually in play. */
     avoidableCashShare: number;
-    /** Tails acting by choice, tails forced to act, tails paying, tails giving a unit to a swap. */
+    /** Tails acting by choice, forced to act, paying, with no recommendation (the options cannot be told apart), giving a unit to a swap. */
     acting: number;
     forced: number;
     paying: number;
+    undecided: number;
     donors: number;
   };
   trace: string;
@@ -176,6 +227,7 @@ export interface FleetRecommendation {
 export function actionOf(plan: TailPlan): string {
   if (plan.role === 'donor') return `gives:${plan.label}`;
   const o = plan.recommendation.recommended;
+  if (!plan.recommendation.call.stands && o.lever !== 'pay') return `undecided:${plan.recommendation.call.between!.join('|')}`;
   return o.move ? `swap:${o.move.position}:${o.move.incoming.from}` : o.actionKey.replace(/^visit:([^:]+):\d+:/, 'visit:$1:');
 }
 
@@ -288,13 +340,14 @@ export function recommendFleet(
     }
     const o = rec.recommended;
     const own = o.move?.own;
+    const label = rec.call.stands ? o.label : o.lever === 'pay' ? 'No recommendation — pay at handback' : `Cannot tell apart: ${rec.call.between!.join(' / ')}`;
     const after = own ? own.cost + own.downtimeCost + own.newExposure : o.total;
     const afterCash = own ? own.cost + own.downtimeCost + own.newCompensation : o.cost + o.downtimeCost + o.newCompensation;
     return {
       tail: t.tail,
       role: 'own',
       recommendation: rec,
-      label: o.label,
+      label,
       doNothing,
       after,
       avoidable: doNothing - after,
@@ -330,9 +383,10 @@ export function recommendFleet(
     avoidableCash,
     avoidableLife,
     avoidableCashShare: doNothingCash > 0 ? avoidableCash / doNothingCash : 0,
-    acting: own.filter((p) => !p.forced && p.recommendation.recommended.lever !== 'pay').length,
-    forced: own.filter((p) => p.forced).length,
-    paying: own.filter((p) => p.recommendation.recommended.lever === 'pay').length,
+    acting: own.filter((p) => p.recommendation.call.stands && !p.forced && p.recommendation.recommended.lever !== 'pay').length,
+    forced: own.filter((p) => p.recommendation.call.stands && p.forced).length,
+    paying: own.filter((p) => p.recommendation.call.stands && p.recommendation.recommended.lever === 'pay').length,
+    undecided: own.filter((p) => !p.recommendation.call.stands).length,
     donors: plans.filter((p) => p.role === 'donor').length,
   };
   const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -342,7 +396,8 @@ export function recommendFleet(
     `maintenance less reserves, downtime, and what is still owed at handback — so ${usd(totals.avoidable)} is avoidable: ` +
     `${usd(avoidableCash)} of it cash, ${pct(totals.avoidableCashShare)} of the money in play, and ${usd(avoidableLife)} life kept by sending units to the pool ` +
     `rather than handing them over. ${totals.acting} act by choice, ${totals.forced} are forced (a component runs out before handback), ` +
-    `${totals.paying} pay at handback${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. Each spare and each tail is used once; ` +
+    `${totals.paying} pay at handback, ${totals.undecided} have no recommendation (the options cannot be told apart within ±${num(COST_ESTIMATE_UNCERTAINTY * 100, 1)}% ` +
+    `cost estimates)${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. Each spare and each tail is used once; ` +
     `forced tails chose first.\n\n` +
     plans.map((p) => `${p.tail}: ${p.forced ? 'forced — ' : ''}${p.label} — ${usd(p.doNothing)} → ${usd(p.after)}`).join('\n');
   return { plans, byTail: Object.fromEntries(plans.map((p) => [p.tail, p])), totals, trace };

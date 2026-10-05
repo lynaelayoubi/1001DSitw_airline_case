@@ -22,7 +22,7 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
       <Tile
         label="After recommendations"
         value={<Trace text={plans.trace}>{money(r.after)}</Trace>}
-        sub={`Work, downtime and what is still owed · ${r.acting} act, ${r.forced} forced, ${r.paying} pay at handback${r.donors ? `, ${r.donors} lend a unit` : ''}`}
+        sub={`Work, downtime and what is still owed · ${r.acting} act, ${r.forced} forced, ${r.paying} pay at handback${r.undecided ? `, ${r.undecided} no recommendation` : ''}${r.donors ? `, ${r.donors} lend a unit` : ''}`}
       />
       <Tile
         label="Avoidable"

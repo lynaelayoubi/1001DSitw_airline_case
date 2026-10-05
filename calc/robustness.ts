@@ -9,19 +9,18 @@
 // is said to hold. Reach puts a 4% change in utilisation and a 40% change in the cost of a day on
 // the ground on one scale: each is read against its own evidence.
 //
-// Three states, from the breakevens:
-//   TOO CLOSE TO CALL  an input flips the answer inside the model's own noise (MODEL_NOISE: ±10%
-//                      utilisation, ±10% shop costs) — the data cannot tell the options apart;
-//   CLOSE              the nearest flip is outside the noise but inside the evidenced range;
-//   FIRM               no input flips it anywhere inside its evidenced range.
-// The noise is the same rule a materiality floor uses; the evidenced ranges are ASSUMPTIONS §14.
-// No round-number threshold enters any of the three.
+// This is a different question from whether there is a recommendation at all (tellApart in
+// calc/recommend.ts: an advantage larger than the cost estimates' uncertainty). Given that the
+// options can be told apart, how far would an input have to move to change the answer?
+//   CLOSE  an input flips it inside its evidenced range;
+//   FIRM   no input flips it anywhere inside its evidenced range.
+// Tails with no recommendation are left out of both. No round-number threshold enters either.
 //
 // The inputs move one at a time. Real assumptions move together — a busy summer raises flying and
 // shop demand at once — so this is a lower bound on fragility: correlated moves would flip answers
 // sooner than any single-input breakeven here suggests.
 
-import { ASSUMPTION_INPUTS, LEASE_EXTENSION_CONTROL, MODEL_NOISE, type AssumptionInput, type AssumptionInputId } from './constants';
+import { ASSUMPTION_INPUTS, LEASE_EXTENSION_CONTROL, type AssumptionInput, type AssumptionInputId } from './constants';
 import { assessTail, totalsOf, type FleetExposure } from './exposure';
 import { num, withoutTraces } from './format';
 import { actionOf, recommendFleet, type FleetRecommendation } from './recommend';
@@ -91,8 +90,6 @@ export interface Flip {
   reach: number;
   /** What the tail would be told to do instead. */
   to: string;
-  /** The flip lies inside the model's own noise on this input (MODEL_NOISE). */
-  withinNoise: boolean;
 }
 
 export interface TailBreakevens {
@@ -115,19 +112,20 @@ export interface CloseCall {
   flip: Flip;
 }
 
-export type Firmness = 'too-close' | 'close' | 'firm';
+export type Firmness = 'close' | 'firm' | 'no recommendation';
 
 export interface Robustness {
   inputs: InputRobustness[];
-  /** The inputs whose first flip comes soonest, by reach — at most three. */
-  binding: InputRobustness[];
+  /** Inputs that change some tail's answer somewhere inside their evidenced range, and inputs that change none. */
+  changing: AssumptionInput[];
+  holding: AssumptionInput[];
   tails: number;
   /** Tails no input flips anywhere inside its evidenced range. */
   firm: string[];
-  /** Tails whose nearest flip is outside the model's noise but inside the evidence, nearest first. */
+  /** Tails an input flips inside its evidenced range, nearest first. */
   close: CloseCall[];
-  /** Tails an input flips inside the model's own noise: the data cannot tell the options apart. */
-  tooClose: CloseCall[];
+  /** Tails with no recommendation: the options cannot be told apart (tellApart), so how firm is not asked. */
+  undecided: { tail: string; why: string }[];
   byTail: Record<string, Firmness>;
   /** Fleet re-recommendations the sweep ran. */
   steps: number;
@@ -159,7 +157,8 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
       const byTail: Record<string, TailBreakevens> = Object.fromEntries(rest.plans.map((p) => [p.tail, { down: null, up: null }]));
       for (const direction of ['down', 'up'] as const) {
         const edge = direction === 'down' ? input.range.min : input.range.max;
-        const room = Math.abs(edge - current);
+        // Only toward an edge that lies that way: a value already at or past it has no evidenced room on that side.
+        const room = direction === 'down' ? current - edge : edge - current;
         if (room <= 1e-12) continue;
         const sign = direction === 'down' ? -1 : 1;
         for (let k = 1; ; k++) {
@@ -170,9 +169,7 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
           for (const p of r.plans) {
             const b = byTail[p.tail];
             if (!b || b[direction] || actionOf(p) === restAction.get(p.tail)) continue;
-            const noise = MODEL_NOISE[input.id];
-            const withinNoise = noise !== undefined && current !== 0 && Math.abs(value / current - 1) <= noise + 1e-9;
-            b[direction] = { value, change: '', reach: Math.abs(value - current) / room, to: p.label, withinNoise };
+            b[direction] = { value, change: '', reach: Math.abs(value - current) / room, to: p.label };
           }
           if (value === edge || Object.values(byTail).every((b) => b[direction])) break;
         }
@@ -197,56 +194,55 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
     return { input, current, first, byTail };
   });
 
-  const binding = inputs.filter((x) => x.first).sort((x, y) => x.first!.reach - y.first!.reach).slice(0, 3);
-  const tooClose: CloseCall[] = [];
+  const changing = inputs.filter((x) => x.first).map((x) => x.input);
+  const holding = inputs.filter((x) => !x.first).map((x) => x.input);
   const close: CloseCall[] = [];
   const firm: string[] = [];
+  const undecided: { tail: string; why: string }[] = [];
   const byTailState: Record<string, Firmness> = {};
   for (const p of swept.rest.plans) {
+    if (p.role === 'own' && !p.recommendation.call.stands) {
+      undecided.push({ tail: p.tail, why: p.recommendation.call.why });
+      byTailState[p.tail] = 'no recommendation';
+      continue;
+    }
     let nearest: CloseCall | null = null;
-    let noisy: CloseCall | null = null;
     for (const x of inputs)
       for (const f of [x.byTail[p.tail]!.down, x.byTail[p.tail]!.up]) {
-        if (!f) continue;
-        const c = { tail: p.tail, label: p.label, input: x.input, flip: f };
-        if (!nearest || f.reach < nearest.flip.reach) nearest = c;
-        if (f.withinNoise && (!noisy || f.reach < noisy.flip.reach)) noisy = c;
+        if (f && (!nearest || f.reach < nearest.flip.reach)) nearest = { tail: p.tail, label: p.label, input: x.input, flip: f };
       }
-    if (noisy) tooClose.push(noisy);
-    else if (nearest) close.push(nearest);
+    if (nearest) close.push(nearest);
     else firm.push(p.tail);
-    byTailState[p.tail] = noisy ? 'too-close' : nearest ? 'close' : 'firm';
+    byTailState[p.tail] = nearest ? 'close' : 'firm';
   }
-  tooClose.sort((x, y) => x.flip.reach - y.flip.reach);
   close.sort((x, y) => x.flip.reach - y.flip.reach);
   const tails = swept.rest.plans.length;
   const pct = (x: number) => `${num(x * 100)}%`;
-  const noiseText = Object.entries(MODEL_NOISE)
-    .map(([id, n]) => `±${num(n! * 100)}% on ${ASSUMPTION_INPUTS.find((i) => i.id === id)!.label.toLowerCase()}`)
-    .join(' and ');
   const line = (c: CloseCall) => `${c.tail} (${c.label}): ${c.input.label.toLowerCase()} ${c.flip.change} → ${c.flip.to}, reach ${pct(c.flip.reach)}`;
 
   const trace =
     `Each assumption is stepped outward from its current value, one at a time, across the range the evidence supports, and the ` +
     `${tails} returning tails are re-recommended at every step (${swept.steps} steps). A tail's breakeven on an input is the first step at ` +
     `which its recommended action changes — a different lever, component or workscope, not a different month or a different spare.\n\n` +
-    `Three states. Too close to call: an input flips the answer inside the model's own noise (${noiseText}), where the data cannot tell ` +
-    `the options apart — the same rule a materiality floor uses. Close: the nearest flip is outside the noise but inside the evidenced ` +
-    `range. Firm: no input flips it anywhere inside its evidenced range. Distance is read as reach — how far the input moved ÷ how far ` +
-    `the evidence lets it move on that side. No round-number threshold is involved.\n\n` +
-    `${firm.length} of ${tails} firm${firm.length ? `: ${firm.join(', ')}` : ''}.` +
-    (tooClose.length ? `\nToo close to call:\n${tooClose.map(line).join('\n')}` : '') +
+    `Given that the options can be told apart, how far would an input have to move to change the answer? Close: an input flips it ` +
+    `inside its evidenced range. Firm: none does. Distance is read as reach — how far the input moved ÷ how far the evidence lets it ` +
+    `move on that side. Tails with no recommendation — options the cost estimates cannot tell apart — are not asked. No round-number ` +
+    `threshold is involved.\n\n` +
+    `${firm.length} firm${firm.length ? `: ${firm.join(', ')}` : ''}.` +
     (close.length ? `\nClose:\n${close.map(line).join('\n')}` : '') +
-    `\n\nBinding soonest: ${
-      binding.length
-        ? binding.map((x) => `${x.input.label} at ${x.first!.change} (reach ${pct(x.first!.reach)}) — the real number comes from ${x.input.source}`).join('; ')
-        : 'nothing inside the evidence'
-    }.` +
-    (inputs.some((x) => !x.first) ? ` Holding across their whole range: ${inputs.filter((x) => !x.first).map((x) => x.input.label.toLowerCase()).join(', ')}.` : '') +
+    (undecided.length ? `\nNo recommendation:\n${undecided.map((x) => `${x.tail}: ${x.why}`).join('\n')}` : '') +
+    `\n\n${inputsLine(changing, holding)}` +
     `\n\nThe inputs move one at a time. Real assumptions move together, so this is a lower bound on fragility: correlated moves would ` +
     `flip answers sooner than any single breakeven here.`;
 
-  return { inputs, binding, tails, firm, close, tooClose, byTail: byTailState, steps: swept.steps, trace };
+  return { inputs, changing, holding, tails, firm, close, undecided, byTail: byTailState, steps: swept.steps, trace };
+}
+
+/** Which inputs change any answer anywhere inside their evidence, and which change none — one line, from the sweep. */
+export function inputsLine(changing: AssumptionInput[], holding: AssumptionInput[]): string {
+  const list = (xs: AssumptionInput[]) => xs.map((x) => x.label.toLowerCase()).join(', ');
+  if (!changing.length) return `No input changes any answer anywhere inside its evidence.`;
+  return `Inside their evidence, ${list(changing)} ${changing.length === 1 ? 'changes' : 'change'} at least one answer` + (holding.length ? `; ${list(holding)} ${holding.length === 1 ? 'changes' : 'change'} none.` : '.');
 }
 
 /** What extending one returning tail's lease does, at the shortest length that does anything. */

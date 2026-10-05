@@ -5,11 +5,11 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, MODEL_NOISE, UTILISATION_NOISE } from './constants';
+import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS } from './constants';
 import { assessFleet } from './exposure';
 import { usd } from './format';
 import { actionOf, recommendFleet } from './recommend';
-import { computeExtensionEffects, computeRobustness, readInput, writeInput } from './robustness';
+import { computeExtensionEffects, computeRobustness, inputsLine, readInput, writeInput } from './robustness';
 import type { Dataset } from './types';
 
 const data = dataset as unknown as Dataset;
@@ -19,28 +19,30 @@ const plan = (x: typeof a) => recommendFleet(data, assessFleet(data, x), x);
 const rest = plan(a);
 
 describe('computeRobustness', () => {
+  it('sweeps from an override, and only toward an edge of the evidence that lies that way', () => {
+    // Widebody downtime overridden to the top of its evidence: the sweep starts there, and has no room upward.
+    const top = ASSUMPTION_INPUTS.find((i) => i.id === 'downtimeWidebody')!.range.max;
+    const o = computeRobustness(data, writeInput(a, 'downtimeWidebody', top));
+    const x = o.inputs.find((i) => i.input.id === 'downtimeWidebody')!;
+    expect(x.current).toBe(top);
+    for (const b of Object.values(x.byTail)) expect(b.up).toBeNull();
+    for (const b of Object.values(x.byTail)) if (b.down) expect(b.down.value).toBeLessThan(top);
+  });
+
   it('sweeps every assumption and records every returning tail on it', () => {
     expect(r.inputs.map((x) => x.input.id)).toEqual(ASSUMPTION_INPUTS.map((i) => i.id));
     for (const x of r.inputs) expect(Object.keys(x.byTail).sort()).toEqual(rest.plans.map((p) => p.tail).sort());
   });
 
-  it('puts every tail in exactly one of three states: too close to call, close, firm', () => {
-    expect(r.tooClose.length + r.close.length + r.firm.length).toBe(r.tails);
-    for (const c of [...r.tooClose, ...r.close]) {
+  it('puts every tail in exactly one state: firm, close, or no recommendation', () => {
+    expect(r.firm.length + r.close.length + r.undecided.length).toBe(r.tails);
+    for (const c of r.close) {
       expect(c.flip.reach).toBeGreaterThan(0);
       expect(c.flip.reach).toBeLessThanOrEqual(1);
     }
-    // Too close to call: the flip lies inside the model's own noise. Close: no flip of that tail does.
-    for (const c of r.tooClose) expect(c.flip.withinNoise).toBe(true);
-    for (const c of r.close)
-      for (const x of r.inputs) for (const f of [x.byTail[c.tail]!.down, x.byTail[c.tail]!.up]) if (f) expect(f.withinNoise).toBe(false);
     for (let i = 1; i < r.close.length; i++) expect(r.close[i]!.flip.reach).toBeGreaterThanOrEqual(r.close[i - 1]!.flip.reach);
-  });
-
-  it("uses one noise rule: the data's own ±10% utilisation noise, and the escalation spread on shop costs", () => {
-    expect(MODEL_NOISE.utilisation).toBe(UTILISATION_NOISE);
-    expect(MODEL_NOISE.maintenanceCost).toBe(0.1);
-    expect(Object.keys(MODEL_NOISE).sort()).toEqual(['maintenanceCost', 'utilisation']);
+    // How firm is only asked of a recommendation that stands.
+    for (const x of r.undecided) expect(rest.byTail[x.tail]!.recommendation.call.stands).toBe(false);
   });
 
   it('finds each breakeven where it is: one step short, the answer stands; at it, the answer changes', () => {
@@ -60,25 +62,28 @@ describe('computeRobustness', () => {
         }
   });
 
-  it('ranks at most three inputs as binding soonest, by reach', () => {
-    expect(r.binding.length).toBeLessThanOrEqual(3);
-    for (let i = 1; i < r.binding.length; i++) expect(r.binding[i]!.first!.reach).toBeGreaterThanOrEqual(r.binding[i - 1]!.first!.reach);
-    for (const x of r.binding) expect(x.input.source.length).toBeGreaterThan(10);
+  it('sorts every input into those that change some answer inside their evidence and those that change none', () => {
+    expect([...r.changing, ...r.holding].map((x) => x.id).sort()).toEqual(ASSUMPTION_INPUTS.map((x) => x.id).sort());
+    for (const x of r.inputs) expect(r.changing.includes(x.input)).toBe(x.first !== null);
   });
 
-  it('on this fleet: three too close to call, seven firm', () => {
-    // A6-MXM flips at a percent more flying and A6-MVC at 8% — both inside the ±10% noise. 9H-MMC's
-    // nearest flip by reach is +11%, but it also flips at 9% less flying, which is inside the noise.
-    expect(r.tooClose.map((c) => [c.tail, c.flip.change])).toEqual([
+  it('on this fleet: four firm, three close, three with no recommendation', () => {
+    // Close: A6-MXM flips at a percent more flying, A6-MVC at 8%, 9H-MMC at 11% — all inside the evidenced +20%.
+    expect(r.close.map((c) => [c.tail, c.flip.change])).toEqual([
       ['A6-MXM', '+1%'],
       ['A6-MVC', '+8%'],
-      ['9H-MMC', '−9%'],
+      ['9H-MMC', '+11%'],
     ]);
-    expect(r.tooClose.slice(0, 2).every((c) => c.flip.to.includes('Do the work'))).toBe(true);
-    expect(r.close).toEqual([]);
-    expect(r.firm).toHaveLength(7);
-    expect(r.byTail['A6-MXM']).toBe('too-close');
-    expect(r.binding[0]!.input.id).toBe('utilisation');
+    expect([...r.firm].sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL', 'A6-GPZ']);
+    // No recommendation: each one's only alternative is a route change that comes to the same money.
+    expect(r.undecided.map((x) => x.tail).sort()).toEqual(['9H-PJS', '9H-RYM', 'A6-YTM']);
+    expect(r.byTail['A6-MXM']).toBe('close');
+    // Only flying and the cost of a widebody day on the ground change anything inside their evidence.
+    expect(r.changing.map((x) => x.id)).toEqual(['utilisation', 'downtimeWidebody']);
+    expect(inputsLine(r.changing, r.holding)).toBe(
+      'Inside their evidence, utilisation, widebody day on the ground change at least one answer; shop costs, narrowbody day on the ground, ' +
+        "lessor's provider over our cost, share of reserves reclaimable, shop-slot lead time change none.",
+    );
     // Shop costs change nothing anywhere between −9% and +50%.
     expect(r.inputs.find((x) => x.input.id === 'maintenanceCost')!.first).toBeNull();
   });
@@ -93,7 +98,7 @@ describe('computeRobustness', () => {
   it('leaves trace formatting on once it is done, and says how "close" is defined', () => {
     expect(usd(1_234)).toBe('$1,234');
     expect(r.trace).toContain('No round-number threshold');
-    expect(r.trace).toContain('Too close to call');
+    expect(r.trace).toContain('told apart');
     expect(r.trace).toContain('lower bound on fragility');
   });
 });
