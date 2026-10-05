@@ -33,12 +33,15 @@ object from `calc/`; the UI formats, it never calculates.
 - Click a tail for its components: every clause, today's position, what will be flown, the
   position at return, the gap and its price. The binding clock is marked.
 
-**Scenarios** (`components/ScenarioPanel.tsx`, SPEC §3.4), above the headline: four controls
-written as questions — shop costs rise or fall, aircraft fly more or less, extend the lease on a
-returning tail, what a day on the ground costs — four presets that each set one real question and
-name its basis, and a reset. Each slider stops where the evidence stops (ASSUMPTIONS §14). The tiles and
-the table recompute live. The output that matters is the line under the controls — how many tails
-change their recommended action, and from what to what — and each changed row says what it was.
+**How firm the answers are** (`components/RobustnessPanel.tsx`, `robustness.worker.ts`), above the
+headline: the one decision made here — extend the lease on a named returning tail — and, computed
+in a worker, how many recommendations hold under every plausible assumption, the close calls by
+name, and the inputs that bind soonest with where the real number would come from. Each tail's
+detail opens with how far every input would have to move before its answer changes.
+
+**Assumptions** (`components/AssumptionsPanel.tsx`), below the table and collapsed: every
+assumption with its value, plausible range and basis, and its source in deployment, each
+overridable.
 
 **Trace on hover** (`components/Trace.tsx`). Every figure carries the string the calc layer
 attached to it — the inputs and the arithmetic. This is the answer to "where did that number

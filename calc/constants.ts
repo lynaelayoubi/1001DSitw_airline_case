@@ -369,62 +369,107 @@ export const DAYS_PER_MONTH = 30.4375;
 /** Shop slots need 3–6 months of lead time (customer, ASSUMPTIONS §1). Default the midpoint. */
 export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
 
-/**
- * The scenario panel's four controls, all named by the customer (SPEC §3.4). Each range stops
- * where the evidence stops; the basis of every end is in ASSUMPTIONS §14.
- */
-export const SCENARIO_CONTROLS = {
-  /** −9%: the low end of the published escalation behind §0's factors. +50%: a quarter of MROs report next-gen shop costs >50% over expectation (Oliver Wyman, Apr 2026). */
-  maintenanceCost: { min: 0.91, max: 1.5, step: 0.01 },
-  /** −13%: the share of the fleet parked in 2024 (IATA MCX). +20%: Cathay Pacific's fleet, 9.4 → 11.3 h/day in a year. */
-  utilisation: { min: 0.87, max: 1.2, step: 0.01 },
-  /** Twice the customer's six-month example; beyond it a projection runs past three years with no shop visit modelled. */
-  leaseExtensionMonths: { min: 0, max: 12, step: 1 },
-  /** Declared, not sourced: from zero (a spare aircraft) to a little over twice §13's figure. */
-  downtimeCostPerDay: {
-    narrowbody: { min: 0, max: 100_000, step: 5_000 },
-    widebody: { min: 0, max: 300_000, step: 10_000 },
-  },
-} as const;
+/** The one control the screen keeps: extending a named lease is the customer's own decision and example. ASSUMPTIONS §14. */
+export const LEASE_EXTENSION_CONTROL = { min: 0, max: 12, step: 1 } as const;
 
-/** A ready-made question: it sets its one control and leaves the others at rest. ASSUMPTIONS §14. */
-export interface ScenarioPreset {
-  id: string;
+export type AssumptionInputId =
+  | 'maintenanceCost'
+  | 'utilisation'
+  | 'downtimeNarrowbody'
+  | 'downtimeWidebody'
+  | 'lessorMarkup'
+  | 'reservesReclaim'
+  | 'shopSlotLead';
+
+/**
+ * Every assumption a recommendation rests on, stated with its provenance and swept by the
+ * robustness check (calc/robustness.ts). The range is the plausible one — where the evidence
+ * stops — and the step is the sweep's resolution. ASSUMPTIONS §14.
+ */
+export interface AssumptionInput {
+  id: AssumptionInputId;
   label: string;
+  unit: 'multiplier' | 'usd-per-day' | 'share' | 'months';
+  range: { min: number; max: number; step: number };
+  /** Why the range stops where it does. */
   basis: string;
-  maintenanceCostMultiplier?: number;
-  utilisationMultiplier?: number;
-  /** Applied to the lease chosen in the extension control. */
-  leaseExtensionMonths?: number;
+  /** Where the real number would come from in deployment. */
+  source: string;
 }
 
-export const SCENARIO_PRESETS: ScenarioPreset[] = [
+export const ASSUMPTION_INPUTS: AssumptionInput[] = [
   {
-    id: 'mro-renewal',
-    label: 'MRO contract renewal, +15%',
-    maintenanceCostMultiplier: 1.15,
-    basis:
-      'Two years of MRO inflation at the Oliver Wyman MRO Survey rates — material 7.7% (2024) and 6.3% (2025), engine labour 6.9% and 6.7% — compound to 14–15%.',
+    id: 'maintenanceCost',
+    label: 'Shop costs',
+    unit: 'multiplier',
+    range: { min: 0.91, max: 1.5, step: 0.01 },
+    basis: '−9%: the low end of the published escalation behind the 2026 factors (§0). +50%: a quarter of MROs report next-gen shop costs more than 50% over expectation (Oliver Wyman, Apr 2026).',
+    source: 'MRO contract rates and shop-visit quotes, from engineering and procurement',
   },
   {
-    id: 'shop-overrun',
-    label: 'Shop costs run 21% over expectation',
-    maintenanceCostMultiplier: 1.21,
-    basis: 'Oliver Wyman, April 2026: two-thirds of MRO respondents report next-generation narrowbody engine shop costs more than 21% over expectation.',
+    id: 'utilisation',
+    label: 'Utilisation',
+    unit: 'multiplier',
+    range: { min: 0.87, max: 1.2, step: 0.01 },
+    basis: '−13%: the share of the fleet parked in 2024 (IATA MCX). +20%: Cathay Pacific, 9.4 to 11.3 hours a day in a year.',
+    source: 'the published schedule and flying-hour plan, from network planning',
   },
   {
-    id: 'summer',
-    label: 'Summer schedule, +10% flying',
-    utilisationMultiplier: 1.1,
-    basis: 'No published seasonal figure in the reference; declared, at the same size as the ±10% per-tail noise the data already carries.',
+    id: 'downtimeNarrowbody',
+    label: 'A day on the ground, narrowbody',
+    unit: 'usd-per-day',
+    range: { min: 0, max: 100_000, step: 5_000 },
+    basis: 'Declared, not sourced (§13): from zero (a spare aircraft) to a little over twice the default.',
+    source: "finance's lost contribution per aircraft day",
   },
   {
-    id: 'extend-six',
-    label: 'Extend one returning tail by six months',
-    leaseExtensionMonths: 6,
-    basis: 'The customer\'s own example on the discovery call (BRIEF item 6): extending a lease by six months — "Does that change anything?"',
+    id: 'downtimeWidebody',
+    label: 'A day on the ground, widebody',
+    unit: 'usd-per-day',
+    range: { min: 0, max: 300_000, step: 10_000 },
+    basis: 'Declared, not sourced (§13): from zero (a spare aircraft) to a little over twice the default.',
+    source: "finance's lost contribution per aircraft day",
+  },
+  {
+    id: 'lessorMarkup',
+    label: "Lessor's provider over our cost",
+    unit: 'multiplier',
+    range: { min: LESSOR_RECTIFICATION_MARKUP.min, max: LESSOR_RECTIFICATION_MARKUP.max, step: 0.02 },
+    basis: "1.0: our own cost. 1.54: the executed lease's own lessor premium over pure cost accrual, a ceiling (§7).",
+    source: "the leasing team's settlement history with each lessor",
+  },
+  {
+    id: 'reservesReclaim',
+    label: 'Share of reserves reclaimable',
+    unit: 'share',
+    range: { min: 0, max: 1, step: 0.05 },
+    basis: 'Negotiated, not assumed (CLAUDE.md): from none of the balance to all of it.',
+    source: 'the reserve terms in each lease, from the leasing team and legal',
+  },
+  {
+    id: 'shopSlotLead',
+    label: 'Shop-slot lead time',
+    unit: 'months',
+    range: { min: SHOP_SLOT_LEAD_TIME_MONTHS.min, max: SHOP_SLOT_LEAD_TIME_MONTHS.max, step: 1 },
+    basis: 'Three to six months, as the customer gave it (§1).',
+    source: 'MRO slot availability, from engineering planning',
   },
 ];
+
+/**
+ * The model's own precision. Inside these moves the data cannot tell the options apart, so an
+ * answer that changes there is too close to call — and, applied as a materiality floor, a
+ * recommendation that does not survive them is not one. One rule for both.
+ *   utilisation: the ±10% per-tail noise the generator puts into the data (§9);
+ *   shop costs:  the spread of the published escalation around the 2026 factors (§0 — engine
+ *                restoration ×1.55 inside 1.45–1.70, about −6% to +10%).
+ * The other inputs are declared or negotiated values with no noise of their own; their
+ * uncertainty is their plausible range. ASSUMPTIONS §14.
+ */
+export const MODEL_NOISE: Partial<Record<AssumptionInputId, number>> = {
+  utilisation: UTILISATION_NOISE,
+  maintenanceCost: 0.1,
+};
 
 /** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
 export const DEFAULT_ASSUMPTIONS: Assumptions = {

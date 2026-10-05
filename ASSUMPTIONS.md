@@ -554,30 +554,54 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 
 ---
 
-## 14 · Scenario controls (SPEC §3.4, as built)
+## 14 · Assumptions, their provenance, and how firm the answers are (SPEC §3.4, as built)
 
-Four controls, all named by the customer, written as the questions a Head of Fleet asks. Each
-starts at the default used everywhere else in this file and **stops where the evidence stops**.
+The screen no longer asks for these numbers: the customer's own teams hold them. Each is stated
+with its provenance below and can be overridden, and the robustness check says how far each would
+have to move before any recommendation changes. **One control stays on screen:** extend the lease
+on a named returning tail, 0–12 months — the customer's own decision and example.
 
-| control | default | range | basis of the ends |
-|---|---|---|---|
-| Shop costs rise / fall | as planned (× 1.00) | **−9% to +50%**, 1% steps | *Floor:* §0's 2026 factors sit inside published escalation ranges whose low ends compound to about 9% under the factors used (engine restoration 4.5%/yr → 1.42 against 1.55; LLP 5%/yr → 1.48 against 1.60; gear 3.5%/yr → 1.32 against 1.45). Nothing in the reference supports costs falling further. *Ceiling:* a quarter of MRO respondents report next-generation narrowbody engine shop costs more than 50% over expectation (Oliver Wyman, Apr 2026). Nothing supports costs doubling. |
-| Aircraft fly more / less | as planned (× 1.00) | **−13% to +20%**, 1% steps | *Floor:* 12% of narrowbodies and 13% of widebodies were parked in 2024 (IATA MCX FY2024) — the fleet-wide contraction on record. *Ceiling:* Cathay Pacific's fleet went from 9.4 to 11.3 hours a day between 2024 and 2025, a 20% rise in a year (COST-REFERENCE §10). |
-| Extend the lease on a returning tail | not extended | **0–12 months** | *Ceiling:* twice the customer's own six-month example. Beyond it a returning tail's projection runs past three years with no shop visit modelled in between, which the model does not treat as a forecast — the same reason the fleet table stops at 24 months. The rent for the extra months is not modelled: it is a commercial term, not a maintenance one. |
-| A day on the ground costs | $45,000 NB · $130,000 WB (§13) | **NB $0–100,000 · WB $0–300,000** | Declared, not sourced: the default is itself a declared figure, and the customer asked to set it themselves. From zero (a spare aircraft, slack in the schedule) to a little over twice the default. |
+| assumption | value used | plausible range | basis of the ends | in deployment, from |
+|---|---|---|---|---|
+| Shop costs | as stated (× 1.00) | **−9% to +50%** | *Floor:* §0's 2026 factors sit inside published escalation ranges whose low ends compound to about 9% under the factors used (engine restoration 4.5%/yr → 1.42 against 1.55; LLP 5%/yr → 1.48 against 1.60; gear 3.5%/yr → 1.32 against 1.45). *Ceiling:* a quarter of MRO respondents report next-generation narrowbody engine shop costs more than 50% over expectation (Oliver Wyman, Apr 2026). | MRO contract rates and shop-visit quotes, from engineering and procurement |
+| Utilisation | as planned (× 1.00) | **−13% to +20%** | *Floor:* 12% of narrowbodies and 13% of widebodies were parked in 2024 (IATA MCX FY2024). *Ceiling:* Cathay Pacific's fleet went from 9.4 to 11.3 hours a day between 2024 and 2025. | the published schedule and flying-hour plan, from network planning |
+| A day on the ground | $45,000 NB · $130,000 WB (§13) | **NB $0–100,000 · WB $0–300,000** | Declared, not sourced: zero (a spare aircraft) to a little over twice the default. The customer asked to set this one themselves. | finance's lost contribution per aircraft day |
+| Lessor's provider over our cost | × 1.25 (§7) | **× 1.00–1.54** | 1.00: our own cost. 1.54: the executed lease's own lessor premium over pure cost accrual, a ceiling. | the leasing team's settlement history with each lessor |
+| Share of reserves reclaimable | 100% | **0–100%** | Negotiated, not assumed (CLAUDE.md): none of the balance to all of it. | the reserve terms in each lease, from the leasing team and legal |
+| Shop-slot lead time | 4 months (§1) | **3–6 months** | As the customer gave it. | MRO slot availability, from engineering planning |
+| Lease extension (the one control) | none | **0–12 months** | Twice the customer's own six-month example; beyond it a projection runs past three years with no shop visit modelled. Rent for the extra months is not modelled. | the customer's own decision |
 
-### Presets — a real question each
+### How firm the answers are (`calc/robustness.ts`)
 
-A preset sets its one control and leaves the others at rest, so the panel answers one question at
-a time.
+Each assumption is stepped outward from its current value, one at a time, across its plausible
+range, at the steps below, and the returning tails are re-recommended at every step — the same
+sweep as lever 4, run on the input instead of on months. A tail's **breakeven** on an input is the
+first step at which its recommended action changes (a different lever, component or workscope; not
+a different month or spare).
 
-| preset | sets | basis |
+| assumption | sweep step |
+|---|---|
+| Shop costs, utilisation | 1% |
+| A day on the ground | $5,000 NB · $10,000 WB |
+| Lessor's provider over our cost | 0.02 |
+| Share of reserves reclaimable | 5 points |
+| Shop-slot lead time | 1 month |
+
+**Reach** = how far the input moved before the breakeven ÷ how far the evidence lets it move on
+that side. It puts different inputs on one scale, each read against its own evidence.
+
+Three states, from the breakevens:
+
+| state | when | reason |
 |---|---|---|
-| MRO contract renewal | shop costs +15% | two years of MRO inflation at the Oliver Wyman MRO Survey rates — material 7.7% (2024) and 6.3% (2025), engine labour 6.9% and 6.7% — compound to 14–15% |
-| Shop costs run 21% over expectation | shop costs +21% | Oliver Wyman, Apr 2026: two-thirds of MRO respondents report next-generation narrowbody engine shop costs more than 21% over expectation |
-| Summer schedule | flying +10% | no published seasonal figure in the reference; **declared**, at the size of the ±10% per-tail noise the data already carries |
-| Extend one returning tail by six months | the chosen lease +6 months | the customer's own example on the discovery call (BRIEF item 6) |
+| **Too close to call** | an input flips the answer inside the model's own noise: **±10% utilisation** (the per-tail noise the generator puts into the data, §9) or **±10% shop costs** (the spread of the published escalation around the 2026 factors, §0) | inside the noise the data cannot tell the options apart. The same rule a materiality floor would use — one rule, not two |
+| **Close** | the nearest flip is outside the noise but inside the evidenced range | the evidence allows a value at which the answer is different |
+| **Firm** | no input flips it anywhere inside its evidenced range | |
 
-**What the panel reports.** How many tails change their recommended action against the plan at
-rest, and which: the lever, the component and the workscope. The month of a visit and which spare
-goes on are detail, not a change of decision.
+The other inputs (downtime, the lessor markup, reserves, lead time) are declared or negotiated
+values with no noise of their own; their uncertainty is their plausible range. The inputs shown as
+**binding soonest** are the three whose first flip of any tail has the smallest reach.
+
+**One at a time, so a lower bound.** Each input moves on its own. Real assumptions move together —
+a busy summer raises flying and shop demand at once — so the sweep is a lower bound on fragility:
+correlated moves would flip answers sooner than any single breakeven it reports.

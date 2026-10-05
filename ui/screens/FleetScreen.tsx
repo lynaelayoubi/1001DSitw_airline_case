@@ -3,23 +3,28 @@ import { Fragment, useMemo, useState } from 'react';
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
 import { actionOf, type FleetRecommendation, type ScenarioComparison, type TailPlan } from '../../calc/recommend';
+import { describeInput, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
+import { AssumptionsPanel } from '../components/AssumptionsPanel';
 import { Headline } from '../components/Headline';
-import { ScenarioPanel } from '../components/ScenarioPanel';
+import { RobustnessPanel } from '../components/RobustnessPanel';
 import { Trace } from '../components/Trace';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
 
 /**
  * SPEC §3.1 — one row per returning tail, ranked by money. The full fleet sits behind a
  * toggle; tails beyond the window show no figure, because a projection across years with no
- * shop visit in it is not a forecast. The scenario panel (SPEC §3.4) sits above it; a row whose
- * recommended action differs from the plan at rest says what it was.
+ * shop visit in it is not a forecast. Above it: the one decision the customer makes here (extend a
+ * lease) and how firm the answers are; below it, the assumptions with their provenance. A row
+ * whose recommended action differs from the plan at rest says what it was.
  */
 export default function FleetScreen({
   fleet,
   plans,
   atRest,
   comparison,
+  robustness,
+  robustnessPending,
   assumptions,
   onAssumptions,
 }: {
@@ -27,6 +32,8 @@ export default function FleetScreen({
   plans: FleetRecommendation;
   atRest: FleetRecommendation;
   comparison: ScenarioComparison;
+  robustness: Robustness | null;
+  robustnessPending: boolean;
   assumptions: Assumptions;
   onAssumptions: (a: Assumptions) => void;
 }) {
@@ -58,7 +65,9 @@ export default function FleetScreen({
         </div>
       </header>
 
-      <ScenarioPanel
+      <RobustnessPanel
+        robustness={robustness}
+        pending={robustnessPending}
         assumptions={assumptions}
         onChange={onAssumptions}
         tails={fleet.returning.map((t) => ({ tail: t.tail, type: t.type })).sort((x, y) => x.tail.localeCompare(y.tail))}
@@ -88,7 +97,7 @@ export default function FleetScreen({
             {rows.map((t) => (
               <Fragment key={t.tail}>
                 <TailRow t={t} plan={plans.byTail[t.tail]} before={atRest.byTail[t.tail]} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
-                {open === t.tail && <TailDetail t={t} />}
+                {open === t.tail && <TailDetail t={t} robustness={robustness} />}
               </Fragment>
             ))}
           </tbody>
@@ -101,6 +110,8 @@ export default function FleetScreen({
         component is capped at the cheapest work that would put it right. After recommendation is all-in: the work, its downtime, and what is still owed at
         handback.
       </p>
+
+      <AssumptionsPanel assumptions={assumptions} onChange={onAssumptions} />
     </main>
   );
 }
@@ -229,17 +240,66 @@ function Breakdown({ t }: { t: TailResult }) {
   );
 }
 
-function TailDetail({ t }: { t: TailResult }) {
+function TailDetail({ t, robustness }: { t: TailResult; robustness: Robustness | null }) {
   return (
     <tr className="border-t border-slate-100 bg-slate-50/60">
       <td colSpan={11} className="px-3 py-3">
         <div className="grid gap-3">
+          <TailRobustness tail={t.tail} robustness={robustness} />
           {t.asRecorded.components.map((c, i) => (
             <ComponentCard key={c.componentId} c={c} lease={t.asLeaseAllows.components[i]!} />
           ))}
         </div>
       </td>
     </tr>
+  );
+}
+
+/** How far each input would have to move, down and up, before this tail's answer changes. */
+export function TailRobustness({ tail, robustness }: { tail: string; robustness: Robustness | null }) {
+  if (!robustness) return <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">Checking how far each input would have to move…</div>;
+  const side = (input: Robustness['inputs'][number], dir: 'down' | 'up') => {
+    const f = input.byTail[tail]?.[dir];
+    const edge = dir === 'down' ? input.input.range.min : input.input.range.max;
+    if (Math.abs(edge - input.current) < 1e-12) return <span className="text-slate-300">—</span>;
+    return f ? (
+      <span>
+        <span className={`font-medium ${f.withinNoise ? 'text-red-800' : 'text-violet-800'}`}>{f.change}</span> → {f.to}{' '}
+        <span className="text-slate-400">(reach {Math.round(f.reach * 100)}%{f.withinNoise ? ', inside the noise' : ''})</span>
+      </span>
+    ) : (
+      <span className="text-slate-400">holds to {describeInput(input.input, edge, input.current)}</span>
+    );
+  };
+  return (
+    <div className="rounded-md border border-slate-200 bg-white">
+      <div className="flex items-baseline justify-between border-b border-slate-100 px-3 py-2">
+        <span className="text-sm font-semibold">How far each input would have to move before this answer changes</span>
+        <span className="text-xs text-slate-500">
+          {robustness.byTail[tail] === 'too-close' ? 'too close to call' : robustness.byTail[tail] === 'close' ? 'close' : 'firm'} · one input at a time, so a lower bound
+        </span>
+      </div>
+      <table className="w-full text-xs">
+        <thead className="text-[10px] tracking-wide text-slate-400 uppercase">
+          <tr>
+            <Th>Input</Th>
+            <Th>Lower</Th>
+            <Th>Higher</Th>
+            <Th>Real number from</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {robustness.inputs.map((x) => (
+            <tr key={x.input.id} className="border-t border-slate-100">
+              <td className="px-3 py-1.5 whitespace-nowrap">{x.input.label}</td>
+              <td className="px-3 py-1.5">{side(x, 'down')}</td>
+              <td className="px-3 py-1.5">{side(x, 'up')}</td>
+              <td className="px-3 py-1.5 text-slate-500">{x.input.source}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

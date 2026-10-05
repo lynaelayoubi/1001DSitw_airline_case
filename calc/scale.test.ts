@@ -4,7 +4,8 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { DEFAULT_ASSUMPTIONS, EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, SCENARIO_CONTROLS, SCENARIO_PRESETS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
+import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
+import { readInput } from './robustness';
 import { assessFleet } from './exposure';
 import { checkScale } from './scale';
 import type { Dataset } from './types';
@@ -51,30 +52,24 @@ describe('the scale of the exposure', () => {
   });
 });
 
-describe('the scenario controls', () => {
-  it('start at the defaults, inside their declared ranges', () => {
-    const c = SCENARIO_CONTROLS;
-    const inside = (v: number, r: { min: number; max: number }) => v >= r.min && v <= r.max;
-    expect(inside(DEFAULT_ASSUMPTIONS.maintenanceCostMultiplier, c.maintenanceCost)).toBe(true);
-    expect(inside(DEFAULT_ASSUMPTIONS.utilisationMultiplier, c.utilisation)).toBe(true);
-    expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.narrowbody, c.downtimeCostPerDay.narrowbody)).toBe(true);
-    expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.widebody, c.downtimeCostPerDay.widebody)).toBe(true);
+describe('the stated assumptions', () => {
+  it('start at the defaults, inside their plausible ranges', () => {
+    for (const input of ASSUMPTION_INPUTS) {
+      const v = readInput(DEFAULT_ASSUMPTIONS, input.id);
+      expect(v, input.id).toBeGreaterThanOrEqual(input.range.min);
+      expect(v, input.id).toBeLessThanOrEqual(input.range.max);
+    }
   });
 
   it('stop where the evidence stops: shop costs −9% to +50%, flying −13% to +20%', () => {
-    expect(SCENARIO_CONTROLS.maintenanceCost).toMatchObject({ min: 0.91, max: 1.5 });
-    expect(SCENARIO_CONTROLS.utilisation).toMatchObject({ min: 0.87, max: 1.2 });
+    expect(ASSUMPTION_INPUTS.find((i) => i.id === 'maintenanceCost')!.range).toMatchObject({ min: 0.91, max: 1.5 });
+    expect(ASSUMPTION_INPUTS.find((i) => i.id === 'utilisation')!.range).toMatchObject({ min: 0.87, max: 1.2 });
   });
 
-  it('offer presets that sit inside those ranges, each naming its basis', () => {
-    const c = SCENARIO_CONTROLS;
-    const inside = (v: number | undefined, r: { min: number; max: number }) => v === undefined || (v >= r.min && v <= r.max);
-    for (const p of SCENARIO_PRESETS) {
-      expect(inside(p.maintenanceCostMultiplier, c.maintenanceCost), p.id).toBe(true);
-      expect(inside(p.utilisationMultiplier, c.utilisation), p.id).toBe(true);
-      expect(inside(p.leaseExtensionMonths, c.leaseExtensionMonths), p.id).toBe(true);
-      expect(p.basis.length, p.id).toBeGreaterThan(20);
+  it('each name the basis of their range and where the real number would come from', () => {
+    for (const input of ASSUMPTION_INPUTS) {
+      expect(input.basis.length, input.id).toBeGreaterThan(20);
+      expect(input.source.length, input.id).toBeGreaterThan(10);
     }
-    expect(SCENARIO_PRESETS.find((p) => p.id === 'shop-overrun')!.basis).toContain('Oliver Wyman');
   });
 });

@@ -536,3 +536,52 @@ expectation) but the −20% floor was not — the published escalation ranges bo
 the factors used. Flying's floor is the 2024 parked share, 13%; its ceiling, Cathay Pacific's 20%
 rise in a year. The evidenced ends are printed under each slider. Lease extension keeps its twelve
 months, with the basis stated; downtime stays wide because its default is itself declared.
+
+## Step 9 · from sliders to robustness — Monday 5 October
+
+**The scenario sliders are replaced by a computed robustness check: for each assumption, how far
+it would have to move before any tail's recommended action changes, and where the real number
+would come from in deployment.** · Rejected: the sliders and presets of Steps 6 and 8. · Because
+they asked the customer for numbers his own teams already hold — MRO contract rates, the published
+schedule, finance's cost of a day on the ground. The model's job is to say which of those numbers
+matter; on this fleet only two do, utilisation and the cost of a widebody day on the ground.
+
+**One control stays: extend the lease on a named returning tail.** · Rejected: removing every
+control. · Because the extension is the customer's own decision and his own example, not a number
+another team holds.
+
+**Every other assumption is stated with its provenance and can be overridden, below the table.** ·
+Rejected: hiding them. · Because the customer asked to set the cost of downtime himself (BRIEF), and
+a stated number nobody can change is a constant, not an assumption.
+
+**The sweep steps each input outward from its current value across its plausible range, one at a
+time, and re-recommends the whole fleet at every step.** · Rejected: recommending each tail on its
+own, and searching combinations of inputs. · Because a spare or a donor tail can go to only one
+aircraft, so a tail's answer depends on the others; and combinations multiply the work without a
+basis for which joint moves are plausible.
+
+**One at a time is stated on the panel, on each tail and in the trace as a lower bound on
+fragility.** · Rejected: leaving it in the trace alone. · Because assumptions move together — a busy
+summer raises flying and shop demand at once — so correlated moves would flip answers sooner than
+any single-input breakeven, and a reader who takes "7 firm" at face value overstates how settled the
+answers are.
+
+**Distance read as reach — the move ÷ the room the evidence allows on that side.** · Rejected: the
+raw size of the move. · Because a 4% move in utilisation and a 40% move in the cost of a day on the
+ground are not comparable until each is read against its own evidence.
+
+**Three states — too close to call, close, firm — with "too close to call" set by the model's own
+noise (`MODEL_NOISE`: ±10% utilisation, the data's per-tail noise; ±10% shop costs, the escalation
+spread) and "close" by the evidenced range.** · Rejected: two states, with every flip inside the
+evidence called "close". · Because below its own noise the model cannot tell the options apart, and
+saying "close" there implies a precision it does not have; and the noise is the same rule a
+materiality floor uses, so there is one rule, not two. On this fleet: three too close to call —
+A6-MXM at +1% flying, A6-MVC at +8%, 9H-MMC at −9% (its nearest flip by reach is +11%, but the −9% one
+is inside the noise) — none close, seven firm.
+
+**The sweep runs with trace formatting switched off (`withoutTraces`), in a worker.** · Rejected:
+lazy traces throughout the calc layer, and running it on the main thread. · Because formatting was
+three-quarters of each step (30.9 ms → 4.4 ms with identical decisions and totals), and the ~190
+steps still take most of a second — too long to hold the screen. The worker answers a moment after
+the page draws, and again a quarter of a second after the lease extension or an override stops
+moving.
