@@ -33,8 +33,10 @@ object from `calc/`; the UI formats, it never calculates.
 - Click a tail for its components: every clause, today's position, what will be flown, the
   position at return, the gap and its price. The binding clock is marked.
 
-**Scenarios** (`components/ScenarioPanel.tsx`, SPEC §3.4), above the headline: maintenance cost,
-utilisation, extend a named lease by N months, downtime cost per day, and a reset. The tiles and
+**Scenarios** (`components/ScenarioPanel.tsx`, SPEC §3.4), above the headline: four controls
+written as questions — shop costs rise or fall, aircraft fly more or less, extend the lease on a
+returning tail, what a day on the ground costs — four presets that each set one real question and
+name its basis, and a reset. Each slider stops where the evidence stops (ASSUMPTIONS §14). The tiles and
 the table recompute live. The output that matters is the line under the controls — how many tails
 change their recommended action, and from what to what — and each changed row says what it was.
 

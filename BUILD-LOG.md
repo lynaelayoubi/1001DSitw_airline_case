@@ -515,3 +515,24 @@ actions alike. · Because 9H-ZUU's swap costs $829K more than a figure it could 
 read as a recommendation it looks like the tool choosing the dearer option. A6-DLL and 9H-KVJ are
 forced too — 9H-KVJ's $30K swap is not a marginal choice but the cheapest way to replace an ENG2
 that runs out of LLP life at month 8.2. The headline counts them separately: 2 act, 3 forced.
+
+## Step 8 · the scenario panel as questions — Monday 5 October
+
+**Controls written as the questions a Head of Fleet asks, reading the current value: "Shop costs
+rise 21%", "Aircraft fly 10% less", "Extend the lease on A6-MXM by 6 months", "A day on the ground
+costs $45K NB · $130K WB".** · Rejected: multipliers ("Maintenance cost × 1.21"). · Because the
+person moving the slider is asking a question about their fleet, not setting a model parameter.
+
+**Four presets, each setting one control and leaving the others at rest, each naming its basis.** ·
+Rejected: presets that stack on whatever is already set. · Because a preset answers one question;
+stacked, "summer schedule" would mean something different after "MRO renewal" than before it, and
+the change count would no longer say which question moved which tail. "Summer schedule, +10%" has
+no published basis in the reference and says so.
+
+**Each slider stops where the evidence stops: shop costs −9% to +50%, flying −13% to +20%.** ·
+Rejected: the symmetric ranges set in Step 6 (shop costs −20% to +50%, flying ±20%). · Because the
+ceiling on shop costs was already evidenced (a quarter of MROs report next-gen costs >50% over
+expectation) but the −20% floor was not — the published escalation ranges bottom out about 9% under
+the factors used. Flying's floor is the 2024 parked share, 13%; its ceiling, Cathay Pacific's 20%
+rise in a year. The evidenced ends are printed under each slider. Lease extension keeps its twelve
+months, with the basis stated; downtime stays wide because its default is itself declared.

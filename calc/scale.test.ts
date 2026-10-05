@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { DEFAULT_ASSUMPTIONS, EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, SCENARIO_CONTROLS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
+import { DEFAULT_ASSUMPTIONS, EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, SCENARIO_CONTROLS, SCENARIO_PRESETS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
 import { assessFleet } from './exposure';
 import { checkScale } from './scale';
 import type { Dataset } from './types';
@@ -59,5 +59,22 @@ describe('the scenario controls', () => {
     expect(inside(DEFAULT_ASSUMPTIONS.utilisationMultiplier, c.utilisation)).toBe(true);
     expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.narrowbody, c.downtimeCostPerDay.narrowbody)).toBe(true);
     expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.widebody, c.downtimeCostPerDay.widebody)).toBe(true);
+  });
+
+  it('stop where the evidence stops: shop costs −9% to +50%, flying −13% to +20%', () => {
+    expect(SCENARIO_CONTROLS.maintenanceCost).toMatchObject({ min: 0.91, max: 1.5 });
+    expect(SCENARIO_CONTROLS.utilisation).toMatchObject({ min: 0.87, max: 1.2 });
+  });
+
+  it('offer presets that sit inside those ranges, each naming its basis', () => {
+    const c = SCENARIO_CONTROLS;
+    const inside = (v: number | undefined, r: { min: number; max: number }) => v === undefined || (v >= r.min && v <= r.max);
+    for (const p of SCENARIO_PRESETS) {
+      expect(inside(p.maintenanceCostMultiplier, c.maintenanceCost), p.id).toBe(true);
+      expect(inside(p.utilisationMultiplier, c.utilisation), p.id).toBe(true);
+      expect(inside(p.leaseExtensionMonths, c.leaseExtensionMonths), p.id).toBe(true);
+      expect(p.basis.length, p.id).toBeGreaterThan(20);
+    }
+    expect(SCENARIO_PRESETS.find((p) => p.id === 'shop-overrun')!.basis).toContain('Oliver Wyman');
   });
 });

@@ -556,15 +556,27 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 
 ## 14 · Scenario controls (SPEC §3.4, as built)
 
-Four controls, all named by the customer. Ranges are declared; each starts at the default used
-everywhere else in this file.
+Four controls, all named by the customer, written as the questions a Head of Fleet asks. Each
+starts at the default used everywhere else in this file and **stops where the evidence stops**.
 
-| control | default | range, step | reason |
+| control | default | range | basis of the ends |
 |---|---|---|---|
-| Maintenance cost | × 1.00 | × 0.80–1.50, 0.05 | §0: the 2026 escalation factors carry real uncertainty, and next-generation narrowbody shop costs are running 21–50% over expectation; 0.8 allows for negotiated rates under the appraiser figures |
-| Utilisation | × 1.00 | × 0.80–1.20, 0.05 | ±20% around the plan, twice the ±10% per-tail noise (§9) |
-| Extend a named lease | 0 months | 0–12 months, 1 | the customer's own example was six months; twelve doubles it. The rent for the extra months is not modelled — it is a commercial term, not a maintenance one. An extended returning tail stays inside the forecast window |
-| Downtime cost per day | $45,000 NB · $130,000 WB (§13) | NB $0–100,000, $5,000 · WB $0–300,000, $10,000 | from zero (a spare aircraft, slack in the schedule) to a little over twice the declared figure; the customer asked to set this one themselves |
+| Shop costs rise / fall | as planned (× 1.00) | **−9% to +50%**, 1% steps | *Floor:* §0's 2026 factors sit inside published escalation ranges whose low ends compound to about 9% under the factors used (engine restoration 4.5%/yr → 1.42 against 1.55; LLP 5%/yr → 1.48 against 1.60; gear 3.5%/yr → 1.32 against 1.45). Nothing in the reference supports costs falling further. *Ceiling:* a quarter of MRO respondents report next-generation narrowbody engine shop costs more than 50% over expectation (Oliver Wyman, Apr 2026). Nothing supports costs doubling. |
+| Aircraft fly more / less | as planned (× 1.00) | **−13% to +20%**, 1% steps | *Floor:* 12% of narrowbodies and 13% of widebodies were parked in 2024 (IATA MCX FY2024) — the fleet-wide contraction on record. *Ceiling:* Cathay Pacific's fleet went from 9.4 to 11.3 hours a day between 2024 and 2025, a 20% rise in a year (COST-REFERENCE §10). |
+| Extend the lease on a returning tail | not extended | **0–12 months** | *Ceiling:* twice the customer's own six-month example. Beyond it a returning tail's projection runs past three years with no shop visit modelled in between, which the model does not treat as a forecast — the same reason the fleet table stops at 24 months. The rent for the extra months is not modelled: it is a commercial term, not a maintenance one. |
+| A day on the ground costs | $45,000 NB · $130,000 WB (§13) | **NB $0–100,000 · WB $0–300,000** | Declared, not sourced: the default is itself a declared figure, and the customer asked to set it themselves. From zero (a spare aircraft, slack in the schedule) to a little over twice the default. |
+
+### Presets — a real question each
+
+A preset sets its one control and leaves the others at rest, so the panel answers one question at
+a time.
+
+| preset | sets | basis |
+|---|---|---|
+| MRO contract renewal | shop costs +15% | two years of MRO inflation at the Oliver Wyman MRO Survey rates — material 7.7% (2024) and 6.3% (2025), engine labour 6.9% and 6.7% — compound to 14–15% |
+| Shop costs run 21% over expectation | shop costs +21% | Oliver Wyman, Apr 2026: two-thirds of MRO respondents report next-generation narrowbody engine shop costs more than 21% over expectation |
+| Summer schedule | flying +10% | no published seasonal figure in the reference; **declared**, at the size of the ±10% per-tail noise the data already carries |
+| Extend one returning tail by six months | the chosen lease +6 months | the customer's own example on the discovery call (BRIEF item 6) |
 
 **What the panel reports.** How many tails change their recommended action against the plan at
 rest, and which: the lever, the component and the workscope. The month of a visit and which spare

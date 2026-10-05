@@ -370,18 +370,61 @@ export const DAYS_PER_MONTH = 30.4375;
 export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
 
 /**
- * The scenario panel's four controls, all named by the customer (SPEC §3.4). Ranges are
- * declared, with reasons in ASSUMPTIONS §14.
+ * The scenario panel's four controls, all named by the customer (SPEC §3.4). Each range stops
+ * where the evidence stops; the basis of every end is in ASSUMPTIONS §14.
  */
 export const SCENARIO_CONTROLS = {
-  maintenanceCost: { min: 0.8, max: 1.5, step: 0.05 },
-  utilisation: { min: 0.8, max: 1.2, step: 0.05 },
+  /** −9%: the low end of the published escalation behind §0's factors. +50%: a quarter of MROs report next-gen shop costs >50% over expectation (Oliver Wyman, Apr 2026). */
+  maintenanceCost: { min: 0.91, max: 1.5, step: 0.01 },
+  /** −13%: the share of the fleet parked in 2024 (IATA MCX). +20%: Cathay Pacific's fleet, 9.4 → 11.3 h/day in a year. */
+  utilisation: { min: 0.87, max: 1.2, step: 0.01 },
+  /** Twice the customer's six-month example; beyond it a projection runs past three years with no shop visit modelled. */
   leaseExtensionMonths: { min: 0, max: 12, step: 1 },
+  /** Declared, not sourced: from zero (a spare aircraft) to a little over twice §13's figure. */
   downtimeCostPerDay: {
     narrowbody: { min: 0, max: 100_000, step: 5_000 },
     widebody: { min: 0, max: 300_000, step: 10_000 },
   },
 } as const;
+
+/** A ready-made question: it sets its one control and leaves the others at rest. ASSUMPTIONS §14. */
+export interface ScenarioPreset {
+  id: string;
+  label: string;
+  basis: string;
+  maintenanceCostMultiplier?: number;
+  utilisationMultiplier?: number;
+  /** Applied to the lease chosen in the extension control. */
+  leaseExtensionMonths?: number;
+}
+
+export const SCENARIO_PRESETS: ScenarioPreset[] = [
+  {
+    id: 'mro-renewal',
+    label: 'MRO contract renewal, +15%',
+    maintenanceCostMultiplier: 1.15,
+    basis:
+      'Two years of MRO inflation at the Oliver Wyman MRO Survey rates — material 7.7% (2024) and 6.3% (2025), engine labour 6.9% and 6.7% — compound to 14–15%.',
+  },
+  {
+    id: 'shop-overrun',
+    label: 'Shop costs run 21% over expectation',
+    maintenanceCostMultiplier: 1.21,
+    basis: 'Oliver Wyman, April 2026: two-thirds of MRO respondents report next-generation narrowbody engine shop costs more than 21% over expectation.',
+  },
+  {
+    id: 'summer',
+    label: 'Summer schedule, +10% flying',
+    utilisationMultiplier: 1.1,
+    basis: 'No published seasonal figure in the reference; declared, at the same size as the ±10% per-tail noise the data already carries.',
+  },
+  {
+    id: 'extend-six',
+    label: 'Extend one returning tail by six months',
+    leaseExtensionMonths: 6,
+    basis: 'The customer\'s own example on the discovery call (BRIEF item 6): extending a lease by six months — "Does that change anything?"',
+  },
+];
 
 /** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
 export const DEFAULT_ASSUMPTIONS: Assumptions = {

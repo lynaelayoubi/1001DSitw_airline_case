@@ -197,7 +197,7 @@ export function compareRecommendations(atRest: FleetRecommendation, scenario: Fl
   });
   const tails = scenario.plans.length;
   const trace = changed.length
-    ? `${changed.length} of ${tails} tails change their recommended action against the plan at rest:\n` +
+    ? `${changed.length} of ${tails} ${changed.length === 1 ? 'tails changes its' : 'tails change their'} recommended action against the plan at rest:\n` +
       changed.map((c) => `${c.tail}: ${c.from} → ${c.to}`).join('\n') +
       `\n\nA different month for the same visit, or a different spare for the same swap, is not counted as a change.`
     : `No tail changes its recommended action against the plan at rest; the totals move, the decisions do not.`;
