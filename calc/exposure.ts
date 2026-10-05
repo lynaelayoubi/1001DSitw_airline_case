@@ -502,6 +502,8 @@ export interface FleetTotals {
   qmeTails: number;
   compensation: number;
   overDelivery: number;
+  /** compensation ÷ doNothing: the share of it that is cash out at handback; the rest is life already spent. */
+  cashShare: number;
   byKind: Record<ComponentKind, KindTotals>;
 }
 
@@ -524,14 +526,17 @@ export function totalsOf(tails: TailResult[]): FleetTotals {
       byKind[k].overDelivery += t.asRecorded.byKind[k].overDelivery;
       byKind[k].exposure += t.asRecorded.byKind[k].exposure;
     }
+  const doNothing = tails.reduce((s, t) => s + t.asRecorded.exposure, 0);
+  const compensation = tails.reduce((s, t) => s + t.asRecorded.compensation, 0);
   return {
     tails: tails.length,
-    doNothing: tails.reduce((s, t) => s + t.asRecorded.exposure, 0),
+    doNothing,
     asLeaseAllows: tails.reduce((s, t) => s + t.asLeaseAllows.exposure, 0),
     qmeDelta: tails.reduce((s, t) => s + t.qmeDelta, 0),
     qmeTails: tails.filter((t) => t.qmeFlag).length,
-    compensation: tails.reduce((s, t) => s + t.asRecorded.compensation, 0),
+    compensation,
     overDelivery: tails.reduce((s, t) => s + t.asRecorded.overDelivery, 0),
+    cashShare: doNothing > 0 ? compensation / doNothing : 0,
     byKind,
   };
 }

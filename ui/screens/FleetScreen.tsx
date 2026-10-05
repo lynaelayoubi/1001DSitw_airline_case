@@ -107,7 +107,7 @@ export default function FleetScreen({
                 After recommendation
               </Th>
               <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Binding clock</Th>
-              <Th tip="Whether the lease recognises each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
+              <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
                 Clock reset
               </Th>
               <Th tip="The last date to commit to the recommended action.">Decide by</Th>
@@ -164,6 +164,8 @@ function Th({ children, right, tip }: { children: React.ReactNode; right?: boole
 function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; leftOut: boolean; open: boolean; onToggle: () => void }) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
+  // No exposure on either basis: the row says there is nothing to decide, and stops.
+  const nothing = plan?.role === 'own' && plan.recommendation.nothingToDecide;
   return (
     <tr className={`cursor-pointer border-t border-slate-100 hover:bg-slate-50 ${open ? 'bg-slate-50' : ''}`} onClick={onToggle}>
       <td className="px-2 py-2 font-medium whitespace-nowrap">
@@ -183,6 +185,13 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           </td>
           <td className="px-2 py-2 text-slate-300">—</td>
         </>
+      ) : nothing ? (
+        <>
+          <td className="px-2 py-2 text-right font-semibold tabular-nums">{money(r.exposure)}</td>
+          <td className="px-2 py-2 text-slate-500" colSpan={4}>
+            Nothing to decide: no exposure at handback, as recorded or under the lease.
+          </td>
+        </>
       ) : (
         <>
           <td className="px-2 py-2 text-right">
@@ -198,23 +207,23 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           </td>
         </>
       )}
-      <td className="px-2 py-2">
-        {t.qmeFlag ? (
-          <div className="text-[12px] leading-tight">
-            <div className="font-medium text-amber-800">not recognised: {t.qmePositions.join(', ')}</div>
-            {!beyond && t.qmeDelta > 0 && <div className="text-amber-700 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
-          </div>
-        ) : (
-          <span className="text-xs text-slate-400">recognised</span>
-        )}
-      </td>
-      <td className="px-2 py-2 whitespace-nowrap">
-        {plan?.decisionDeadline ? (
-          date(plan.decisionDeadline)
-        ) : (
-          <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
-        )}
-      </td>
+      {!nothing && (
+        <td className="px-2 py-2">
+          {t.qmeFlag ? (
+            <div className="text-[12px] leading-tight">
+              <div className="font-medium text-slate-800">not counted: {t.qmePositions.join(', ')}</div>
+              {!beyond && t.qmeDelta > 0 && <div className="text-slate-600 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
+            </div>
+          ) : (
+            <span className="text-xs text-slate-400">counted</span>
+          )}
+        </td>
+      )}
+      {!nothing && (
+        <td className="px-2 py-2 whitespace-nowrap">
+          {plan?.decisionDeadline ? date(plan.decisionDeadline) : <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>}
+        </td>
+      )}
     </tr>
   );
 }
@@ -230,14 +239,14 @@ function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before
       {!plan.forced && plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
       <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>
         {plan.forced && (
-          <span className="mr-1 cursor-help rounded bg-slate-800 px-1 py-px text-[10px] font-medium text-white" title={plan.forced}>
+          <span className="mr-1 cursor-help rounded bg-amber-100 px-1 py-px text-[10px] font-medium text-amber-900" title={plan.forced}>
             forced
           </span>
         )}
         {plan.label}
       </div>
       {plan.role === 'own' && !plan.recommendation.call.stands && (
-        <div className="text-[11px] leading-tight text-amber-800">{plan.recommendation.call.why}</div>
+        <div className="text-[11px] leading-tight text-slate-500">{plan.recommendation.call.why}</div>
       )}
       {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
       {leftOut && <div className="text-[11px] leading-tight font-medium text-red-800">left out of the budget — pays at handback</div>}
@@ -264,11 +273,12 @@ function Breakdown({ t }: { t: TailResult }) {
 
 function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; robustness: Robustness | null }) {
   const rec = plan?.role === 'own' ? plan.recommendation : null;
+  const nothing = rec?.nothingToDecide ?? false;
   return (
     <tr className="border-t border-slate-100 bg-slate-50/60">
       <td colSpan={10} className="px-3 py-3">
         <div className="grid gap-3">
-          {plan && (
+          {plan && !nothing && (
             <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
               <div className="text-sm">
                 <span className="font-semibold">{plan.label}</span>
@@ -282,7 +292,7 @@ function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; r
               <Working>{`${t.projection.trace}\n\n${plan.trace}`}</Working>
             </div>
           )}
-          <TailRobustness tail={t.tail} robustness={robustness} />
+          {!nothing && <TailRobustness tail={t.tail} robustness={robustness} />}
           {t.asRecorded.components.map((c, i) => (
             <ComponentCard key={c.componentId} c={c} lease={t.asLeaseAllows.components[i]!} />
           ))}
@@ -351,8 +361,8 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
         <div>
           <span className="font-semibold">{c.position}</span> <span className="text-slate-500">· {kindLabel[c.kind]} · {c.serial}</span>
           {flagged && (
-            <span className="ml-2 rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">
-              the lease does not recognise its last shop visit: the records do not meet its definition of a qualifying event, so the clock does not reset
+            <span className="ml-2 text-xs text-slate-600">
+              the lease doesn't count its last shop visit: the records don't meet its definition of a qualifying event, so the clock doesn't reset
             </span>
           )}
         </div>
@@ -362,7 +372,7 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
             <>
               <span className="text-slate-500"> if the reset counts</span>
               <span className="mx-2 text-slate-300">·</span>
-              <span className="font-semibold text-amber-800">{money(lease.exposure)}</span>
+              <span className="font-semibold">{money(lease.exposure)}</span>
               <span className="text-slate-500"> under the lease, where it does not</span>
             </>
           )}
@@ -419,7 +429,7 @@ function RequirementRow({ r, binding, how, lease }: { r: RequirementResult; bind
       <td className="px-3 py-1.5 text-right tabular-nums">{r.compensation > 0 ? money(r.compensation) : <span className="text-slate-300">—</span>}</td>
       <td className="px-3 py-1.5 text-right tabular-nums">{r.overDelivery > 0 ? money(r.overDelivery) : <span className="text-slate-300">—</span>}</td>
       {lease && (
-        <td className="px-3 py-1.5 text-right tabular-nums text-amber-800">
+        <td className="px-3 py-1.5 text-right tabular-nums text-slate-700">
           {int(lease.remainingAtReturn)} at return · {lease.compensation > 0 ? money(lease.compensation) : '—'}
         </td>
       )}

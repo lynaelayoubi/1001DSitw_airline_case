@@ -54,8 +54,9 @@ system plus MRO extracts including PDF reports · automated feeds come later, no
    at the actual PDF reports and what was recorded… didn't quite meet the criteria. So the
    lifetime wasn't then reset appropriately from a legal point of view."* → **built**, and said
    in plain words wherever it appears: whether the lease recognises the clock reset, and the money
-   that turns on it — a headline tile ("resets the lease does not recognise", +$54.4M on six
-   tails), a column on every tail, and the component cards.
+   that turns on it — a column on every tail ("not counted: ENG1 · $13.5M more at handback"), one
+   plain line above the table summing it ($54.4M on six tails if lessors enforce the records
+   clause), and the component cards.
 2. **Over-delivery**, which they worked out during the call itself. *"Sometimes we'll do some
    maintenance and actually the part has a lot more life on it when we hand it back…
    the cost of doing the maintenance is essentially fixed."* → **built**, priced separately

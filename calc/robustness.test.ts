@@ -34,8 +34,9 @@ describe('computeRobustness', () => {
     for (const x of r.inputs) expect(Object.keys(x.byTail).sort()).toEqual(rest.plans.map((p) => p.tail).sort());
   });
 
-  it('puts every tail in exactly one state: firm, close, or no recommendation', () => {
-    expect(r.firm.length + r.close.length + r.undecided.length).toBe(r.tails);
+  it('puts every tail in exactly one state: firm, close, no recommendation, or nothing to decide', () => {
+    const nothing = Object.values(r.byTail).filter((x) => x === 'nothing to decide').length;
+    expect(r.firm.length + r.close.length + r.undecided.length + nothing).toBe(r.tails);
     for (const c of r.close) {
       expect(c.flip.reach).toBeGreaterThan(0);
       expect(c.flip.reach).toBeLessThanOrEqual(1);
@@ -67,7 +68,7 @@ describe('computeRobustness', () => {
     for (const x of r.inputs) expect(r.changing.includes(x.input)).toBe(x.first !== null);
   });
 
-  it('on this fleet: four firm, three close, three with no recommendation', () => {
+  it('on this fleet: four firm, three close, one with no recommendation, two with nothing to decide', () => {
     // Close: A6-MXM flips at a percent more flying, A6-MVC at 8%, 9H-MMC at 11% — all inside the evidenced +20%.
     expect(r.close.map((c) => [c.tail, c.flip.change])).toEqual([
       ['A6-MXM', '+1%'],
@@ -75,8 +76,11 @@ describe('computeRobustness', () => {
       ['9H-MMC', '+11%'],
     ]);
     expect([...r.firm].sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL', 'A6-GPZ']);
-    // No recommendation: each one's only alternative is a route change that comes to the same money.
-    expect(r.undecided.map((x) => x.tail).sort()).toEqual(['9H-PJS', '9H-RYM', 'A6-YTM']);
+    // No recommendation: A6-YTM's only alternative is a route change that comes to the same money.
+    expect(r.undecided.map((x) => x.tail)).toEqual(['A6-YTM']);
+    // No exposure: nothing to decide, so how firm is not asked.
+    expect(r.byTail['9H-RYM']).toBe('nothing to decide');
+    expect(r.byTail['9H-PJS']).toBe('nothing to decide');
     expect(r.byTail['A6-MXM']).toBe('close');
     // Only flying and the cost of a widebody day on the ground change anything inside their evidence.
     expect(r.changing.map((x) => x.id)).toEqual(['utilisation', 'downtimeWidebody']);

@@ -50,6 +50,8 @@ export interface TailRecommendation {
   forced: { position: string; clock: string; months: number; why: string } | null;
   /** Can the best option be told apart from the next best, given how good the cost estimates are? (tellApart) */
   call: Call;
+  /** No exposure at handback, as recorded or under the lease: nothing to decide, so no options are weighed. */
+  nothingToDecide: boolean;
   trace: string;
 }
 
@@ -99,6 +101,27 @@ const LEVER_ORDER = ['pay', 'L1', 'L2', 'L3', 'L4'];
 const all = (ctx: LeverContext) => [payAtHandback(ctx), doTheWork(ctx), flyItDifferently(ctx), moveAComponent(ctx), timeTheShopVisit(ctx)];
 
 export function recommendTail(ctx: LeverContext): TailRecommendation {
+  // Nothing owed at handback on either basis (to the dollar shown): there is nothing to decide, so
+  // no lever is weighed — no route change, no "nothing to choose between them".
+  const doNothing = ctx.baseline.asRecorded.exposure;
+  if (doNothing < 0.5 && ctx.baseline.asLeaseAllows.exposure < 0.5) {
+    const pay = payAtHandback(ctx);
+    return {
+      tail: ctx.ac.tail,
+      doNothing,
+      options: [pay],
+      recommended: pay,
+      runnerUp: null,
+      delta: 0,
+      decisionDeadline: null,
+      unavoidable: pay.total,
+      avoidable: doNothing - pay.total,
+      forced: null,
+      call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: 'there is no exposure at handback' },
+      nothingToDecide: true,
+      trace: `${ctx.ac.tail}: no exposure at handback, as recorded or under the lease — every clock clears its return condition. Nothing to decide.`,
+    };
+  }
   // A component that runs out before handback has to be dealt with: the options become the
   // levers applied to it. If none can keep it flying, fall back to the plain ranking.
   const timeout = firstTimeout(ctx.baseline);
@@ -131,7 +154,6 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   // Not SPEC's min over every option: a route change is worth most if started now, so its
   // deadline is always today, and the minimum would put today on every tail.
   const decisionDeadline = recommended.deadline;
-  const doNothing = ctx.baseline.asRecorded.exposure;
   const unavoidable = recommended.total;
   const avoidable = doNothing - unavoidable;
 
@@ -154,7 +176,7 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
     (call.stands && runnerUp ? ` It stands: ${call.why}.` : '') +
     `\n\n${options.map((o, k) => `${o.feasible ? `${k + 1}.` : '–'} ${line(o)}`).join('\n')}` +
     `\n\n${recommended.trace}`;
-  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, call, trace };
+  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, call, nothingToDecide: false, trace };
 }
 
 export interface TailPlan {
@@ -235,11 +257,15 @@ export interface FleetRecommendation {
     avoidableLife: number;
     /** avoidableCash ÷ doNothingCash: the saving as a share of the money actually in play. */
     avoidableCashShare: number;
-    /** Tails acting by choice, forced to act, paying, with no recommendation (the options cannot be told apart), giving a unit to a swap. */
+    /**
+     * Tails acting by choice, forced to act, paying, with no recommendation (the options cannot be
+     * told apart), with nothing to decide (no exposure), giving a unit to a swap.
+     */
     acting: number;
     forced: number;
     paying: number;
     undecided: number;
+    nothingToDecide: number;
     donors: number;
   };
   trace: string;
@@ -252,6 +278,7 @@ export interface FleetRecommendation {
  */
 export function actionOf(plan: TailPlan): string {
   if (plan.role === 'donor') return `gives:${plan.label}`;
+  if (plan.recommendation.nothingToDecide) return 'nothing';
   const o = plan.recommendation.recommended;
   if (!plan.recommendation.call.stands && o.lever !== 'pay') return `undecided:${plan.recommendation.call.between!.join('|')}`;
   return o.move ? `swap:${o.move.position}:${o.move.incoming.from}` : o.actionKey.replace(/^visit:([^:]+):\d+:/, 'visit:$1:');
@@ -301,6 +328,7 @@ function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: Retur
     avoidable: doNothing - o.total,
     forced: timeout ? { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` } : null,
     call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: "it is your change, not the model's choice" },
+    nothingToDecide: false,
     trace: `${ctx.ac.tail}: your change — ${o.label}, ${usd(o.total)} all-in against ${usd(doNothing)} if nothing changes. Decided by you, not ranked by the model.\n\n${o.trace}`,
   };
 }
@@ -422,7 +450,13 @@ export function recommendFleet(
     }
     const o = rec.recommended;
     const own = o.move?.own;
-    const label = rec.call.stands ? o.label : o.lever === 'pay' ? 'No recommendation — pay at handback' : `Cannot tell apart: ${rec.call.between!.join(' / ')}`;
+    const label = rec.nothingToDecide
+      ? 'Nothing to decide — no exposure at handback'
+      : rec.call.stands
+        ? o.label
+        : o.lever === 'pay'
+          ? 'No recommendation — pay at handback'
+          : `Cannot tell apart: ${rec.call.between!.join(' / ')}`;
     const after = own ? own.cost + own.downtimeCost + own.newExposure : o.total;
     const afterCash = own ? own.cost + own.downtimeCost + own.newCompensation : o.cost + o.downtimeCost + o.newCompensation;
     return {
@@ -474,8 +508,9 @@ export function recommendFleet(
     avoidableCashShare: doNothingCash > 0 ? avoidableCash / doNothingCash : 0,
     acting: own.filter((p) => p.recommendation.call.stands && !p.forced && p.recommendation.recommended.lever !== 'pay').length,
     forced: own.filter((p) => p.recommendation.call.stands && p.forced).length,
-    paying: own.filter((p) => p.recommendation.call.stands && p.recommendation.recommended.lever === 'pay').length,
+    paying: own.filter((p) => p.recommendation.call.stands && !p.recommendation.nothingToDecide && p.recommendation.recommended.lever === 'pay').length,
     undecided: own.filter((p) => !p.recommendation.call.stands).length,
+    nothingToDecide: own.filter((p) => p.recommendation.nothingToDecide).length,
     donors: plans.filter((p) => p.role === 'donor').length,
   };
   const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -486,7 +521,8 @@ export function recommendFleet(
     `${usd(avoidableCash)} of it cash, ${pct(totals.avoidableCashShare)} of the money in play, and ${usd(avoidableLife)} life kept by sending units to the pool ` +
     `rather than handing them over. ${totals.acting} act by choice, ${totals.forced} are forced (a component runs out before handback), ` +
     `${totals.paying} pay at handback, ${totals.undecided} have no recommendation (the options cannot be told apart within ±${num(COST_ESTIMATE_UNCERTAINTY * 100, 1)}% ` +
-    `cost estimates)${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. Each spare and each tail is used once; ` +
+    `cost estimates), ${totals.nothingToDecide} have nothing to decide (no exposure)${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. ` +
+    `Each spare and each tail is used once; ` +
     `forced tails chose first.\n\n` +
     plans.map((p) => `${p.tail}: ${p.forced ? 'forced — ' : ''}${p.label} — ${usd(p.doNothing)} → ${usd(p.after)}`).join('\n');
   return { plans, proposals: results, byTail: Object.fromEntries(plans.map((p) => [p.tail, p])), totals, trace };

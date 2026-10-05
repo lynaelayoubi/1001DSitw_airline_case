@@ -74,13 +74,15 @@ describe('recommendTail', () => {
     expect(r.runnerUp!.lever).toBe('L1'); // not L4 as well
   });
 
-  it('pays when nothing beats it, with nothing avoidable and nothing to book', () => {
-    // ENG1 alone: clear of every threshold, nothing to swap, and a route change only burns life.
+  it('has nothing to decide when nothing is owed at handback: no option is weighed', () => {
+    // ENG1 alone: clear of every threshold, so no exposure — no route change, no runner-up, nothing to book.
     const r = recommendTail(context(aircraft({}, [eng1])));
-    expect(r.recommended.lever).toBe('pay');
+    expect(r.nothingToDecide).toBe(true);
+    expect(r.options.map((o) => o.lever)).toEqual(['pay']);
+    expect(r.runnerUp).toBeNull();
     expect(r.avoidable).toBe(0);
     expect(r.decisionDeadline).toBeNull();
-    expect(r.trace).toContain('nothing is avoidable');
+    expect(r.trace).toContain('Nothing to decide');
   });
 
   it('falls back to the plain ranking when no lever can keep a timed-out component flying', () => {
@@ -279,14 +281,26 @@ describe('the rule on the generated fleet', () => {
   const r = recommendFleet(data, assessFleet(data));
 
   it('gives no recommendation where the options cannot be told apart, and pays', () => {
-    // A6-YTM, 9H-RYM and 9H-PJS: the only alternative is a route change that comes to the same money.
-    for (const t of ['A6-YTM', '9H-RYM', '9H-PJS']) {
+    // A6-YTM: its $3.96M is life already handed over, and its only alternative is a route change that comes to the same money.
+    const p = r.byTail['A6-YTM']!;
+    expect(p.recommendation.call.stands).toBe(false);
+    expect(p.label).toBe('No recommendation — pay at handback');
+    expect(p.recommendation.recommended.lever).toBe('pay');
+    expect(r.totals.undecided).toBe(1);
+  });
+
+  it('gives a tail with no exposure nothing to decide — no recommendation, no routing suggestion, no note', () => {
+    for (const t of ['9H-RYM', '9H-PJS']) {
       const p = r.byTail[t]!;
-      expect(p.recommendation.call.stands, t).toBe(false);
-      expect(p.label).toBe('No recommendation — pay at handback');
-      expect(p.recommendation.recommended.lever).toBe('pay');
+      expect(p.doNothing, t).toBe(0);
+      expect(p.recommendation.nothingToDecide, t).toBe(true);
+      expect(p.label).toBe('Nothing to decide — no exposure at handback');
+      expect(p.recommendation.runnerUp).toBeNull();
+      expect(p.recommendation.options.some((o) => o.lever === 'L2')).toBe(false);
+      expect(p.decisionDeadline).toBeNull();
     }
-    expect(r.totals.undecided).toBe(3);
+    expect(r.totals.nothingToDecide).toBe(2);
+    expect(r.totals.paying).toBe(2);
   });
 
   it('lets every recommendation with a real alternative stand, by a wide margin', () => {

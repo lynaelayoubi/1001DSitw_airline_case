@@ -14,7 +14,8 @@
 // options can be told apart, how far would an input have to move to change the answer?
 //   CLOSE  an input flips it inside its evidenced range;
 //   FIRM   no input flips it anywhere inside its evidenced range.
-// Tails with no recommendation are left out of both. No round-number threshold enters either.
+// Tails with no recommendation, and tails with nothing to decide, are left out of both. No
+// round-number threshold enters either.
 //
 // The inputs move one at a time. Real assumptions move together — a busy summer raises flying and
 // shop demand at once — so this is a lower bound on fragility: correlated moves would flip answers
@@ -112,7 +113,7 @@ export interface CloseCall {
   flip: Flip;
 }
 
-export type Firmness = 'close' | 'firm' | 'no recommendation';
+export type Firmness = 'close' | 'firm' | 'no recommendation' | 'nothing to decide';
 
 export interface Robustness {
   inputs: InputRobustness[];
@@ -201,6 +202,11 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
   const undecided: { tail: string; why: string }[] = [];
   const byTailState: Record<string, Firmness> = {};
   for (const p of swept.rest.plans) {
+    // No exposure, no answer: how firm it is is not asked, and the tail is counted nowhere.
+    if (p.role === 'own' && p.recommendation.nothingToDecide) {
+      byTailState[p.tail] = 'nothing to decide';
+      continue;
+    }
     if (p.role === 'own' && !p.recommendation.call.stands) {
       undecided.push({ tail: p.tail, why: p.recommendation.call.why });
       byTailState[p.tail] = 'no recommendation';

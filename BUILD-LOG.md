@@ -775,3 +775,34 @@ its reset all as a multiple, dollars a day, a share or months — and the field 
 × 1.00. · Because that put two questions in one column, and a bare 0 in the field read as zero
 shop costs rather than no change. The how-firm flips still read as a move ("utilisation +1%"):
 that is the question they answer.
+
+**A tail with no exposure, as recorded or under the lease, has nothing to decide: no lever is
+weighed, and the row says so and stops.** · Rejected: ranking paying against a route change that
+comes to the same $0 — which produced "no recommendation", a routing suggestion and a "nothing to
+choose between them" note on 9H-RYM and 9H-PJS. · Because zero exposure is not a close call; it is
+no call. Under the lease counts too: a tail whose shop visit the lease doesn't count still owes
+money, so it still has something to decide. Such tails are left out of how firm the answers are.
+A6-YTM keeps its note: its $3.96M is life already handed over, not zero.
+
+**The clock-reset tile is "Shop visits the lease doesn't count", at the top beside the avoidable
+total and at the same weight.** · Rejected: "Resets the lease does not recognise", in the headline
+row below. · Because it is the larger number (+$54.4M against $8.58M) and the more important
+finding. The tail column and the component cards now say "not counted" / "doesn't count" too, so
+the finding is in one set of words wherever it appears.
+
+**The headline says what kind of money each number is, in six words or fewer per tile: a stacked
+bar splits "if nothing changes" into cash out and already spent; the clock-reset figure sits apart,
+under the tiles, marked "at risk — not in the above".** · Rejected: tiles that name scenarios, with
+the explanation in their supporting text, and the clock-reset figure as a peer tile. · Because a
+reader needs to know which money is still to be paid and which is gone, and the clock-reset figure
+is not a fourth scenario: it is what the lessors could charge on top if they enforce the records
+clause, and it is in none of the totals above it. Everything longer — the avoidable total in cash
+and life, the forced part, how the tails split, the sentence on sunk life — moved, unchanged, into
+one disclosure under the tiles. The bar's proportion is computed in calc (`cashShare`).
+
+**The clock-reset figure is one line of plain text above the table, summing its column — the number
+emphasised, no box, no fill, no badge — and amber is kept for forced removals and deadlines passed.**
+· Rejected: the amber, dashed "at risk — not in the above" band, and amber on the clock-reset column
+and cards. · Because it is not an error and not a fourth total; a number that needs a caption
+saying where it does not belong is in the wrong place, and sitting above the table it summarises
+says so on its own. With amber reserved, the forced badges now carry it.

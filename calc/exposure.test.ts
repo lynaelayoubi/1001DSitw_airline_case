@@ -338,3 +338,15 @@ describe('the generated fleet', () => {
     expect(fleet.trace).toContain('tails returning');
   });
 });
+
+describe('the fleet total, by kind of money', () => {
+  const t = assessFleet(dataset as unknown as Dataset).totals;
+
+  it('splits doing nothing into cash out at handback and life already spent, and says what share is cash', () => {
+    expect(t.compensation + t.overDelivery).toBeCloseTo(t.doNothing, 2);
+    expect(t.cashShare).toBeCloseTo(t.compensation / t.doNothing, 12);
+    // On this fleet, slightly under half: $32.3M of $68.8M.
+    expect(t.cashShare).toBeGreaterThan(0.45);
+    expect(t.cashShare).toBeLessThan(0.5);
+  });
+});

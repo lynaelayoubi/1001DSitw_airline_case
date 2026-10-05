@@ -9,8 +9,9 @@ object from `calc/`; the UI formats, it never calculates.
 **Recommended actions** (`components/RecommendedActions.tsx`), at the top, above everything: the
 screen's answer. Every recommended action, soonest first — tail, action, the date to decide by,
 and either "forced" or what it saves; the tip on the date says what passing it costs. Beside it,
-the avoidable total, split so the savings in the list add up to its chosen part and the rest is
-shown as what it is: the difference on forced tails, against a do-nothing that cannot happen.
+the avoidable total, split so the savings in the list add up to its chosen part ("by choice") and
+the rest is shown as what it is ("forced": the difference on forced tails, against a do-nothing
+that cannot happen).
 Everything below justifies the list, and sits under it.
 
 **Fleet — exposure by tail** (`screens/FleetScreen.tsx`, SPEC §3.1) under the **headline**
@@ -24,22 +25,28 @@ Everything below justifies the list, and sits under it.
   exposure as a one-line breakdown.
 - **Clock reset** says, in plain words, whether the lease recognises each component's last shop
   visit as resetting its clock (SPEC §2.5's QME) and, where it does not, how much more handback
-  costs — on the row, in the headline tile "resets the lease does not recognise", and on the
-  component card, which shows the figure if the reset counts beside the figure under the lease.
+  costs — on the row ("not counted: ENG1 · $13.5M more at handback"), in one plain line above the
+  table that sums the column, and on the component card, which shows the figure if the reset counts beside the figure under the
+  lease.
+- **Amber** means a forced removal (or a deadline passed), and nothing else: not the clock-reset
+  finding, which is not an error.
+- A tail with **no exposure**, as recorded or under the lease, has nothing to decide: the row says
+  so and stops — no recommendation, no routing suggestion, no note.
 - "After recommendation" is the tail's all-in figure under its recommended option (SPEC §2.7):
   the work, its downtime, and what is still owed at handback, with what it saves against doing
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
   could fly to handback. The option's name sits underneath; the tail's detail ranks all five.
-- The headline's "after recommendations" adds those rows up (SPEC §2.8); the avoidable total sits
-  at the top. It is also shown as cash, as a share of the cash payable at handback, and life
-  (spares handed over, net of units kept in the pool), so the two are not read as one pot.
+- The headline says what kind of money each number is, in six words or fewer. "If nothing changes"
+  carries a stacked bar — cash out at handback against life already spent at past shop visits.
+  "After recommendations" adds the rows up (SPEC §2.8): work, downtime and what's still owed.
+  Under them, a single line of plain text sums the clock-reset column of the table below it — not a
+  fourth total, so no box, fill or badge. Anything longer — the avoidable total in cash and life, how the tails split, what
+  "already spent" means — is in one disclosure under the tiles.
 - A row marked **forced** has a component that runs out before handback: doing nothing is not an
   option, so the row shows no saving — the do-nothing it would be measured against cannot happen.
   Why it is forced is the badge's tip.
 - A row with **no recommendation** has a best option whose advantage over the next is inside the
   cost estimates' ±10.1% (ASSUMPTIONS §0): the row says the options cannot be told apart, and why.
-- One sentence under the headline says what the first tile's split means: life already handed
-  over was paid for at past shop visits, and is sunk unless a swap keeps the unit in the pool.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
   now. "Nothing to book" where the recommendation is to pay.
 - Click a tail for its detail: the recommendation and the next best option, how firm the answer

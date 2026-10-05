@@ -16,7 +16,7 @@ function afterTheDate(x: Closing): string {
  * The screen's answer, at the top: every recommended action, soonest first (calc/deadlines.ts) —
  * tail, action, the date to decide by, and either "forced" or what it saves — with the avoidable
  * total beside it, split so the saves in the list add up to its chosen part. Everything else on
- * the screen justifies this list, and sits under it.
+ * the screen justifies this, and sits under it.
  */
 export function RecommendedActions({ closing, totals: r }: { closing: ClosingDecisions; totals: FleetRecommendation['totals'] }) {
   return (
@@ -39,7 +39,7 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
                   </td>
                   <td className="py-1.5 text-right whitespace-nowrap tabular-nums">
                     {x.saving === null ? (
-                      <span className="cursor-help rounded bg-slate-800 px-1.5 py-px text-[11px] font-medium text-white" title="A component runs out before handback, so doing nothing is not an option.">
+                      <span className="cursor-help rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900" title="A component runs out before handback, so doing nothing is not an option.">
                         forced
                       </span>
                     ) : (
@@ -57,13 +57,8 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
           Avoidable
         </div>
         <div className={`mt-1 text-2xl font-semibold tabular-nums ${r.avoidable > 0 ? 'text-emerald-800' : 'text-slate-900'}`}>{money(r.avoidable)}</div>
-        <div className="mt-1 space-y-0.5 text-xs text-slate-600">
-          <div>{money(r.avoidableChosen)} saved by the actions chosen</div>
-          {Math.abs(r.avoidableForced) >= 0.5 && <div>{money(r.avoidableForced)} on forced tails, against a do-nothing that cannot happen</div>}
-          <div className="pt-1 text-slate-500">
-            Cash {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable ({Math.round(r.avoidableCashShare * 100)}%) · life {money(r.avoidableLife)}, spares handed over
-            net of units kept in the pool
-          </div>
+        <div className="mt-1 text-xs text-slate-600">
+          {money(r.avoidableChosen)} by choice · {money(r.avoidableForced)} forced
         </div>
       </div>
     </section>
