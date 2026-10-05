@@ -369,6 +369,20 @@ export const DAYS_PER_MONTH = 30.4375;
 /** Shop slots need 3–6 months of lead time (customer, ASSUMPTIONS §1). Default the midpoint. */
 export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
 
+/**
+ * The scenario panel's four controls, all named by the customer (SPEC §3.4). Ranges are
+ * declared, with reasons in ASSUMPTIONS §14.
+ */
+export const SCENARIO_CONTROLS = {
+  maintenanceCost: { min: 0.8, max: 1.5, step: 0.05 },
+  utilisation: { min: 0.8, max: 1.2, step: 0.05 },
+  leaseExtensionMonths: { min: 0, max: 12, step: 1 },
+  downtimeCostPerDay: {
+    narrowbody: { min: 0, max: 100_000, step: 5_000 },
+    widebody: { min: 0, max: 300_000, step: 10_000 },
+  },
+} as const;
+
 /** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
 export const DEFAULT_ASSUMPTIONS: Assumptions = {
   maintenanceCostMultiplier: 1,

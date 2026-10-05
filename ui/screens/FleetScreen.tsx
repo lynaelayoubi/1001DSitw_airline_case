@@ -2,17 +2,34 @@ import { Fragment, useMemo, useState } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
-import type { FleetRecommendation, TailPlan } from '../../calc/recommend';
+import { actionOf, type FleetRecommendation, type ScenarioComparison, type TailPlan } from '../../calc/recommend';
+import type { Assumptions } from '../../calc/types';
 import { Headline } from '../components/Headline';
+import { ScenarioPanel } from '../components/ScenarioPanel';
 import { Trace } from '../components/Trace';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
 
 /**
  * SPEC §3.1 — one row per returning tail, ranked by money. The full fleet sits behind a
  * toggle; tails beyond the window show no figure, because a projection across years with no
- * shop visit in it is not a forecast.
+ * shop visit in it is not a forecast. The scenario panel (SPEC §3.4) sits above it; a row whose
+ * recommended action differs from the plan at rest says what it was.
  */
-export default function FleetScreen({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
+export default function FleetScreen({
+  fleet,
+  plans,
+  atRest,
+  comparison,
+  assumptions,
+  onAssumptions,
+}: {
+  fleet: FleetExposure;
+  plans: FleetRecommendation;
+  atRest: FleetRecommendation;
+  comparison: ScenarioComparison;
+  assumptions: Assumptions;
+  onAssumptions: (a: Assumptions) => void;
+}) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -41,6 +58,13 @@ export default function FleetScreen({ fleet, plans }: { fleet: FleetExposure; pl
         </div>
       </header>
 
+      <ScenarioPanel
+        assumptions={assumptions}
+        onChange={onAssumptions}
+        tails={fleet.returning.map((t) => ({ tail: t.tail, type: t.type })).sort((x, y) => x.tail.localeCompare(y.tail))}
+        comparison={comparison}
+      />
+
       <Headline fleet={fleet} plans={plans} />
 
       <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
@@ -63,7 +87,7 @@ export default function FleetScreen({ fleet, plans }: { fleet: FleetExposure; pl
           <tbody>
             {rows.map((t) => (
               <Fragment key={t.tail}>
-                <TailRow t={t} plan={plans.byTail[t.tail]} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
+                <TailRow t={t} plan={plans.byTail[t.tail]} before={atRest.byTail[t.tail]} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
                 {open === t.tail && <TailDetail t={t} />}
               </Fragment>
             ))}
@@ -85,7 +109,7 @@ function Th({ children, right }: { children: React.ReactNode; right?: boolean })
   return <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>{children}</th>;
 }
 
-function TailRow({ t, plan, open, onToggle }: { t: TailResult; plan?: TailPlan; open: boolean; onToggle: () => void }) {
+function TailRow({ t, plan, before, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; open: boolean; onToggle: () => void }) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
   return (
@@ -122,7 +146,7 @@ function TailRow({ t, plan, open, onToggle }: { t: TailResult; plan?: TailPlan; 
             {t.qmeDelta > 0 && <div className="text-[11px] text-amber-700">+{money(t.qmeDelta)}</div>}
           </td>
           <td className="px-2 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-            {plan ? <AfterRecommendation plan={plan} /> : <span className="text-slate-300">—</span>}
+            {plan ? <AfterRecommendation plan={plan} before={before} /> : <span className="text-slate-300">—</span>}
           </td>
           <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
             <Trace text={t.trace}>
@@ -156,8 +180,9 @@ function TailRow({ t, plan, open, onToggle }: { t: TailResult; plan?: TailPlan; 
   );
 }
 
-/** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is. */
-function AfterRecommendation({ plan }: { plan: TailPlan }) {
+/** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
+function AfterRecommendation({ plan, before }: { plan: TailPlan; before?: TailPlan }) {
+  const changed = before && actionOf(before) !== actionOf(plan);
   return (
     <div className="ml-auto max-w-[13rem]">
       <Trace text={plan.trace} align="right" className="font-semibold tabular-nums">
@@ -165,7 +190,8 @@ function AfterRecommendation({ plan }: { plan: TailPlan }) {
       </Trace>
       {plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
       {plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
-      <div className="text-[11px] leading-tight text-slate-500">{plan.label}</div>
+      <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>{plan.label}</div>
+      {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   RESERVE_MARKUP_OVER_ACCRUAL,
   WORKSCOPE_TIERS,
 } from './constants';
+import { num, usd, usd2 } from './format';
 import type { AircraftType, Derate, EngineModel, Environment, Workscope } from './types';
 
 export type EnginePhase = 'first-run' | 'mature-run';
@@ -22,8 +23,6 @@ export interface Rated {
   trace: string;
 }
 
-const usd = (n: number) => '$' + Math.round(n).toLocaleString('en-US');
-const usd2 = (n: number) => '$' + n.toFixed(2);
 
 export function phaseOf(shopVisitCount: number): EnginePhase {
   return shopVisitCount === 0 ? 'first-run' : 'mature-run';
@@ -62,8 +61,8 @@ export function engineEconomics(
   const accrualPerFC = prCost / towFC;
   const trace =
     `${model} ${phase}, ${environment}: PR cost ${usd(basePr)} × ${env.costMultiplier} = ${usd(prCost)}; ` +
-    `time on wing ${baseTow.toLocaleString('en-US')} FC × ${env.towMultiplier} = ${Math.round(towFC).toLocaleString('en-US')} FC ` +
-    `(${Math.round(towFH).toLocaleString('en-US')} FH at ${fhFc.toFixed(2)} FH:FC); accrual ${usd(accrualPerFC)}/FC`;
+    `time on wing ${num(baseTow)} FC × ${env.towMultiplier} = ${num(towFC)} FC ` +
+    `(${num(towFH)} FH at ${fhFc.toFixed(2)} FH:FC); accrual ${usd(accrualPerFC)}/FC`;
   return { prCost, towFC, towFH, accrualPerFC, trace };
 }
 
@@ -100,7 +99,7 @@ export function llpReservePerFC(model: EngineModel): Rated {
   const rate = spec.llpStackCost / spec.llpCertifiedLifeFC;
   return {
     rate,
-    trace: `${model} LLP stack ${usd(spec.llpStackCost)} ÷ certified life ${spec.llpCertifiedLifeFC.toLocaleString('en-US')} FC = ${usd2(rate)}/FC`,
+    trace: `${model} LLP stack ${usd(spec.llpStackCost)} ÷ certified life ${num(spec.llpCertifiedLifeFC)} FC = ${usd2(rate)}/FC`,
   };
 }
 
@@ -117,7 +116,7 @@ export function gearReserve(type: AircraftType): { perMonth: Rated; perFC: Rated
   const perFC = g.overhaulCost / g.intervalFC;
   return {
     perMonth: { rate: perMonth, trace: `${type} gear overhaul ${usd(g.overhaulCost)} ÷ ${g.intervalMonths} months = ${usd(perMonth)}/month` },
-    perFC: { rate: perFC, trace: `${type} gear overhaul ${usd(g.overhaulCost)} ÷ ${g.intervalFC.toLocaleString('en-US')} FC = ${usd2(perFC)}/FC` },
+    perFC: { rate: perFC, trace: `${type} gear overhaul ${usd(g.overhaulCost)} ÷ ${num(g.intervalFC)} FC = ${usd2(perFC)}/FC` },
   };
 }
 
@@ -131,7 +130,7 @@ export function airframeReservePerMonth(type: AircraftType): Rated {
 export function apuReservePerApuHour(type: AircraftType): Rated {
   const a = APU[type];
   const rate = a.overhaulCost / a.intervalApuHours;
-  return { rate, trace: `${type} APU overhaul ${usd(a.overhaulCost)} ÷ ${a.intervalApuHours.toLocaleString('en-US')} APU hours = ${usd2(rate)}/APU-FH` };
+  return { rate, trace: `${type} APU overhaul ${usd(a.overhaulCost)} ÷ ${num(a.intervalApuHours)} APU hours = ${usd2(rate)}/APU-FH` };
 }
 
 /** compensationRate = reserveRate × negotiationMultiplier. ASSUMPTIONS §7. */
@@ -190,7 +189,7 @@ export function engineShopVisitCost(
   const trace =
     `${workscope} visit on ${model} (visit ${visitNumber}, ${phaseIn} going in, ${environment}): restoration ${usd(econIn.prCost)} × ${restorationShare.toFixed(2)} = ${usd(restoration)}, ` +
     `LLP ${usd(spec.llpStackCost)} × ${llpShare.toFixed(2)} = ${usd(llp)}, total ${usd(total)}. ` +
-    `Buys ${Math.round(after.towFC).toLocaleString('en-US')} FC (${Math.round(after.towFH).toLocaleString('en-US')} FH) on wing and ${bucketCycles.toLocaleString('en-US')} FC of LLP life; ` +
-    `${usd(total)} ÷ ${bucketCycles.toLocaleString('en-US')} FC = ${usd(totalPerFC)}/FC`;
+    `Buys ${num(after.towFC)} FC (${num(after.towFH)} FH) on wing and ${num(bucketCycles)} FC of LLP life; ` +
+    `${usd(total)} ÷ ${num(bucketCycles)} FC = ${usd(totalPerFC)}/FC`;
   return { workscope, restoration, llp, total, towFC: after.towFC, towFH: after.towFH, bucketCycles, totalPerFC, trace };
 }

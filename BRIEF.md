@@ -18,14 +18,14 @@ built.
 | 3 | **The total if nothing is done** | *"If you just show the total, assuming we don't do any intervention essentially."* | **done** — headline tile |
 | 4 | **Then the upside if optimised** | *"And then your system can show — if we optimise in this way, here's the potential, the value that we could work out for."* | **done** — after-recommendations and avoidable tiles |
 | 5 | **A recommendation, not just a view** | *"It'd be nice if the system would just suggest to us — this is the recommendation."* | **done** — four levers, runner-up, deadline |
-| 6 | **Scenario planning** — maintenance cost, utilisation, extend a lease by six months | *"Does that change anything?"* | **NOT BUILT** |
+| 6 | **Scenario planning** — maintenance cost, utilisation, extend a lease by six months | *"Does that change anything?"* | **done** — four controls and a reset above the headline; everything recomputes live, and the panel names the tails whose recommended action changes |
 | 7 | **Readiness checklist** for the leasing team and whoever runs the return | *"All of the other smaller pieces."* | **NOT BUILT** |
 | 8 | **Lease management basics** — see the fleet, see the leases, and trace a recommendation to the actual lease | *"Be confident the recommendations are really based on the actual leases. That's going to be important to get their buy-in."* | **partial** — clause references on every requirement row; no lease view yet |
 | 9 | **Visibly replace the spreadsheet** | *"Giving the analysts the view that they're not going to have to maintain some crazy Excel model anymore."* | **partial** — the component cards show the working; nothing says so explicitly |
 
 ## Also asked for, inside the above
 
-- **Downtime cost**, as an assumption they can set themselves — *"but also the downtime costs… that's something that we want to be able to put some assumptions in for those costs."* → **done**, and it is a scenario control.
+- **Downtime cost**, as an assumption they can set themselves — *"but also the downtime costs… that's something that we want to be able to put some assumptions in for those costs."* → **done**: a scenario control, by body class.
 - **The four components only: engines, landing gear, airframe, APU** — *"those are the most expensive bits, and the ones that have the most compensation attached to them."* → **done**.
 
 ## Guardrails — things they said NOT to do

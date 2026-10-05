@@ -458,3 +458,41 @@ Because they are different kinds of loss and the demo has to say which is which.
 maintenance accrual to handback in 0.2–1.0 (lands at 0.72), no tail above 2× its body class's
 settlement benchmark (largest 1.70), average 0.3–1.5× (lands at 0.82). · Rejected: eyeballing the
 totals. · Because the first version passed every unit test and was still twice the right size.
+
+**Compensation capped at the lessor's provider's rates: our cost of the cheapest work × 1.25.** ·
+Rejected: our own cost (1.0), and the executed lease's 1.54 lessor premium over pure accrual. ·
+Because the lease's remedy is indemnity at commercial rates charged by the lessor's chosen
+provider, not at the airline's negotiated cost; 1.54 also carries escalation and risk, so it is a
+ceiling, and 1.25 matches the default negotiation multiplier. It changes no decision in this fleet:
+the cap binds only on the two engines that run out before handback, so the $3.8M it adds to
+avoidable is their do-nothing figure rising, not a better plan.
+
+## Step 6 · scenario planning — Monday 5 October
+
+**Number formatting in the traces uses one cached formatter per precision.** · Rejected: lazy
+traces, built only when a figure is hovered. · Because `toLocaleString` builds a formatter on every
+call and the traces make tens of thousands of calls: a full recompute went from 966 ms to 72 ms with
+not one character of output changed, which is what makes "recompute live" possible without
+restructuring every result object.
+
+**The panel reports how many tails change their recommended action against the plan at rest —
+the lever, the component and the workscope — not the month of a visit or which spare goes on.** ·
+Rejected: comparing against the previous position of the slider, and counting any change of
+label. · Because the plan at rest is the one a reset returns to, and a visit a month later or a
+different pool engine for the same swap is detail, not a different decision; counted, utilisation
+at −10% reported three changes where only 9H-MMC's actually changed.
+
+**A changed row says what it was ("was: Pay at handback").** · Rejected: a count only. · Because
+the count says something moved; the row says what to tell the person who owns that aircraft.
+
+**Downtime is set per body class, as two inputs under one control.** · Rejected: one figure for
+both. · Because the declared figures are $45,000 and $130,000 a day, nearly three times apart, and a
+single input would move the widebodies by narrowbody steps.
+
+**An extended returning tail stays inside the forecast window.** · Rejected: the 24-month rule
+applied to the extended date. · Because extending A6-MVC by twelve months took it to 33 months and
+hid its numbers as "not forecast", when an extended lease is still a planned handback.
+
+**The extension's rent is not modelled.** · Rejected: adding lease rent to the dataset. · Because
+it is a commercial term the leasing team prices, not a maintenance cost, and the brief's question is
+what the extension does to the return position — "Does that change anything?"

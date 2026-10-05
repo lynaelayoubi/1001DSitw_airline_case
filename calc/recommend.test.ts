@@ -8,7 +8,7 @@ import { assessFleet, assessTail } from './exposure';
 import { AS_OF, aircraft, assumptions, component, conditions, lessor, spare } from './fixtures.test-helpers';
 import type { LeverContext } from './levers';
 import { addMonths } from './projection';
-import { recommendFleet, recommendTail } from './recommend';
+import { actionOf, compareRecommendations, recommendFleet, recommendTail } from './recommend';
 import type { Aircraft, Component, Dataset } from './types';
 
 const full = aircraft();
@@ -149,5 +149,39 @@ describe('the generated fleet', () => {
   it('prints the headline arithmetic', () => {
     console.log('\n' + r.trace + '\n');
     expect(r.trace).toContain('avoidable');
+  });
+});
+
+describe('compareRecommendations — SPEC §3.4, which tails change what they are told to do', () => {
+  const data = dataset as unknown as Dataset;
+  const run = (over: Partial<ReturnType<typeof assumptions>> = {}) => {
+    const a = assumptions(over);
+    return recommendFleet(data, assessFleet(data, a), a);
+  };
+  const atRest = run();
+
+  it('finds nothing to report against itself', () => {
+    expect(compareRecommendations(atRest, atRest).changed).toEqual([]);
+    expect(compareRecommendations(atRest, atRest).trace).toContain('the decisions do not');
+  });
+
+  it('reports the tails whose action changes when a control moves', () => {
+    // Ten per cent more flying opens a shortfall on the two reserve-lease widebodies, and their
+    // reserves pay for the visit: paying gives way to doing the work.
+    const c = compareRecommendations(atRest, run({ utilisationMultiplier: 1.1 }));
+    expect(c.changed.map((x) => x.tail).sort()).toEqual(['A6-MVC', 'A6-MXM']);
+    for (const x of c.changed) expect(x).toMatchObject({ from: 'Pay at handback', to: expect.stringContaining('Do the work') });
+  });
+
+  it('does not count a different spare for the same swap as a change', () => {
+    // Ten per cent less flying reshuffles which pool engine 9H-KVJ and 9H-ZUU take; only 9H-MMC
+    // changes what it does, from a swap to paying.
+    const c = compareRecommendations(atRest, run({ utilisationMultiplier: 0.9 }));
+    expect(c.changed.map((x) => x.tail)).toEqual(['9H-MMC']);
+  });
+
+  it('names the action, not the month: the same visit a month later is the same decision', () => {
+    const plan = atRest.byTail['A6-DLL']!;
+    expect(actionOf(plan)).toBe('visit:ENG1:build-for-cash');
   });
 });

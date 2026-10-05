@@ -44,15 +44,18 @@ Each folder has its own README.
 
 | file | what it's for |
 |---|---|
+| `BRIEF.md` | what the customer asked for, in their own words, with a status against each item |
 | `SPEC.md` | the build: data model, calculation layer, screens in priority order |
 | `ASSUMPTIONS.md` | every rate, cost and assumption the model uses, with its source and its sensitivity |
 | `COST-REFERENCE.md` | the underlying research: every public cost figure with source URL, year and confidence |
 | `WHATS-FAKE.md` | real vs synthetic vs faked on purpose, and the reasoning for each |
 | `BUILD-LOG.md` | every decision that had a real alternative: what was chosen, what was rejected, why |
+| `DIAGNOSIS.md` | why the first exposure figures were twice the right size, and the fix |
 | `CLAUDE.md` | the domain in the customer's vocabulary, and the rules for this repo (also read by Claude Code) |
 
 ## Status
 
 Built: the projection, exposure, the four levers and the recommendation (SPEC §2.1–§2.8), on
-the fleet exposure table and its headline (SPEC §3.1–§3.2). Tail detail, scenarios, lease view
-and readiness checklist are specified in `SPEC.md` and not yet built — see `ui/README.md`.
+the fleet exposure table, its headline and the scenario panel (SPEC §3.1, §3.2, §3.4). Tail
+detail, lease view and readiness checklist are specified in `SPEC.md` and not yet built — see
+`ui/README.md`.

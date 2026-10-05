@@ -108,28 +108,30 @@ describe('§2.3 price the shortfall', () => {
     expect(r.compensationUncapped).toBeCloseTo(2_340_000 + 363_000, 3);
   });
 
-  it("caps compensation at the cheapest work that would put it right — the lease's own remedy", () => {
+  it("caps compensation at the cheapest work that would put it right, at the lessor's provider's rates", () => {
     // A $50,000/FC rate makes the linear figure $65M. Only a restoration clock is short, so the
-    // cap is a restoration at the build-for-cash price (both workscopes buy the same time on
-    // wing): visit 2, mature-run going in, $6.5M × 3.10 ÷ 3.88 = $5,193,299.
+    // work is a restoration at the build-for-cash price (both workscopes buy the same time on
+    // wing): visit 2, mature-run going in, $6.5M × 3.10 ÷ 3.88 = $5,193,299 to us — and × 1.25
+    // at the commercial rates of the lessor's chosen provider, the lease's own remedy.
     const dear = rcs.map((rc) => (rc.metric === 'cyclesRemaining' && rc.componentKind === 'engine' ? { ...rc, compensationRate: 50_000 } : rc));
     const r = assessComponent(ac, eng2, dear, p, 'as-recorded', a);
     expect(r.compensationUncapped).toBeCloseTo(1_300 * 50_000, 3);
-    expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88), 3);
+    expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88) * 1.25, 3);
     expect(r.compensation).toBeCloseTo(r.rectificationCost, 3);
     expect(r.trace).toContain('cheapest work that would put it right');
+    expect(r.trace).toContain("lessor's chosen provider's commercial rates");
     const normal = assessComponent(ac, eng2, rcs, p, 'as-recorded', a);
     expect(normal.compensation).toBe(normal.compensationUncapped);
     expect(normal.trace).not.toContain('capped');
   });
 
   it('adds an LLP replacement to the cap only when the LLP clause is short', () => {
-    // 1,000 FC of LLP life: 1,100 FC short of the clause. Cap = restoration + a build-for-cash
-    // LLP replacement, $6.6M × 2.40 ÷ 3.88 = $4,082,474.
+    // 1,000 FC of LLP life: 1,100 FC short of the clause. Cap = (restoration + a build-for-cash
+    // LLP replacement, $6.6M × 2.40 ÷ 3.88 = $4,082,474) × 1.25.
     const eng = component('engine', 'ENG1', { ...eng2, llpMinCyclesRemaining: 1_000 });
     const dear = rcs.map((rc) => (rc.metric === 'cyclesRemaining' && rc.componentKind === 'engine' ? { ...rc, compensationRate: 50_000 } : rc));
     const r = assessComponent(ac, eng, dear, p, 'as-recorded', a);
-    expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88) + 6_600_000 * (2.4 / 3.88), 3);
+    expect(r.rectificationCost).toBeCloseTo((6_500_000 * (3.1 / 3.88) + 6_600_000 * (2.4 / 3.88)) * 1.25, 3);
     expect(r.trace).toContain('an LLP replacement');
   });
 });
@@ -280,6 +282,12 @@ describe('a tail, end to end', () => {
       expect(c.trace.length).toBeGreaterThan(40);
       for (const r of c.requirements) expect(r.trace).toContain('Lease demands');
     }
+  });
+
+  it('keeps a returning tail in the window when a scenario extends its lease past it', () => {
+    const extended = assessTail(ac, rcs, AS_OF, assumptions({ leaseExtensionMonths: { 'T-TEST': 12 } }));
+    expect(extended.projection.monthsToReturn).toBeCloseTo(28, 9);
+    expect(extended.withinHorizon).toBe(true);
   });
 
   it('flags tails beyond the window the model is built for', () => {

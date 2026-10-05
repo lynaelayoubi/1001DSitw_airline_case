@@ -499,7 +499,8 @@ Lessors alternate architecture: four reserve, three no-reserve.
 | Over-delivery unit cost | LLP cost ÷ bucket cycles of the visit that bought it | the LLP half of the visit buys LLP life |
 | Over-delivery with no shop visit in the lease | **$0** | the life came with the aircraft; nothing was paid for it |
 | Over-delivery is sunk | realised when the unit is handed over; every option that leaves the unit on the aircraft carries it unchanged, so it cancels out of the avoidable figure. Only a swap that sends the unit to the pool keeps it | a real loss at handback, and not one the levers can undo — except by not handing the unit over |
-| **Compensation cap** | per component, min(linear compensation, the cheapest work that would put it right): an engine restoration at the build-for-cash price if a restoration clock is short, plus a build-for-cash LLP replacement only if the LLP clause is short; gear overhaul + exchange fee; next structural check; APU overhaul | §7: the executed lease's remedy is rectification or indemnity at commercial rates, so no clause can cost more than the work that puts it right. Was: a build-for-interval visit (restoration and a full new LLP stack) |
+| **Compensation cap** | per component, min(linear compensation, the cheapest work that would put it right, at the lessor's provider's rates — our cost × the markup below): an engine restoration at the build-for-cash price if a restoration clock is short, plus a build-for-cash LLP replacement only if the LLP clause is short; gear overhaul + exchange fee; next structural check; APU overhaul | §7: the executed lease's remedy is rectification or indemnity at commercial rates, so no clause can cost more than the work that puts it right. Was: a build-for-interval visit (restoration and a full new LLP stack) |
+| **Lessor rectification markup** | **1.25**, range 1.0–1.54 | declared, no public figure. The executed lease's remedy is indemnity "at commercial rates then charged" by the lessor's chosen provider: a one-off visit bought at market rates, against a 270-aircraft operator's negotiated terms. 1.0 is our own cost; 1.54 is the executed lease's own lessor premium over pure cost accrual (§13), which also carries escalation and risk, so a ceiling. 1.25 matches the default negotiation multiplier, so one lessor premium is no more aggressive than the other. It binds only where the lease would claim more than the work costs: in this fleet, the two engines that run out before handback |
 | QME basis and over-delivery | the lease basis moves compensation only; over-delivery stays at the recorded figure | the visit was paid for whether or not the lease credits it, so the QME delta is purely what the lease would claim on top |
 | QME basis and LLP life | read as recorded on both bases | LLP life is tracked part by part, with each part's own records; an unrecognised visit does not reset the restoration clock, but it does not take life off parts that were fitted |
 | Horizon | 24 months | beyond the returning window a projection with no intervening shop visit is not a forecast; computed, not shown as one |
@@ -550,3 +551,21 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 | Widebody ÷ narrowbody cost ratio | 0.6–1.4 of the panel's 2.84 | lands at 0.65 — young A350/787 arm on first-run engines; short-dense narrowbodies |
 | Engine share of modelled cost | 0.75–0.95 | expected ≈ 0.50 ÷ 0.559 = 89%; lands at 87% |
 | Utilisation | 0.75–1.25 of 9.06 FH/day | lands at 1.13 |
+
+---
+
+## 14 · Scenario controls (SPEC §3.4, as built)
+
+Four controls, all named by the customer. Ranges are declared; each starts at the default used
+everywhere else in this file.
+
+| control | default | range, step | reason |
+|---|---|---|---|
+| Maintenance cost | × 1.00 | × 0.80–1.50, 0.05 | §0: the 2026 escalation factors carry real uncertainty, and next-generation narrowbody shop costs are running 21–50% over expectation; 0.8 allows for negotiated rates under the appraiser figures |
+| Utilisation | × 1.00 | × 0.80–1.20, 0.05 | ±20% around the plan, twice the ±10% per-tail noise (§9) |
+| Extend a named lease | 0 months | 0–12 months, 1 | the customer's own example was six months; twelve doubles it. The rent for the extra months is not modelled — it is a commercial term, not a maintenance one. An extended returning tail stays inside the forecast window |
+| Downtime cost per day | $45,000 NB · $130,000 WB (§13) | NB $0–100,000, $5,000 · WB $0–300,000, $10,000 | from zero (a spare aircraft, slack in the schedule) to a little over twice the declared figure; the customer asked to set this one themselves |
+
+**What the panel reports.** How many tails change their recommended action against the plan at
+rest, and which: the lever, the component and the workscope. The month of a visit and which spare
+goes on are detail, not a change of decision.

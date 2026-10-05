@@ -481,7 +481,9 @@ export function assessTail(ac: Aircraft, conditions: ReturnCondition[], asOf: IS
     projection,
     asRecorded,
     asLeaseAllows,
-    withinHorizon: projection.monthsToReturn <= RETURNING_WINDOW_MONTHS,
+    // Measured on the lease as written: extending a returning tail's lease in a scenario keeps
+    // it a planned handback, so it stays a forecast however far the extension takes it.
+    withinHorizon: projection.monthsToReturn - projection.extensionMonths <= RETURNING_WINDOW_MONTHS,
     qmeDelta,
     qmeFlag: qmePositions.length > 0,
     qmePositions,

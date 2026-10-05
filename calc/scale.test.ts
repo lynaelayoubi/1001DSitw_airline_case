@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
+import { DEFAULT_ASSUMPTIONS, EOL_SETTLEMENT_NARROWBODY, SCALE_BANDS, SCENARIO_CONTROLS, WIDEBODY_EVENT_VALUE_RATIO } from './constants';
 import { assessFleet } from './exposure';
 import { checkScale } from './scale';
 import type { Dataset } from './types';
@@ -48,5 +48,16 @@ describe('the scale of the exposure', () => {
   it('prints the arithmetic', () => {
     console.log('\n' + s.trace + '\n');
     expect(s.trace).toContain('accrual to handback');
+  });
+});
+
+describe('the scenario controls', () => {
+  it('start at the defaults, inside their declared ranges', () => {
+    const c = SCENARIO_CONTROLS;
+    const inside = (v: number, r: { min: number; max: number }) => v >= r.min && v <= r.max;
+    expect(inside(DEFAULT_ASSUMPTIONS.maintenanceCostMultiplier, c.maintenanceCost)).toBe(true);
+    expect(inside(DEFAULT_ASSUMPTIONS.utilisationMultiplier, c.utilisation)).toBe(true);
+    expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.narrowbody, c.downtimeCostPerDay.narrowbody)).toBe(true);
+    expect(inside(DEFAULT_ASSUMPTIONS.downtimeCostPerDay.widebody, c.downtimeCostPerDay.widebody)).toBe(true);
   });
 });

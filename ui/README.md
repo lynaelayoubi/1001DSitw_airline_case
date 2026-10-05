@@ -29,6 +29,11 @@ object from `calc/`; the UI formats, it never calculates.
 - Click a tail for its components: every clause, today's position, what will be flown, the
   position at return, the gap and its price. The binding clock is marked.
 
+**Scenarios** (`components/ScenarioPanel.tsx`, SPEC §3.4), above the headline: maintenance cost,
+utilisation, extend a named lease by N months, downtime cost per day, and a reset. The tiles and
+the table recompute live. The output that matters is the line under the controls — how many tails
+change their recommended action, and from what to what — and each changed row says what it was.
+
 **Trace on hover** (`components/Trace.tsx`). Every figure carries the string the calc layer
 attached to it — the inputs and the arithmetic. This is the answer to "where did that number
 come from" and it is why the demo is defensible.
@@ -36,5 +41,4 @@ come from" and it is why the demo is defensible.
 ## Not yet built
 
 Tail detail with the four levers and the shop-visit curve (§3.3) — the options and lever 4's
-curve are already computed, in `calc/levers.ts` — scenarios (§3.4), lease view (§3.5),
-readiness checklist (§3.6).
+curve are already computed, in `calc/levers.ts` — lease view (§3.5), readiness checklist (§3.6).

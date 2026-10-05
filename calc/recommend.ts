@@ -133,6 +133,45 @@ export interface FleetRecommendation {
   trace: string;
 }
 
+/**
+ * What a tail is told to do, without the detail that does not change the decision: the lever,
+ * the component and the workscope, but not the month of a visit or which spare goes on. A move
+ * from month 6 to month 7, or from one spare to another, is the same action.
+ */
+export function actionOf(plan: TailPlan): string {
+  if (plan.role === 'donor') return `gives:${plan.label}`;
+  const o = plan.recommendation.recommended;
+  return o.move ? `swap:${o.move.position}:${o.move.incoming.from}` : o.actionKey.replace(/^visit:([^:]+):\d+:/, 'visit:$1:');
+}
+
+export interface ActionChange {
+  tail: string;
+  from: string;
+  to: string;
+}
+
+export interface ScenarioComparison {
+  tails: number;
+  /** Tails whose recommended action differs from the plan at rest. */
+  changed: ActionChange[];
+  trace: string;
+}
+
+/** SPEC §3.4: which tails change what they are told to do when the scenario moves. */
+export function compareRecommendations(atRest: FleetRecommendation, scenario: FleetRecommendation): ScenarioComparison {
+  const changed = scenario.plans.flatMap((p): ActionChange[] => {
+    const before = atRest.byTail[p.tail];
+    return before && actionOf(before) !== actionOf(p) ? [{ tail: p.tail, from: before.label, to: p.label }] : [];
+  });
+  const tails = scenario.plans.length;
+  const trace = changed.length
+    ? `${changed.length} of ${tails} tails change their recommended action against the plan at rest:\n` +
+      changed.map((c) => `${c.tail}: ${c.from} → ${c.to}`).join('\n') +
+      `\n\nA different month for the same visit, or a different spare for the same swap, is not counted as a change.`
+    : `No tail changes its recommended action against the plan at rest; the totals move, the decisions do not.`;
+  return { tails, changed, trace };
+}
+
 export function recommendFleet(
   data: Pick<Dataset, 'aircraft' | 'lessors' | 'pool' | 'returnConditions'>,
   fleet: FleetExposure,
