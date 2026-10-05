@@ -211,13 +211,23 @@ export function assessRequirement(
 
 /**
  * ASSUMPTIONS §7: on shortfall the executed lease lets the lessor require rectification or
- * take redelivery and be indemnified at commercial rates — so no component can owe more than
- * the cheapest work that would put it right. For an engine that is a restoration if a
- * restoration clock is short (both workscopes buy the same time on wing, so the build-for-cash
- * price), plus an LLP replacement only if the LLP clause is short. Linear compensation is
- * capped here.
+ * take redelivery and be indemnified "at commercial rates then charged" by its own chosen
+ * provider — so no component can owe more than the cheapest work that would put it right, at
+ * the lessor's provider's rates: the airline's own cost × lessorRectificationMarkup. For an
+ * engine the work is a restoration if a restoration clock is short (both workscopes buy the
+ * same time on wing, so the build-for-cash price), plus an LLP replacement only if the LLP
+ * clause is short. Linear compensation is capped here.
  */
 export function rectificationCost(ac: Aircraft, c: Component, a: Assumptions, short: { interval: boolean; llp: boolean } = { interval: true, llp: false }): UnitCostOfLife {
+  const ours = ourRectificationCost(ac, c, a, short);
+  const k = a.lessorRectificationMarkup;
+  if (k === 1) return ours;
+  const rate = ours.rate * k;
+  return { rate, trace: `${ours.trace}, at the lessor's chosen provider's commercial rates: our cost ${usd(ours.rate)} × ${k.toFixed(2)} = ${usd(rate)}` };
+}
+
+/** The airline's own cost of the cheapest work that would put the component right. */
+function ourRectificationCost(ac: Aircraft, c: Component, a: Assumptions, short: { interval: boolean; llp: boolean }): UnitCostOfLife {
   const m = a.maintenanceCostMultiplier;
   const mult = m === 1 ? '' : ` × maintenance cost ${m.toFixed(2)}`;
   switch (c.kind) {

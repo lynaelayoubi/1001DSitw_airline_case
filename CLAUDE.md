@@ -75,6 +75,12 @@ Audience for the demo: a Head of Fleet (the customer) and a CEO (the builder).
 
 ## Rules for this repo
 
+- **Read `BRIEF.md` before starting any piece of work.** It holds what the customer actually
+  asked for, in their own words, with a status against each item. Build what is on that list.
+  If a proposed feature has no row there, it needs one first — and if a requirement is being
+  skipped, say so rather than letting it quietly lapse. **A technically excellent model that
+  does not answer the brief fails.**
+
 - **Three folders, three answers.** `data/` answers "where did the numbers come from".
   `calc/` answers "what is actually computed". `ui/` answers "why these screens".
   Keep `calc/` pure: no UI imports, no data imports, functions in and out.

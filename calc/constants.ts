@@ -170,6 +170,14 @@ export const OTHER_RESERVE_RATES = {
 export const NEGOTIATION_MULTIPLIER = { default: 1.25, min: 1.0, max: 1.5 } as const;
 
 /**
+ * The executed lease's remedy is indemnity "at commercial rates then charged" by the lessor's
+ * chosen provider — not at the airline's own cost. Declared, no public figure: the ceiling is
+ * the executed lease's own lessor premium over pure cost accrual (RESERVE_MARKUP_OVER_ACCRUAL,
+ * 1.54). ASSUMPTIONS §7.
+ */
+export const LESSOR_RECTIFICATION_MARKUP = { default: 1.25, min: 1.0, max: 1.54 } as const;
+
+/**
  * The executed lease the threshold ranges anchor on is an A320 at the narrowbody reference
  * flight leg. A cycle threshold carried unscaled onto a widebody at 7 FH:FC would demand more
  * cycles than a mature engine has between shop visits, so engine cycle thresholds scale by
@@ -371,4 +379,5 @@ export const DEFAULT_ASSUMPTIONS: Assumptions = {
   /** Share of a reserve balance reclaimable against qualifying work, credited by levers 1 and 4. Must be negotiated, not assumed (CLAUDE.md); 1.0 is the lessee-favourable case until the scenario panel exposes it. */
   reservesReclaimPct: 1,
   downtimeCostPerDay: DOWNTIME_COST_PER_DAY,
+  lessorRectificationMarkup: LESSOR_RECTIFICATION_MARKUP.default,
 };

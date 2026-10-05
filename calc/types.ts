@@ -147,6 +147,11 @@ export interface Assumptions {
   reservesReclaimPct: number;
   /** Lost contribution per aircraft day out of service, by body class. ASSUMPTIONS §13. */
   downtimeCostPerDay: Record<BodyClass, number>;
+  /**
+   * What the lessor's chosen provider would charge to put a shortfall right, as a multiple of
+   * the airline's own cost of the same work. Compensation is capped there. ASSUMPTIONS §7.
+   */
+  lessorRectificationMarkup: number;
 }
 
 export interface Dataset {

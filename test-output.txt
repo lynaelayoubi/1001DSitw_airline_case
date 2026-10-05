@@ -5,9 +5,40 @@
 
  RUN  v5.0.3 /Users/lynaelayoubi/Documents/Claude/Projects/Samwise Ventures/handback
 
+ ❯ calc/exposure.test.ts (33 tests | 2 failed) 34ms
+   ❯ §2.3 price the shortfall (8)
+     × caps compensation at the cheapest work that would put it right — the lease's own remedy 2ms
+     × adds an LLP replacement to the cap only when the LLP clause is short 1ms
 
- Test Files  3 passed (3)
-      Tests  57 passed (57)
-   Start at  16:14:16
-   Duration  1.03s (import 65%, transform 31%, tests 4%)
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  calc/exposure.test.ts > §2.3 price the shortfall > caps compensation at the cheapest work that would put it right — the lease's own remedy
+AssertionError: expected 6491623.711340206 to be close to 5193298.969072165, received difference is 1298324.7422680408, but expected 0.0005
+ ❯ calc/exposure.test.ts:118:33
+    116|     const r = assessComponent(ac, eng2, dear, p, 'as-recorded', a);
+    117|     expect(r.compensationUncapped).toBeCloseTo(1_300 * 50_000, 3);
+    118|     expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88), …
+       |                                 ^
+    119|     expect(r.compensation).toBeCloseTo(r.rectificationCost, 3);
+    120|     expect(r.trace).toContain('cheapest work that would put it right');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  calc/exposure.test.ts > §2.3 price the shortfall > adds an LLP replacement to the cap only when the LLP clause is short
+AssertionError: expected 11594716.49484536 to be close to 9275773.19587629, received difference is 2318943.2989690714, but expected 0.0005
+ ❯ calc/exposure.test.ts:132:33
+    130|     const dear = rcs.map((rc) => (rc.metric === 'cyclesRemaining' && r…
+    131|     const r = assessComponent(ac, eng, dear, p, 'as-recorded', a);
+    132|     expect(r.rectificationCost).toBeCloseTo(6_500_000 * (3.1 / 3.88) +…
+       |                                 ^
+    133|     expect(r.trace).toContain('an LLP replacement');
+    134|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 105 passed (107)
+   Start at  10:37:19
+   Duration  2.22s (import 63%, transform 22%, tests 15%)
 
