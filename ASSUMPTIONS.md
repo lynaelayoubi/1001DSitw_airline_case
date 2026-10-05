@@ -605,3 +605,27 @@ values with no noise of their own; their uncertainty is their plausible range. T
 **One at a time, so a lower bound.** Each input moves on its own. Real assumptions move together —
 a busy summer raises flying and shop demand at once — so the sweep is a lower bound on fragility:
 correlated moves would flip answers sooner than any single breakeven it reports.
+
+---
+
+## 15 · The maintenance budget (as built, `calc/budget.ts`)
+
+Not from the discovery call: added at the build owner's request (BRIEF item 10).
+
+| item | value | basis |
+|---|---|---|
+| Budget year | the next **12 months** from the data's date | declared: a rolling budget year, so the window does not depend on when in the calendar year the screen is opened |
+| What counts against it | each recommended action's maintenance cash: shop visit less reserves reclaimed, plus removal and installation (on each tail a swap touches) | what a maintenance budget pays for. Compensation is not in it — it is paid at handback, from the provision carved at lease signing. Downtime is lost contribution, not maintenance spend |
+| When it counts | a shop visit in its induction month; a swap now (it is priced as fitted today); a route change spends nothing | spend after the budget year is next year's money and is listed as such |
+| Forced actions | funded first, whatever the budget | a component that runs out before handback has to come off; if the forced spend alone exceeds the budget, the shortfall is shown and nothing optional is funded |
+| Optional actions | the combination with the largest total saving whose spend fits what is left; ties go to the cheaper set | every combination is tried, which is exact for ten tails |
+| A left-out action | the tail pays at handback instead; the cost is the saving given up | its decision deadline is shown against the budget year: inside it, leaving it out loses the option; after it, next year's budget can take it |
+| Freed spares | not re-offered | a spare freed by a left-out swap is not given to another tail — stated in the trace |
+
+### Does extending a lease change anything?
+
+For each returning tail the lease is extended by 1 to 12 whole months, against no extension, and
+the first length at which any tail's recommended action changes is recorded. Where none does, the
+panel says so plainly instead of leaving a control that does nothing. On this fleet, extending
+A6-DLL, 9H-KVJ, 9H-ZUU or 9H-PJS changes nothing at any length; extending A6-MXM changes its own
+answer at one month.

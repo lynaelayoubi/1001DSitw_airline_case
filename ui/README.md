@@ -33,8 +33,11 @@ object from `calc/`; the UI formats, it never calculates.
 - Click a tail for its components: every clause, today's position, what will be flown, the
   position at return, the gap and its price. The binding clock is marked.
 
-**How firm the answers are** (`components/RobustnessPanel.tsx`, `robustness.worker.ts`), above the
-headline: the one decision made here — extend the lease on a named returning tail — and, computed
+**What you can do, and how firm the answers are** (`components/RobustnessPanel.tsx`,
+`robustness.worker.ts`), above the headline: extend the lease on a named returning tail (a stepper
+in whole months, which says plainly when an extension changes nothing), and a maintenance budget
+for the next twelve months — what it funds, what it leaves out, and whether a left-out decision
+closes inside the year. Then, computed
 in a worker, how many recommendations hold under every plausible assumption, the close calls by
 name, and the inputs that bind soonest with where the real number would come from. Each tail's
 detail opens with how far every input would have to move before its answer changes.

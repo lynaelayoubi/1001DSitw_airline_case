@@ -135,6 +135,9 @@ export interface TailPlan {
   avoidableLife: number;
   /** Why the action is forced rather than chosen, or null. */
   forced: string | null;
+  /** Maintenance cash the plan's action spends, and when (LeverOption.spend). A donor's share is on the tail that asked. */
+  spend: number;
+  spendDate: ISODate | null;
   decisionDeadline: ISODate | null;
   trace: string;
 }
@@ -273,6 +276,8 @@ export function recommendFleet(
         avoidableCash: t.asRecorded.compensation - afterCash,
         avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
         forced: null,
+        spend: 0,
+        spendDate: null,
         decisionDeadline: settled.get(gift.to)!.decisionDeadline,
         trace:
           `${t.tail} gives ${d.position} to ${gift.to} and takes ${gift.option.move!.outgoing.serial} in its place, as part of ${gift.to}'s swap ` +
@@ -298,6 +303,8 @@ export function recommendFleet(
       avoidableCash: t.asRecorded.compensation - afterCash,
       avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
       forced: rec.forced?.why ?? null,
+      spend: o.spend,
+      spendDate: o.spendDate,
       decisionDeadline: rec.decisionDeadline,
       trace:
         rec.trace +

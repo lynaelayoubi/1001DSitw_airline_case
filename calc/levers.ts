@@ -113,6 +113,13 @@ export interface LeverOption {
    * already bought and handed over (over-delivery, or a spare's life given with it).
    */
   newCompensation: number;
+  /**
+   * Maintenance cash the option spends — shop visit less reserves reclaimed, removal and
+   * installation — and the date it falls: a visit's induction month, a swap now. What a
+   * maintenance budget pays for (calc/budget.ts); 0 and null when nothing is spent.
+   */
+  spend: number;
+  spendDate: ISODate | null;
   /** cost + downtimeCost + newExposure — SPEC §2.7's totalCost. */
   total: number;
   /** Exposure if nothing changes, less total. */
@@ -184,6 +191,8 @@ function unavailable(ctx: LeverContext, lever: LeverId, label: string, why: stri
     downtimeCost: 0,
     newExposure: ctx.baseline.asRecorded.exposure,
     newCompensation: ctx.baseline.asRecorded.compensation,
+    spend: 0,
+    spendDate: null,
     feasible: false,
     deadline: null,
     trace: why,
@@ -251,6 +260,8 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
     downtimeCost: 0,
     newExposure: r.exposure,
     newCompensation: r.compensation,
+    spend: 0,
+    spendDate: null,
     feasible: true,
     deadline: null,
     actionKey: 'pay',
@@ -524,6 +535,8 @@ export function doTheWork(ctx: LeverContext): LeverOption {
     downtimeCost: v.downtimeCost,
     newExposure: v.newExposure,
     newCompensation: v.newCompensation,
+    spend: v.cost,
+    spendDate: v.date,
     feasible: true,
     deadline,
     position: v.position,
@@ -599,6 +612,8 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     downtimeCost: v.downtimeCost,
     newExposure: v.newExposure,
     newCompensation: v.newCompensation,
+    spend: v.cost,
+    spendDate: v.date,
     feasible: true,
     deadline,
     position: v.position,
@@ -661,6 +676,8 @@ export function flyItDifferently(ctx: LeverContext): LeverOption {
     downtimeCost: downtimeDays * a.downtimeCostPerDay[ac.bodyClass],
     newExposure: r.exposure,
     newCompensation: r.compensation,
+    spend: 0,
+    spendDate: null,
     feasible: true,
     deadline: p.asOf,
     actionKey: `route:${r.profile}`,
@@ -871,6 +888,9 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
     downtimeCost: s.downtimeCost,
     newExposure: s.newExposure,
     newCompensation: s.newCompensation,
+    // Removal and installation on each tail touched; the exposure a swap moves is not cash.
+    spend: s.detail.own.cost + (s.detail.donor?.cost ?? 0),
+    spendDate: p.asOf,
     feasible: true,
     deadline,
     position: c.position,

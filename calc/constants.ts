@@ -369,6 +369,13 @@ export const DAYS_PER_MONTH = 30.4375;
 /** Shop slots need 3–6 months of lead time (customer, ASSUMPTIONS §1). Default the midpoint. */
 export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
 
+/**
+ * The budget year for return-related maintenance: the next twelve months from the data's date. An
+ * action's spend counts against it when its work falls inside — a shop visit in its induction
+ * month, a swap now. Declared. ASSUMPTIONS §15.
+ */
+export const BUDGET_WINDOW_MONTHS = 12;
+
 /** The one control the screen keeps: extending a named lease is the customer's own decision and example. ASSUMPTIONS §14. */
 export const LEASE_EXTENSION_CONTROL = { min: 0, max: 12, step: 1 } as const;
 

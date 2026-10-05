@@ -9,7 +9,7 @@ import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, MODEL_NOISE, UTILISATION_NOISE 
 import { assessFleet } from './exposure';
 import { usd } from './format';
 import { actionOf, recommendFleet } from './recommend';
-import { computeRobustness, readInput, writeInput } from './robustness';
+import { computeExtensionEffects, computeRobustness, readInput, writeInput } from './robustness';
 import type { Dataset } from './types';
 
 const data = dataset as unknown as Dataset;
@@ -95,5 +95,23 @@ describe('computeRobustness', () => {
     expect(r.trace).toContain('No round-number threshold');
     expect(r.trace).toContain('Too close to call');
     expect(r.trace).toContain('lower bound on fragility');
+  });
+});
+
+describe('computeExtensionEffects — does the one control change anything?', () => {
+  const e = computeExtensionEffects(data, a);
+  const ext = (tail: string, n: number) => plan({ ...a, leaseExtensionMonths: { [tail]: n } });
+
+  it('finds the shortest extension of each lease that changes any recommendation, or none', () => {
+    expect(e.any).toBe(true);
+    expect(e.byTail['A6-MXM']!.months).toBe(1);
+    for (const t of ['A6-DLL', '9H-KVJ', '9H-ZUU', '9H-PJS']) expect(e.byTail[t]!.months, t).toBeNull();
+  });
+
+  it('is right about it: a month on A6-MXM changes an answer, a year on A6-DLL changes none', () => {
+    const changed = ext('A6-MXM', 1).plans.filter((p) => actionOf(p) !== actionOf(rest.byTail[p.tail]!));
+    expect(changed.map((p) => p.tail)).toEqual(e.byTail['A6-MXM']!.changes.map((c) => c.tail));
+    const none = ext('A6-DLL', 12).plans.filter((p) => actionOf(p) !== actionOf(rest.byTail[p.tail]!));
+    expect(none).toEqual([]);
   });
 });

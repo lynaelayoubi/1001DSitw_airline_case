@@ -21,7 +21,7 @@
 // shop demand at once — so this is a lower bound on fragility: correlated moves would flip answers
 // sooner than any single-input breakeven here suggests.
 
-import { ASSUMPTION_INPUTS, MODEL_NOISE, type AssumptionInput, type AssumptionInputId } from './constants';
+import { ASSUMPTION_INPUTS, LEASE_EXTENSION_CONTROL, MODEL_NOISE, type AssumptionInput, type AssumptionInputId } from './constants';
 import { assessTail, totalsOf, type FleetExposure } from './exposure';
 import { num, withoutTraces } from './format';
 import { actionOf, recommendFleet, type FleetRecommendation } from './recommend';
@@ -247,4 +247,50 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
     `flip answers sooner than any single breakeven here.`;
 
   return { inputs, binding, tails, firm, close, tooClose, byTail: byTailState, steps: swept.steps, trace };
+}
+
+/** What extending one returning tail's lease does, at the shortest length that does anything. */
+export interface ExtensionEffect {
+  /** The shortest extension, in whole months, that changes any tail's recommended action — or null if none up to the control's limit does. */
+  months: number | null;
+  changes: { tail: string; from: string; to: string }[];
+}
+
+export interface ExtensionEffects {
+  byTail: Record<string, ExtensionEffect>;
+  /** Some extension of some lease changes some recommendation. */
+  any: boolean;
+  maxMonths: number;
+  steps: number;
+}
+
+/**
+ * For each returning tail, extend its lease by 1, 2, … months up to the control's limit and find the
+ * first length at which any tail's recommended action changes against no extension. Lets the screen
+ * say plainly when the one control it keeps would change nothing.
+ */
+export function computeExtensionEffects(data: Data, a: Assumptions): ExtensionEffects {
+  return withoutTraces(() => {
+    const plan = (x: Assumptions) => recommendFleet(data, assessReturning(data, x), x);
+    const base = { ...a, leaseExtensionMonths: {} };
+    const rest = plan(base);
+    const restAction = new Map(rest.plans.map((p) => [p.tail, actionOf(p)]));
+    const restLabel = new Map(rest.plans.map((p) => [p.tail, p.label]));
+    const maxMonths = LEASE_EXTENSION_CONTROL.max;
+    let steps = 0;
+    const byTail: Record<string, ExtensionEffect> = {};
+    for (const t of rest.plans.map((p) => p.tail)) {
+      byTail[t] = { months: null, changes: [] };
+      for (let n = LEASE_EXTENSION_CONTROL.step; n <= maxMonths; n += LEASE_EXTENSION_CONTROL.step) {
+        const r = plan({ ...base, leaseExtensionMonths: { [t]: n } });
+        steps++;
+        const changes = r.plans.filter((p) => actionOf(p) !== restAction.get(p.tail)).map((p) => ({ tail: p.tail, from: restLabel.get(p.tail)!, to: p.label }));
+        if (changes.length) {
+          byTail[t] = { months: n, changes };
+          break;
+        }
+      }
+    }
+    return { byTail, any: Object.values(byTail).some((e) => e.months !== null), maxMonths, steps };
+  });
 }

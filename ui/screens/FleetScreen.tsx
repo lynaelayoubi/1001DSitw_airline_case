@@ -3,7 +3,8 @@ import { Fragment, useMemo, useState } from 'react';
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
 import { actionOf, type FleetRecommendation, type ScenarioComparison, type TailPlan } from '../../calc/recommend';
-import { describeInput, type Robustness } from '../../calc/robustness';
+import type { BudgetPlan } from '../../calc/budget';
+import { describeInput, type ExtensionEffects, type Robustness } from '../../calc/robustness';
 import type { Assumptions } from '../../calc/types';
 import { AssumptionsPanel } from '../components/AssumptionsPanel';
 import { Headline } from '../components/Headline';
@@ -24,18 +25,26 @@ export default function FleetScreen({
   atRest,
   comparison,
   robustness,
+  extension,
   robustnessPending,
   assumptions,
   onAssumptions,
+  budget,
+  onBudget,
+  budgetPlan,
 }: {
   fleet: FleetExposure;
   plans: FleetRecommendation;
   atRest: FleetRecommendation;
   comparison: ScenarioComparison;
   robustness: Robustness | null;
+  extension: ExtensionEffects | null;
   robustnessPending: boolean;
   assumptions: Assumptions;
   onAssumptions: (a: Assumptions) => void;
+  budget: number | null;
+  onBudget: (b: number | null) => void;
+  budgetPlan: BudgetPlan;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
@@ -67,7 +76,11 @@ export default function FleetScreen({
 
       <RobustnessPanel
         robustness={robustness}
+        extension={extension}
         pending={robustnessPending}
+        budget={budget}
+        onBudget={onBudget}
+        budgetPlan={budgetPlan}
         assumptions={assumptions}
         onChange={onAssumptions}
         tails={fleet.returning.map((t) => ({ tail: t.tail, type: t.type })).sort((x, y) => x.tail.localeCompare(y.tail))}
@@ -96,7 +109,14 @@ export default function FleetScreen({
           <tbody>
             {rows.map((t) => (
               <Fragment key={t.tail}>
-                <TailRow t={t} plan={plans.byTail[t.tail]} before={atRest.byTail[t.tail]} open={open === t.tail} onToggle={() => setOpen(open === t.tail ? null : t.tail)} />
+                <TailRow
+                  t={t}
+                  plan={plans.byTail[t.tail]}
+                  before={atRest.byTail[t.tail]}
+                  leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
+                  open={open === t.tail}
+                  onToggle={() => setOpen(open === t.tail ? null : t.tail)}
+                />
                 {open === t.tail && <TailDetail t={t} robustness={robustness} />}
               </Fragment>
             ))}
@@ -120,7 +140,7 @@ function Th({ children, right }: { children: React.ReactNode; right?: boolean })
   return <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}>{children}</th>;
 }
 
-function TailRow({ t, plan, before, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; open: boolean; onToggle: () => void }) {
+function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; leftOut: boolean; open: boolean; onToggle: () => void }) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
   return (
@@ -157,7 +177,7 @@ function TailRow({ t, plan, before, open, onToggle }: { t: TailResult; plan?: Ta
             {t.qmeDelta > 0 && <div className="text-[11px] text-amber-700">+{money(t.qmeDelta)}</div>}
           </td>
           <td className="px-2 py-2 text-right" onClick={(e) => e.stopPropagation()}>
-            {plan ? <AfterRecommendation plan={plan} before={before} /> : <span className="text-slate-300">—</span>}
+            {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
           </td>
           <td className="px-2 py-2 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
             <Trace text={t.trace}>
@@ -192,7 +212,7 @@ function TailRow({ t, plan, before, open, onToggle }: { t: TailResult; plan?: Ta
 }
 
 /** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
-function AfterRecommendation({ plan, before }: { plan: TailPlan; before?: TailPlan }) {
+function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before?: TailPlan; leftOut: boolean }) {
   const changed = before && actionOf(before) !== actionOf(plan);
   return (
     <div className="ml-auto max-w-[13rem]">
@@ -219,6 +239,7 @@ function AfterRecommendation({ plan, before }: { plan: TailPlan; before?: TailPl
       </div>
       {plan.forced && <div className="text-[11px] leading-tight text-slate-500">{plan.forced}</div>}
       {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
+      {leftOut && <div className="text-[11px] leading-tight font-medium text-red-800">left out of the budget — pays at handback</div>}
     </div>
   );
 }

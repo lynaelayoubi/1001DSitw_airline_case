@@ -585,3 +585,33 @@ three-quarters of each step (30.9 ms → 4.4 ms with identical decisions and tot
 steps still take most of a second — too long to hold the screen. The worker answers a moment after
 the page draws, and again a quarter of a second after the lease extension or an override stops
 moving.
+
+## Step 10 · what you can do — Monday 5 October
+
+**The lease extension is a stepper in whole months under "What you can do".** · Rejected: the
+slider, and the heading "Your decision". · Because an extension is agreed in whole months, and the
+panel holds the things the customer can act on, not a decision already taken.
+
+**The panel says plainly when extending a lease changes nothing.** · Rejected: leaving the control
+live with no comment. · Because on this fleet extending A6-DLL, 9H-KVJ, 9H-ZUU or 9H-PJS changes no
+recommendation at any length up to twelve months; a control that does nothing should say so. The
+extension sweep runs with the robustness sweep, in the worker.
+
+**A budget for the next twelve months' return-related maintenance: forced removals first, then
+the combination of optional actions that saves most within what is left.** · Rejected: ranking
+actions by saving and funding down the list, and treating forced removals as optional. · Because a
+greedy list can miss a better pair of smaller actions, and every combination of ten tails is cheap
+to try; and a component that runs out before handback has to come off whatever the budget says.
+Added at the build owner's request — it is not in the discovery call — and recorded as BRIEF item
+10 with that provenance.
+
+**Only maintenance cash counts against the budget, when the work happens; compensation and
+downtime do not.** · Rejected: counting total cost. · Because compensation is paid at handback from
+the provision carved at lease signing, and downtime is lost contribution, not maintenance spend. On
+this fleet the year needs $11.0M, $10.9M of it A6-DLL's forced ENG1 visit; the optional actions are
+swaps at $28,500 each, so the budget bites on the forced visit long before it bites on a choice.
+
+**A left-out tail shows the saving it gives up and whether its decision deadline falls inside the
+budget year.** · Rejected: a list of left-out tails alone. · Because inside the year leaving an
+action out loses the option, while after it the next budget can still take it — 9H-MMC's decision
+closes on 15 August 2027, A6-GPZ's not until January 2028.
