@@ -212,9 +212,9 @@ describe('§2.4 price the over-delivery', () => {
     expect(r.unitCostOfLife).toBeCloseTo(660, 9);
   });
 
-  it('is left out of exposure when the scenario says not to count it', () => {
-    const counted = assessComponent(ac, eng2, rcs, p, 'as-recorded', a);
-    const not = assessComponent(ac, eng2, rcs, p, 'as-recorded', assumptions({ countOverDeliveryAsLoss: false }));
+  it('is left out of exposure: bought at a past shop visit, it is sunk — unless the scenario counts it', () => {
+    const counted = assessComponent(ac, eng2, rcs, p, 'as-recorded', assumptions({ countOverDeliveryAsLoss: true }));
+    const not = assessComponent(ac, eng2, rcs, p, 'as-recorded', a);
     expect(counted.exposure).toBeCloseTo(counted.compensation + counted.overDelivery, 3);
     expect(not.exposure).toBeCloseTo(not.compensation, 3);
     expect(not.overDelivery).toBeCloseTo(counted.overDelivery, 3);
@@ -312,7 +312,9 @@ describe('the generated fleet', () => {
   it('lands the ten returning tails in the tens of millions, as ASSUMPTIONS §7 expects', () => {
     expect(fleet.totals.compensation).toBeGreaterThan(10e6);
     expect(fleet.totals.compensation).toBeLessThan(100e6);
-    expect(fleet.totals.doNothing).toBeCloseTo(fleet.totals.compensation + fleet.totals.overDelivery, 3);
+    // Over-delivery bought at past shop visits is sunk: in no exposure figure, reported on its own.
+    expect(fleet.totals.doNothing).toBeCloseTo(fleet.totals.compensation, 3);
+    expect(fleet.totals.overDelivery).toBeGreaterThan(0);
   });
 
   it('binds on hours for some tails and cycles for others', () => {
@@ -342,11 +344,11 @@ describe('the generated fleet', () => {
 describe('the fleet total, by kind of money', () => {
   const t = assessFleet(dataset as unknown as Dataset).totals;
 
-  it('splits doing nothing into cash out at handback and life already spent, and says what share is cash', () => {
-    expect(t.compensation + t.overDelivery).toBeCloseTo(t.doNothing, 2);
-    expect(t.cashShare).toBeCloseTo(t.compensation / t.doNothing, 12);
-    // On this fleet, about half: $33.8M of $66.8M.
-    expect(t.cashShare).toBeGreaterThan(0.5);
-    expect(t.cashShare).toBeLessThan(0.55);
+  it('keeps over-delivery bought at past shop visits out of doing nothing: it is sunk, so reported on its own', () => {
+    expect(t.doNothing).toBeCloseTo(t.compensation, 2);
+    expect(t.cashShare).toBeCloseTo(1, 12);
+    // On this fleet: $25.9M of compensation, and $33.0M of life already over-delivered beside it.
+    expect(t.compensation / 1e6).toBeCloseTo(25.94, 2);
+    expect(t.overDelivery / 1e6).toBeCloseTo(33.0, 2);
   });
 });

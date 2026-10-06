@@ -58,8 +58,10 @@ export interface LeftOut extends BudgetItem {
 export interface BudgetPlan {
   budget: number;
   windowEnd: ISODate;
-  /** This year's spend on every recommended action, forced and chosen. */
+  /** This year's spend on every recommended action, forced and chosen — net of reserves reclaimed. */
   needed: number;
+  /** Reserves reclaimed against that work: needed + reserves is the work's gross cost. */
+  reserves: number;
   forcedSpend: number;
   /** Forced spend the budget does not cover; the rest is then left out. */
   shortfall: number;
@@ -96,11 +98,13 @@ export function fitToBudget(plans: FleetRecommendation, budget: number, asOf: IS
       return { ...x, decisionDeadline: deadline, closesThisYear: deadline !== null && deadline <= windowEnd };
     });
   const needed = thisYear.reduce((s, p) => s + p.spend, 0);
+  const reserves = thisYear.reduce((s, p) => s + p.reservesReclaimed, 0);
   const savingFunded = funded.filter((x) => !x.forced).reduce((s, x) => s + x.saving, 0);
   const savingForgone = leftOut.reduce((s, x) => s + x.saving, 0);
 
   const trace =
-    `Budget year: ${asOf} to ${windowEnd}. Every recommended action needs ${usd(needed)} of maintenance cash in it ` +
+    `Budget year: ${asOf} to ${windowEnd}. Every recommended action needs ${usd(needed)} of maintenance cash in it` +
+    (reserves > 0 ? `, net of ${usd(reserves)} of reserves reclaimed (${usd(needed + reserves)} gross) ` : ' ') +
     `(${usd(forcedSpend)} forced, the rest by choice); spend counts when the work happens — a shop visit in its induction month, a swap now. ` +
     `Compensation is not in it: that is paid at handback, from the provision.\n` +
     (shortfall > 0
@@ -120,5 +124,5 @@ export function fitToBudget(plans: FleetRecommendation, budget: number, asOf: IS
     (nextYear.length ? `\nNext year's money: ${nextYear.map((x) => `${x.tail} ${x.label}, ${usd(x.spend)}`).join('; ')}.` : '') +
     `\nA spare freed by a left-out swap is not offered to another tail.`;
 
-  return { budget, windowEnd, needed, forcedSpend, shortfall, funded, leftOut, nextYear, savingFunded, savingForgone, trace };
+  return { budget, windowEnd, needed, reserves, forcedSpend, shortfall, funded, leftOut, nextYear, savingFunded, savingForgone, trace };
 }

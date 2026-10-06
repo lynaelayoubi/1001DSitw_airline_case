@@ -133,13 +133,13 @@ export function apuReservePerApuHour(type: AircraftType): Rated {
   return { rate, trace: `${type} APU overhaul ${usd(a.overhaulCost)} ÷ ${num(a.intervalApuHours)} APU hours = ${usd2(rate)}/APU-FH` };
 }
 
-/** compensationRate = reserveRate × negotiationMultiplier. ASSUMPTIONS §7. */
-export function compensationRate(reserve: Rated, negotiationMultiplier: number, unit: string): Rated {
-  const rate = reserve.rate * negotiationMultiplier;
-  return {
-    rate,
-    trace: `${reserve.trace}; × negotiation multiplier ${negotiationMultiplier.toFixed(2)} = ${usd2(rate)}/${unit} of shortfall`,
-  };
+/**
+ * compensationRate = the lease's own reserve rate for the item. The reserve rate already carries the
+ * lessor's margin over pure cost accrual (RESERVE_MARKUP_OVER_ACCRUAL, 1.54); a multiplier on top
+ * would count that margin twice. ASSUMPTIONS §7.
+ */
+export function compensationRate(reserve: Rated, unit: string): Rated {
+  return { rate: reserve.rate, trace: `${reserve.trace}; charged at that rate, ${usd2(reserve.rate)}/${unit} of shortfall` };
 }
 
 // ---------------------------------------------------------------------------------------

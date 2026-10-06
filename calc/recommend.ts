@@ -19,6 +19,7 @@ import {
   doTheWork,
   firstTimeout,
   flyItDifferently,
+  lifeAboveThresholds,
   moveAComponent,
   onTheGround,
   payAtHandback,
@@ -61,7 +62,23 @@ export interface TailRecommendation {
    * handback cheque.
    */
   late: LeverOption | null;
-  /** The cash part of doNothing: compensation at handback, or acting late's shop spend, downtime and compensation. */
+  /**
+   * Where the recommendation is to pay: the best option on the component carrying the most exposure,
+   * and how much more it comes to — what paying is measured against on screen, rather than the
+   * cheapest option anywhere, which may act on a part that owes little. option is null where no
+   * lever can act on that component before handback.
+   */
+  payBeats: { position: string; option: LeverOption | null; delta: number | null } | null;
+  /**
+   * The units some option sends to the pool for good (symmetricLife): each one's life above the
+   * thresholds, counted in every option that hands it over, and the over-delivery that is therefore
+   * not sunk. Every other unit stays on the aircraft whatever is done: its over-delivery is sunk.
+   */
+  poolLife: PoolLife[];
+  /**
+   * The cash part of doNothing: compensation at handback, or acting late's shop spend, downtime and
+   * compensation. The rest of doNothing is a spare's life handed over by acting late.
+   */
   doNothingCash: number;
   trace: string;
 }
@@ -109,6 +126,53 @@ export function tellApart(best: LeverOption, next: LeverOption | null): Call {
 
 const LEVER_ORDER = ['pay', 'L1', 'L2', 'L3', 'L4', 'ground'];
 
+/** A unit some option sends to the pool for good, and the life that rides on where it goes. */
+export interface PoolLife {
+  position: string;
+  /** Its life above the thresholds at handback, valued as a spare's is (lifeAboveThresholds). */
+  life: number;
+  /** Its over-delivery from past shop visits: not sunk, since an option keeps it. */
+  overDelivery: number;
+  trace: string;
+}
+
+/**
+ * Life counted the same way in every option (ASSUMPTIONS §8). A unit that some feasible option — or
+ * acting late — sends to the pool for good is kept by the airline there, its life with it. In every
+ * other option it leaves: back with the aircraft, or through the shop. So each of those options costs
+ * that life, valued as a spare's life is valued when it goes on for good; the one that sends it to
+ * the pool earns it back. A unit that stays on the aircraft in every option leaves the same way
+ * whatever is done: its over-delivery is sunk, counted in no option and reported on its own line.
+ */
+function symmetricLife(ctx: LeverContext, options: LeverOption[]) {
+  const lifeOf = (position: string): PoolLife => {
+    const i = ctx.ac.components.findIndex((c) => c.position === position);
+    const result = ctx.baseline.asRecorded.components[i]!;
+    const life = lifeAboveThresholds(ctx.ac, ctx.ac.components[i]!, result, ctx.conditions, ctx.a);
+    return { position, life: life.amount, overDelivery: result.overDelivery, trace: life.trace };
+  };
+  const units = [...new Set(options.filter((o) => o.feasible && o.toPool).map((o) => o.toPool!))].map(lifeOf);
+  const apply = (o: LeverOption): LeverOption => {
+    const handed = units.filter((u) => u.position !== o.toPool && u.life > 0.5);
+    const kept = units.find((u) => u.position === o.toPool && u.life > 0.5);
+    if (!handed.length && !kept) return o;
+    const add = handed.reduce((s, u) => s + u.life, 0);
+    const note =
+      handed.map((u) => ` ${u.position} stays on the aircraft here, so its ${usd(u.life)} of life above the thresholds leaves the airline with it (${u.trace}); an option that sends it to the pool keeps it.`).join('') +
+      (kept ? ` ${kept.position} comes off into the pool, keeping its ${usd(kept.life)} of life above the thresholds (${kept.trace}), which every option that leaves it on counts.` : '');
+    return {
+      ...o,
+      newExposure: o.newExposure + add,
+      total: o.total + add,
+      // Against paying, which leaves every unit on: the life this option keeps.
+      saving: o.saving + (kept?.life ?? 0),
+      move: o.move && { ...o.move, own: { ...o.move.own, newExposure: o.move.own.newExposure + add } },
+      trace: o.trace + note,
+    };
+  };
+  return { units, apply, lifeOf };
+}
+
 // With a component running out before handback (focus), two more routes: cover it with a spare
 // while it goes to the shop (12.3(c)), and the aircraft on the ground — always open, so a forced
 // tail never falls back to paying at handback.
@@ -141,6 +205,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: 'there is no exposure at handback' },
       nothingToDecide: true,
       late: null,
+      payBeats: null,
+      poolLife: [],
       doNothingCash: ctx.baseline.asRecorded.compensation,
       trace: `${ctx.ac.tail}: no exposure at handback, as recorded or under the lease — every clock clears its return condition. Nothing to decide.`,
     };
@@ -162,6 +228,9 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
     preamble = `Required: ${at}, so the options are the ones that deal with it; paying at handback is not one of them. `;
     forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
   }
+  const life = symmetricLife(ctx, [...offered, ...(late ? [late] : [])]);
+  offered = offered.map(life.apply);
+  late = late && life.apply(late);
   const options = offered.sort(
     (x, y) => Number(y.feasible) - Number(x.feasible) || x.total - y.total || LEVER_ORDER.indexOf(x.lever) - LEVER_ORDER.indexOf(y.lever),
   );
@@ -180,7 +249,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   // would put today on every tail.
   const decisionDeadline = recommended.deadline;
   const unavoidable = recommended.total;
-  const baseline = late ? late.total : doNothing;
+  // Paying leaves every unit on, so it carries the life of each one another option would keep.
+  const baseline = late ? late.total : options.find((o) => o.lever === 'pay')!.total;
   const avoidable = baseline - unavoidable;
 
   const line = (o: LeverOption) =>
@@ -222,9 +292,27 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
     call,
     nothingToDecide: false,
     late,
+    payBeats: recommended.lever === 'pay' ? payBeats(ctx, life.lifeOf) : null,
+    poolLife: life.units,
     doNothingCash: late ? late.spend + late.downtimeCost + late.newCompensation : ctx.baseline.asRecorded.compensation,
     trace: trace + (late ? `\n\nActing late: ${late.trace}` : ''),
   };
+}
+
+/**
+ * The best option acting on the component that carries the most exposure, against paying
+ * (TailRecommendation.payBeats). Life counted as everywhere: an option that sends a unit to the pool
+ * is credited the life paying would hand over with it; every other unit is alike in both and cancels.
+ */
+function payBeats(ctx: LeverContext, lifeOf: (position: string) => PoolLife): TailRecommendation['payBeats'] {
+  const components = ctx.baseline.asRecorded.components;
+  const i = components.reduce((best, c, k) => (c.exposure > components[best]!.exposure ? k : best), 0);
+  const focused = { ...ctx, focus: i };
+  const best = [doTheWork(focused), moveAComponent(focused), timeTheShopVisit(focused)]
+    .filter((o) => o.feasible)
+    .map((o) => ({ o, delta: o.total - ctx.baseline.asRecorded.exposure - (o.toPool ? lifeOf(o.toPool).life : 0) }))
+    .sort((x, y) => x.delta - y.delta)[0];
+  return { position: components[i]!.position, option: best?.o ?? null, delta: best?.delta ?? null };
 }
 
 export interface TailPlan {
@@ -245,24 +333,26 @@ export interface TailPlan {
    */
   after: number;
   avoidable: number;
-  /** Cash payable to the lessor at handback if nothing changes — the money in play. */
+  /** The cash part of doNothing — the money in play. The rest is a spare's life handed over by acting late. */
   doNothingCash: number;
   /** The cash part of after: this tail's maintenance, removal, downtime and compensation still payable. */
   afterCash: number;
   /** doNothingCash − afterCash. */
   avoidableCash: number;
   /**
-   * avoidable − avoidableCash: life already bought that the plan keeps from being handed over (a
-   * unit sent to the pool), net of any spare's life given in its place. Zero for every plan that
-   * leaves the units where they are: sunk over-delivery cancels there.
+   * avoidable − avoidableCash: spare life kept — what acting late would hand over on a spare fitted for
+   * good, less any spare's life the plan itself hands over. Over-delivery bought at past shop visits
+   * is sunk and in neither figure.
    */
   avoidableLife: number;
   /** Why the action is forced rather than chosen, or null. */
   forced: string | null;
-  /** Still owed at handback after the plan: compensation, and life already bought and handed over. */
+  /** Still owed at handback after the plan: compensation, and any spare's life handed over with it. */
   owed: number;
   /** Maintenance cash the plan's action spends, and when (LeverOption.spend). A donor's share is on the tail that asked. */
   spend: number;
+  /** Reserves reclaimed against that work: spend is net of them. */
+  reservesReclaimed: number;
   spendDate: ISODate | null;
   decisionDeadline: ISODate | null;
   trace: string;
@@ -298,11 +388,21 @@ export interface FleetRecommendation {
      */
     avoidableChosen: number;
     avoidableForced: number;
-    /** Cash payable at handback if nothing changes, and the life already bought and handed over. */
+    /**
+     * If nothing changes, split: cash out, and engine life handed over — a spare fitted for good, or
+     * an aircraft's own unit that another option would keep in the pool (symmetricLife). What acting
+     * now saves, split the same way: less cash out, and engine life kept.
+     */
     doNothingCash: number;
     doNothingLife: number;
     avoidableCash: number;
     avoidableLife: number;
+    /**
+     * Over-delivery bought at past shop visits on units that stay on the aircraft in every option:
+     * life beyond what the lease asks, handed over whatever is done. Sunk, so in none of the figures
+     * above; reported on its own line. A unit some option keeps in the pool is counted in them instead.
+     */
+    pastOverDelivery: number;
     /** avoidableCash ÷ doNothingCash: the saving as a share of the money actually in play. */
     avoidableCashShare: number;
     /** doNothingCash ÷ doNothing: the share of doing nothing that is cash out — the headline bar. */
@@ -363,9 +463,13 @@ export function compareRecommendations(atRest: FleetRecommendation, scenario: Fl
 }
 
 /** The customer's own action on a tail, standing in for the model's ranking. */
-function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: ReturnType<typeof firstTimeout>): TailRecommendation {
-  const late = timeout && ctx.focus !== undefined ? actingLate(ctx) : null;
-  const doNothing = late ? late.total : ctx.baseline.asRecorded.exposure;
+function imposedRecommendation(ctx: LeverContext, proposed: LeverOption, timeout: ReturnType<typeof firstTimeout>): TailRecommendation {
+  const lateAsIs = timeout && ctx.focus !== undefined ? actingLate(ctx) : null;
+  // Life counted as in the model's own ranking: against every option open to this tail.
+  const life = symmetricLife(ctx, [...all(ctx), proposed, ...(lateAsIs ? [lateAsIs] : [])]);
+  const o = life.apply(proposed);
+  const late = lateAsIs && life.apply(lateAsIs);
+  const doNothing = late ? late.total : life.apply(payAtHandback(ctx)).total;
   const at = timeout && `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
   return {
     tail: ctx.ac.tail,
@@ -381,6 +485,8 @@ function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: Retur
     call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: "it is your change, not the model's choice" },
     nothingToDecide: false,
     late,
+    payBeats: null,
+    poolLife: life.units,
     doNothingCash: late ? late.spend + late.downtimeCost + late.newCompensation : ctx.baseline.asRecorded.compensation,
     trace: `${ctx.ac.tail}: your change — ${o.label}, ${usd(o.total)} all-in against ${usd(doNothing)} if nothing changes. Decided by you, not ranked by the model.\n\n${o.trace}`,
   };
@@ -500,6 +606,7 @@ export function recommendFleet(
         forced: null,
         owed: d.exposureAfter,
         spend: 0,
+        reservesReclaimed: 0,
         spendDate: null,
         decisionDeadline: settled.get(gift.to)!.decisionDeadline,
         trace:
@@ -536,6 +643,7 @@ export function recommendFleet(
       forced: rec.forced?.why ?? null,
       owed: own ? own.newExposure : o.newExposure,
       spend: o.spend,
+      reservesReclaimed: o.reservesReclaimed ?? 0,
       spendDate: o.spendDate,
       decisionDeadline: rec.decisionDeadline,
       trace:
@@ -556,6 +664,11 @@ export function recommendFleet(
   const avoidableCash = sum((p) => p.avoidableCash);
   const avoidableLife = sum((p) => p.avoidableLife);
   const own = plans.filter((p) => p.role === 'own');
+  // Sunk only on a unit that stays on the aircraft in every option; a unit an option keeps is counted in the totals.
+  const pastOverDelivery = plans.reduce(
+    (s, p) => s + fleet.returning.find((t) => t.tail === p.tail)!.asRecorded.overDelivery - p.recommendation.poolLife.reduce((k, u) => k + u.overDelivery, 0),
+    0,
+  );
   const totals = {
     doNothing,
     after,
@@ -566,6 +679,7 @@ export function recommendFleet(
     doNothingLife: doNothing - doNothingCash,
     avoidableCash,
     avoidableLife,
+    pastOverDelivery,
     avoidableCashShare: doNothingCash > 0 ? avoidableCash / doNothingCash : 0,
     doNothingCashShare: doNothing > 0 ? doNothingCash / doNothing : 0,
     acting: own.filter((p) => p.recommendation.call.stands && !p.forced && p.recommendation.recommended.lever !== 'pay').length,
@@ -578,10 +692,11 @@ export function recommendFleet(
   const pct = (x: number) => `${Math.round(x * 100)}%`;
   const trace =
     `${plans.length} tails returning. If nothing changes ${usd(doNothing)}: ${usd(doNothingCash)} of cash payable at handback — the money in play — ` +
-    `and ${usd(totals.doNothingLife)} of life already bought and handed over, which is sunk. After recommendations ${usd(after)} all-in — ` +
-    `maintenance less reserves, downtime, and what is still owed at handback — so ${usd(totals.avoidable)} is avoidable: ` +
-    `${usd(avoidableCash)} of it cash, ${pct(totals.avoidableCashShare)} of the money in play, and ${usd(avoidableLife)} life kept by sending units to the pool ` +
-    `rather than handing them over. ${totals.acting} act by choice, ${totals.forced} are forced (a component runs out before handback), ` +
+    `and ${usd(totals.doNothingLife)} of engine life handed over — a spare fitted for good, or a unit another option would keep in the pool. ` +
+    `After recommendations ${usd(after)} all-in — maintenance less reserves, downtime, and what is still owed at handback — so ` +
+    `${usd(totals.avoidable)} is avoidable: ${usd(avoidableCash)} less cash out, ${pct(totals.avoidableCashShare)} of the money in play, and ` +
+    `${usd(avoidableLife)} of engine life kept. Over-delivery bought at past shop visits on units that stay on the aircraft whatever is done, ` +
+    `${usd(pastOverDelivery)}, is sunk and in none of these figures. ${totals.acting} act by choice, ${totals.forced} are forced (a component runs out before handback), ` +
     `${totals.paying} pay at handback, ${totals.undecided} have no recommendation (the options cannot be told apart within ±${num(COST_ESTIMATE_UNCERTAINTY * 100, 1)}% ` +
     `cost estimates), ${totals.nothingToDecide} have nothing to decide (no exposure)${totals.donors ? `, ${totals.donors} give a unit to another tail's swap` : ''}. ` +
     `Each spare and each tail is used once; ` +

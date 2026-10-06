@@ -98,20 +98,20 @@ export default function FleetScreen({
 
   return (
     <LeaseLinksContext.Provider value={links}>
-      <main className="mx-auto max-w-[1500px] px-4 py-6 text-slate-900">
-        <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+      <main className="mx-auto max-w-[1440px] px-4 py-12 md:px-8">
+        <header className="mb-12 flex flex-wrap items-end justify-between gap-6">
           <div>
-            <h1 className="text-xl font-semibold">Handback</h1>
-            <p className="text-sm text-slate-500">A live model of every lease obligation on the fleet: what it costs, what to do, and the date after which you cannot.</p>
-            <p className="text-sm text-slate-500">
+            <h1 className="text-display font-semibold tracking-tight">Handback</h1>
+            <p className="mt-2 text-slate-500">A live model of every lease obligation on the fleet: what it costs, what to do, and the date after which you cannot.</p>
+            <p className="text-slate-500">
               as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
             </p>
           </div>
-          <div className="flex overflow-hidden rounded-md border border-slate-300 text-sm">
-            <button className={`px-3 py-1.5 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(false)}>
+          <div className="flex overflow-hidden rounded-md border border-slate-200">
+            <button className={`px-3 py-1 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => setShowAll(false)}>
               Returning ({fleet.returning.length})
             </button>
-            <button className={`px-3 py-1.5 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(true)}>
+            <button className={`px-3 py-1 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => setShowAll(true)}>
               Whole fleet ({fleet.tails.length})
             </button>
           </div>
@@ -120,22 +120,22 @@ export default function FleetScreen({
         <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} />
         <Headline fleet={fleet} plans={plans} />
 
-        <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-          <table className="w-full text-[13px]">
-            <thead className="bg-slate-50 text-[10.5px] font-medium tracking-wide text-slate-500 uppercase">
-              <tr>
+        <div className="mt-12 overflow-x-auto">
+          <table className="w-full">
+            <thead className="caps">
+              <tr className="border-b border-slate-200">
                 <Th>Tail</Th>
                 <Th>Type</Th>
                 <Th>Lessor</Th>
                 <Th>Return</Th>
                 <Th right>Months left</Th>
-                <Th right tip="Compensation and life handed over at handback if this tail does nothing — or, where a part runs out first, the cost of acting only when it does.">
+                <Th right tip="Compensation at handback if this tail does nothing, and the life of any engine another option would keep — or, where a part runs out first, the cost of acting only when it does.">
                   If nothing changes
                 </Th>
                 <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
                   After recommendation
                 </Th>
-                <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Runs out first</Th>
+                <Th tip="The clock that decides what this tail pays at handback.">Sets the bill</Th>
                 <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
                   Clock reset
                 </Th>
@@ -182,7 +182,7 @@ export default function FleetScreen({
         />
 
         {/* What the answers rest on, and how firm they are: justification, under what it justifies. */}
-        <div className="mt-6">
+        <div>
           <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
           <HowFirm robustness={robustness} pending={robustnessPending} />
         </div>
@@ -207,7 +207,7 @@ export default function FleetScreen({
 /** A column head; its tip is one sentence answering what the column is. */
 function Th({ children, right, tip }: { children: React.ReactNode; right?: boolean; tip?: string }) {
   return (
-    <th className={`px-2 py-2 font-medium whitespace-nowrap ${right ? 'text-right' : 'text-left'} ${tip ? 'cursor-help' : ''}`} title={tip}>
+    <th className={`px-2 pt-0 pb-3 font-medium whitespace-nowrap first:pl-0 last:pr-0 ${right ? 'text-right' : 'text-left'} ${tip ? 'cursor-help' : ''}`} title={tip}>
       {children}
     </th>
   );
@@ -219,37 +219,37 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
   // No exposure on either basis: the row says there is nothing to decide, and stops.
   const nothing = plan?.role === 'own' && plan.recommendation.nothingToDecide;
   return (
-    <tr id={`tail-${t.tail}`} className={`cursor-pointer border-t border-slate-100 hover:bg-slate-50 ${open ? 'bg-slate-50' : ''}`} onClick={onToggle}>
-      <td className="px-2 py-2 font-medium whitespace-nowrap">
+    <tr id={`tail-${t.tail}`} className={`cursor-pointer border-t border-slate-100 align-top first:border-t-0 hover:bg-slate-50 ${open ? 'bg-slate-50' : ''}`} onClick={onToggle}>
+      <td className="py-4 pr-2 font-medium whitespace-nowrap">
         <span className="mr-1 inline-block w-3 text-slate-400">{open ? '▾' : '▸'}</span>
         {t.tail}
       </td>
-      <td className="px-2 py-2 whitespace-nowrap">{t.type}</td>
-      <td className="max-w-[9rem] px-2 py-2 leading-tight text-slate-600">
+      <td className="px-2 py-4 whitespace-nowrap">{t.type}</td>
+      <td className="max-w-[10rem] min-w-[8rem] px-2 py-4">
         <LessorLink tail={t.tail} name={t.lessor} />
       </td>
-      <td className="px-2 py-2 whitespace-nowrap">{date(t.projection.effectiveLeaseEnd)}</td>
-      <td className="px-2 py-2 text-right tabular-nums">
+      <td className="px-2 py-4 whitespace-nowrap">{date(t.projection.effectiveLeaseEnd)}</td>
+      <td className="px-2 py-4 text-right tabular-nums">
         {months(t.projection.monthsToReturn)}
       </td>
       {beyond ? (
         <>
-          <td className="px-2 py-2 text-right text-xs text-slate-400" colSpan={2}>
+          <td className="px-2 py-4 text-right text-slate-400" colSpan={2}>
             beyond the {RETURNING_WINDOW_MONTHS}-month window — not forecast
           </td>
-          <td className="px-2 py-2 text-slate-300">—</td>
+          <td className="px-2 py-4 text-slate-300">—</td>
         </>
       ) : nothing ? (
-        <td className="px-2 py-2 text-emerald-800" colSpan={5}>
+        <td className="px-2 py-4 text-slate-500" colSpan={5}>
           cleared: meets every return condition, as recorded and under the lease
         </td>
       ) : (
         <>
-          <td className="px-2 py-2 text-right">
+          <td className="px-2 py-4 text-right">
             {plan?.recommendation.late ? (
               <>
                 <span className="font-semibold tabular-nums">{money(plan.doNothing)}</span>
-                <div className="mt-0.5 text-[11px] text-slate-500" title={plan.recommendation.late.label}>
+                <div className="mt-1 text-label text-balance text-slate-500" title={plan.recommendation.late.label}>
                   acting late, when {plan.recommendation.forced?.position} runs out
                 </div>
               </>
@@ -260,37 +260,37 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
               </>
             )}
           </td>
-          <td className="px-2 py-2 text-right">
+          <td className="px-2 py-4 text-right">
             {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
           </td>
-          <td className="px-2 py-2 whitespace-nowrap">
+          <td className="px-2 py-4 whitespace-nowrap">
             <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
-            {t.binding.how === 'tightest' && <span className="ml-1 text-xs text-slate-400">clear</span>}
+            {t.binding.how === 'tightest' && <span className="ml-1 text-label text-slate-400">clear</span>}
           </td>
         </>
       )}
       {!nothing && (
-        <td className="px-2 py-2">
+        <td className="px-2 py-4">
           {t.qmeFlag ? (
-            <div className="text-[12px] leading-tight">
-              <div className="font-medium text-slate-800">not counted: {t.qmePositions.join(', ')}</div>
-              {!beyond && t.qmeDelta > 0 && <div className="text-slate-600 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
+            <div>
+              <div className="font-medium whitespace-nowrap">not counted: {t.qmePositions.join(', ')}</div>
+              {!beyond && t.qmeDelta > 0 && <div className="mt-1 text-label text-balance text-slate-500 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
             </div>
           ) : (
-            <span className="text-xs text-slate-400">counted</span>
+            <span className="text-slate-400">counted</span>
           )}
         </td>
       )}
       {!nothing && (
-        <td className="px-2 py-2 whitespace-nowrap">
+        <td className="min-w-[8rem] py-4 pl-2">
           {plan?.decisionDeadline ? (
-            plan.decisionDeadline === t.projection.asOf ? 'decide today' : date(plan.decisionDeadline)
+            <span className="whitespace-nowrap">{plan.decisionDeadline === t.projection.asOf ? 'decide today' : date(plan.decisionDeadline)}</span>
           ) : plan?.recommendation.recommended.grounded ? (
-            <span className="text-xs font-medium text-amber-900">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
+            <span className="font-medium text-amber-800">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
           ) : plan?.recommendation.recommended.startNow ? (
-            <span className="text-xs">no deadline · loses {money(plan.recommendation.recommended.startNow.perMonth)} a month</span>
+            <span className="text-balance">no deadline · loses {money(plan.recommendation.recommended.startNow.perMonth)} a month</span>
           ) : (
-            <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
+            <span className="text-slate-400">{plan ? 'nothing to book' : '—'}</span>
           )}
         </td>
       )}
@@ -298,50 +298,64 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
   );
 }
 
-/** What the next best option is, in a word or two: a shop visit, an overhaul, a swap, a route change. */
-function optionNoun(o: LeverOption): string {
-  if (o.lever === 'L2') return 'a route change';
-  if (o.lever === 'L3') return 'a swap';
-  return o.position === 'APU' ? 'an APU overhaul' : o.position === 'MLG' ? 'a gear overhaul' : 'a shop visit';
+/** The option paying is measured against, in a few words, naming the part where the noun does not: "a shop visit on ENG2", "an APU overhaul". */
+function beatsNoun(o: LeverOption, position: string): string {
+  if (o.lever === 'L3') return `a swap of ${position}`;
+  return position === 'APU' ? 'an APU overhaul' : position === 'MLG' ? 'a gear overhaul' : `a shop visit on ${position}`;
+}
+
+/**
+ * The requirement row that shows a capped component's compensation, or null when it is not capped:
+ * the binding clock if it is short, otherwise the first short LLP clause. The uncapped figures stay in
+ * the calculation; a row never shows one.
+ */
+function cappedRow(c: ComponentResult): string | null {
+  if (c.compensationUncapped - c.compensation < 0.5) return null;
+  const at = c.requirements.find((r) => r.requirementId === c.binding.requirementId && r.compensation > 0) ?? c.requirements.find((r) => r.group === 'llp' && r.compensation > 0);
+  return at?.requirementId ?? null;
 }
 
 /** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
 function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before?: TailPlan; leftOut: boolean }) {
   const changed = before && actionOf(before) !== actionOf(plan);
+  const paying = plan.role === 'own' && plan.recommendation.call.stands && plan.recommendation.recommended.lever === 'pay';
+  const beats = plan.recommendation.payBeats;
   return (
     <div className="ml-auto max-w-[13rem]">
-      <span className="font-semibold tabular-nums">{money(plan.after)}</span>
+      <span className="font-semibold tabular-nums">{money(plan.after)}</span> <span className="text-label text-slate-500">all-in</span>
       {/* A forced tail's saving is against acting late, when its part runs out. */}
       {plan.avoidable > 0.5 && (
-        <div className="text-[11px] text-emerald-700 tabular-nums">
+        <div className="mt-1 text-label text-slate-500 tabular-nums">
           −{money(plan.avoidable)}
           {plan.forced && ' vs acting late'}
         </div>
       )}
       {plan.avoidable < -0.5 && (
-        <div className="text-[11px] text-red-700 tabular-nums">
+        <div className="mt-1 text-label font-medium tabular-nums">
           +{money(-plan.avoidable)}
           {plan.forced && ' vs acting late'}
         </div>
       )}
-      <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>
+      <div className={`text-label text-balance ${changed ? 'font-medium text-slate-900' : 'text-slate-500'}`}>
         {plan.forced && (
-          <span className="mr-1 cursor-help rounded bg-amber-100 px-1 py-px text-[10px] font-medium text-amber-900" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
+          <span className="mr-1 cursor-help rounded bg-amber-50 px-1.5 py-px font-medium text-amber-800" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
             required
           </span>
         )}
-        {plan.label}
+        {paying ? `Pay at handback: ${money(plan.recommendation.recommended.newCompensation)} cheque` : plan.label}
       </div>
-      {plan.role === 'own' && plan.recommendation.recommended.lever === 'pay' && plan.recommendation.call.stands && plan.recommendation.runnerUp && (
-        <div className="text-[11px] leading-tight text-slate-500">
-          paying beats {optionNoun(plan.recommendation.runnerUp)} by {money(plan.recommendation.delta)}
+      {/* Measured against the best option on the part that owes most, not the cheapest anywhere. */}
+      {paying && beats?.option && (
+        <div className="text-label text-balance text-slate-500">
+          paying beats {beatsNoun(beats.option, beats.position)} by {money(beats.delta!)}
         </div>
       )}
+      {paying && beats && !beats.option && <div className="text-label text-balance text-slate-500">nothing can act on {beats.position} before handback</div>}
       {plan.role === 'own' && !plan.recommendation.call.stands && (
-        <div className="text-[11px] leading-tight text-slate-500">{plan.recommendation.call.why}</div>
+        <div className="text-label text-slate-500">{plan.recommendation.call.why}</div>
       )}
-      {changed && <div className="text-[11px] leading-tight text-slate-400">was: {before!.label}</div>}
-      {leftOut && <div className="text-[11px] leading-tight font-medium text-red-800">left out of the budget — pays at handback</div>}
+      {changed && <div className="text-label text-slate-400">was: {before!.label}</div>}
+      {leftOut && <div className="text-label font-medium">left out of the budget — pays at handback</div>}
     </div>
   );
 }
@@ -350,11 +364,11 @@ const KIND_SHORT: Record<string, string> = { engine: 'ENG', 'landing-gear': 'MLG
 
 function Breakdown({ t }: { t: TailResult }) {
   return (
-    <div className="mt-0.5 flex justify-end gap-2 text-[11px] text-slate-500">
+    <div className="mt-1 ml-auto grid w-max grid-cols-2 justify-items-end gap-x-3 text-label text-slate-500">
       {(['engine', 'landing-gear', 'airframe', 'apu'] as const).map((k) => {
         const v = t.asRecorded.byKind[k].exposure;
         return (
-          <span key={k} className={v > 0 ? '' : 'text-slate-300'}>
+          <span key={k} className={`whitespace-nowrap ${v > 0 ? '' : 'text-slate-300'}`}>
             {KIND_SHORT[k]} <span className="tabular-nums">{money(v)}</span>
           </span>
         );
@@ -368,7 +382,7 @@ function LessorLink({ tail, name }: { tail: string; name: string }) {
   const links = useLeaseLinks();
   return (
     <button
-      className="text-left underline decoration-slate-300 decoration-dotted underline-offset-2 hover:text-slate-900"
+      className="link text-left"
       title={`Open ${tail}'s lease.`}
       onClick={(e) => {
         e.stopPropagation();
@@ -394,12 +408,12 @@ function TailDetail({
   const rec = plan?.role === 'own' ? plan.recommendation : null;
   const nothing = rec?.nothingToDecide ?? false;
   return (
-    <tr className="border-t border-slate-100 bg-slate-50/60">
-      <td colSpan={10} className="px-3 py-3">
-        <div className="grid gap-3">
+    <tr className="bg-slate-50">
+      <td colSpan={10} className="px-4 pt-2 pb-6">
+        <div className="grid gap-4">
           {plan && !nothing && (
-            <div className="rounded-md border border-slate-200 bg-white px-3 py-2">
-              <div className="text-sm">
+            <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
+              <div>
                 <span className="font-semibold">{plan.label}</span>
                 {rec?.runnerUp && (
                   <span className="text-slate-500">
@@ -424,17 +438,17 @@ function TailDetail({
 function ComponentCard({ tail, c, lease, flash }: { tail: string; c: ComponentResult; lease: ComponentResult; flash: string | null }) {
   const flagged = c.qmeStatus === 'not-evidenced';
   return (
-    <div className="rounded-md border border-slate-200 bg-white">
-      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 px-3 py-2">
+    <div className="rounded-lg border border-slate-200 bg-white">
+      <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-100 px-4 py-3">
         <div>
           <span className="font-semibold">{c.position}</span> <span className="text-slate-500">· {kindLabel[c.kind]} · {c.serial}</span>
           {flagged && (
-            <span className="ml-2 text-xs text-slate-600">
+            <span className="ml-2 text-label text-slate-500">
               the lease doesn't count its last shop visit: the records don't meet its definition of a qualifying event, so the clock doesn't reset
             </span>
           )}
         </div>
-        <div className="text-sm tabular-nums">
+        <div className="tabular-nums">
           <span className="font-semibold">{money(c.exposure)}</span>
           {flagged && (
             <>
@@ -446,37 +460,41 @@ function ComponentCard({ tail, c, lease, flash }: { tail: string; c: ComponentRe
           )}
         </div>
       </div>
-      <table className="w-full text-xs">
-        <thead className="text-[10px] tracking-wide text-slate-400 uppercase">
-          <tr>
-            <Th>Clause</Th>
-            <Th>Clock</Th>
-            <Th right>Today</Th>
-            <Th right>Flown before handback</Th>
-            <Th right>At return</Th>
-            <Th right>Lease demands</Th>
-            <Th right>Gap</Th>
-            <Th right>Compensation</Th>
-            <Th right>Over-delivery</Th>
-            {flagged && <Th right>Under the lease</Th>}
-          </tr>
-        </thead>
-        <tbody>
-          {c.requirements.map((r, i) => (
-            <RequirementRow
-              key={r.requirementId}
-              id={`req-${c.componentId}-${r.requirementId}`}
-              flash={flash}
-              tail={tail}
-              r={r}
-              binding={r.requirementId === c.binding.requirementId}
-              how={c.binding.how}
-              lease={flagged ? lease.requirements[i] : undefined}
-            />
-          ))}
-        </tbody>
-      </table>
-      <div className="border-t border-slate-100 px-3 py-1.5">
+      <div className="overflow-x-auto px-4 pt-3 pb-1">
+        <table className="w-full text-label">
+          <thead className="caps">
+            <tr>
+              <Th>Clause</Th>
+              <Th>Clock</Th>
+              <Th right>Today</Th>
+              <Th right>Flown before handback</Th>
+              <Th right>At return</Th>
+              <Th right>Lease demands</Th>
+              <Th right>Gap</Th>
+              <Th right>Compensation</Th>
+              <Th right>Over-delivery</Th>
+              {flagged && <Th right>Under the lease</Th>}
+            </tr>
+          </thead>
+          <tbody>
+            {c.requirements.map((r, i) => (
+              <RequirementRow
+                key={r.requirementId}
+                id={`req-${c.componentId}-${r.requirementId}`}
+                flash={flash}
+                tail={tail}
+                r={r}
+                binding={r.requirementId === c.binding.requirementId}
+                how={c.binding.how}
+                capped={cappedRow(c) === null ? null : { at: cappedRow(c)!, total: c.compensation }}
+                lease={flagged ? lease.requirements[i] : undefined}
+                leaseCapped={flagged && cappedRow(lease) !== null ? { at: cappedRow(lease)!, total: lease.compensation } : null}
+              />
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="border-t border-slate-100 px-4 py-2">
         <Working
           tail={tail}
           text={[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`Under the lease, where the reset does not count: ${lease.trace}`] : [])].join('\n\n')}
@@ -493,7 +511,9 @@ function RequirementRow({
   r,
   binding,
   how,
+  capped,
   lease,
+  leaseCapped,
 }: {
   id: string;
   flash: string | null;
@@ -501,16 +521,19 @@ function RequirementRow({
   r: RequirementResult;
   binding: boolean;
   how: 'shortfall' | 'tightest';
+  /** The component's compensation is capped at the cost of the work: the one row that shows it, and the figure. */
+  capped: { at: string; total: number } | null;
   lease?: RequirementResult;
+  leaseCapped: { at: string; total: number } | null;
 }) {
   const links = useLeaseLinks();
   const u = r.unit;
   const short = r.gap > 0;
   return (
-    <tr id={id} className={`border-t border-slate-100 transition-colors ${flash === id ? 'bg-violet-100' : binding ? 'bg-slate-50' : ''}`}>
-      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">
+    <tr id={id} className={`border-t border-slate-100 transition-colors ${flash === id ? 'bg-accent-soft' : binding ? 'bg-slate-50' : ''}`}>
+      <td className="py-1.5 pr-2 whitespace-nowrap">
         <button
-          className="underline decoration-slate-300 decoration-dotted underline-offset-2 hover:text-violet-800"
+          className="link"
           onClick={(e) => {
             e.stopPropagation();
             links?.open(tail, conditionAnchor({ id: r.requirementId }));
@@ -519,23 +542,39 @@ function RequirementRow({
           {r.clauseRef}
         </button>
       </td>
-      <td className="px-3 py-1.5 whitespace-nowrap">
+      <td className="px-2 py-1.5 last:pr-0 whitespace-nowrap">
         {unitLabel[u]}
         {r.group === 'llp' && <span className="text-slate-400"> (LLP)</span>}
-        {binding && <span className="ml-2 rounded bg-slate-900 px-1.5 py-0.5 text-[10px] font-medium text-white">{how === 'shortfall' ? 'costs most' : 'runs out first'}</span>}
+        {binding && <span className="ml-2 rounded bg-slate-900 px-1.5 py-px font-medium text-white">{how === 'shortfall' ? 'costs most' : 'runs out first'}</span>}
       </td>
-      <td className="px-3 py-1.5 text-right tabular-nums">{int(r.remainingToday)}</td>
-      <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">−{int(r.projectedUse)}</td>
-      <td className={`px-3 py-1.5 text-right tabular-nums ${r.remainingAtReturn < 0 ? 'text-red-700' : ''}`}>{int(r.remainingAtReturn)}</td>
-      <td className="px-3 py-1.5 text-right tabular-nums">≥ {int(r.threshold)}</td>
-      <td className={`px-3 py-1.5 text-right tabular-nums ${short ? 'font-medium text-red-700' : 'text-emerald-700'}`}>
+      <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums">{int(r.remainingToday)}</td>
+      <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums text-slate-500">−{int(r.projectedUse)}</td>
+      <td className={`px-2 py-1.5 last:pr-0 text-right tabular-nums ${r.remainingAtReturn < 0 ? 'font-medium' : ''}`}>{int(r.remainingAtReturn)}</td>
+      <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums">≥ {int(r.threshold)}</td>
+      <td className={`px-2 py-1.5 last:pr-0 text-right tabular-nums ${short ? 'font-medium' : 'text-slate-500'}`}>
         {short ? `${int(r.gap)} short` : `${int(-r.gap)} over`}
       </td>
-      <td className="px-3 py-1.5 text-right tabular-nums">{r.compensation > 0 ? money(r.compensation) : <span className="text-slate-300">—</span>}</td>
-      <td className="px-3 py-1.5 text-right tabular-nums">{r.overDelivery > 0 ? money(r.overDelivery) : <span className="text-slate-300">—</span>}</td>
+      <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums">
+        {capped ? (
+          capped.at === r.requirementId ? (
+            <>
+              {money(capped.total)}
+              <div className="text-slate-500">capped at the cost of the work</div>
+            </>
+          ) : (
+            <span className="text-slate-300">—</span>
+          )
+        ) : r.compensation > 0 ? (
+          money(r.compensation)
+        ) : (
+          <span className="text-slate-300">—</span>
+        )}
+      </td>
+      <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums">{r.overDelivery > 0 ? money(r.overDelivery) : <span className="text-slate-300">—</span>}</td>
       {lease && (
-        <td className="px-3 py-1.5 text-right tabular-nums text-slate-700">
-          {int(lease.remainingAtReturn)} at return · {lease.compensation > 0 ? money(lease.compensation) : '—'}
+        <td className="px-2 py-1.5 last:pr-0 text-right tabular-nums">
+          {int(lease.remainingAtReturn)} at return ·{' '}
+          {leaseCapped ? (leaseCapped.at === r.requirementId ? `${money(leaseCapped.total)}, capped at the cost of the work` : '—') : lease.compensation > 0 ? money(lease.compensation) : '—'}
         </td>
       )}
     </tr>

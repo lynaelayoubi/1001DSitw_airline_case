@@ -39,16 +39,16 @@ export function checkNote(c: CloseCall): string {
  */
 export function HowFirm({ robustness: r, pending }: { robustness: Robustness | null; pending: boolean }) {
   return (
-    <section className={`mb-2 rounded-lg border border-slate-200 bg-white px-4 py-3 ${pending ? 'opacity-60' : ''}`}>
-      <h2 className="mb-1 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Check before acting</h2>
+    <section className={`mt-12 ${pending ? 'opacity-60' : ''}`}>
+      <h2 className="caps mb-3">Check before acting</h2>
       {!r ? (
-        <p className="text-sm text-slate-500">Checking which answers turn on an assumption…</p>
+        <p className="text-slate-500">Checking which answers turn on an assumption…</p>
       ) : r.close.length === 0 ? (
-        <p className="text-sm text-slate-600">Every recommendation holds across the believable range of every assumption.</p>
+        <p className="text-slate-500">Every recommendation holds across the believable range of every assumption.</p>
       ) : r.checks.length === 0 ? (
-        <p className="text-sm text-slate-600">No recommendation turns on an assumption inside the first half of its evidenced range.</p>
+        <p className="text-slate-500">No recommendation turns on an assumption inside the first half of its evidenced range.</p>
       ) : (
-        <ul className="space-y-1 text-sm">
+        <ul className="space-y-2">
           {r.checks.map((c) => (
             <li key={c.tail}>
               <span className="font-medium">{c.tail}</span>: {checkNote(c)}

@@ -16,7 +16,7 @@ const KINDS: { kind: Proposal['kind']; label: string }[] = [
 ];
 
 const signed = (n: number) => (Math.abs(n) < 0.5 ? 'no change' : `${n > 0 ? '+' : ''}${money(n)}`);
-const select = 'rounded border border-slate-300 bg-white px-1 py-0.5 text-sm';
+const select = 'rounded-md border border-slate-200 bg-white px-2 py-1';
 
 /**
  * What if: the head of fleet proposes his own actions — several at once — and sees what they
@@ -41,7 +41,7 @@ export function WhatIf({
   const c = choices.find((x) => x.tail === tail);
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-800">
+      <div className="flex flex-wrap items-center gap-2">
         <span>What if</span>
         <select className={select} value={tail} onChange={(e) => setTail(e.target.value)}>
           {choices.map((x) => (
@@ -61,30 +61,30 @@ export function WhatIf({
       {c && <Details key={`${c.tail}:${kind}`} c={c} kind={kind} extension={extension} onAdd={(p) => onProposals([...proposals, p])} />}
 
       {proposals.length > 0 && (
-        <div className="mt-3 rounded-md border border-violet-200 bg-violet-50/40 px-3 py-2">
+        <div className="mt-6 rounded-lg border border-slate-200 px-4 py-3">
           <div className="flex items-baseline justify-between">
-            <span className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">Your changes</span>
-            <button className="text-xs text-violet-800 underline" onClick={() => onProposals([])}>
+            <span className="caps">Your changes</span>
+            <button className="link text-label" onClick={() => onProposals([])}>
               Clear — back to today's plan
             </button>
           </div>
-          <ul className="mt-1 space-y-1 text-[13px]">
+          <ul className="mt-2 space-y-1">
             {proposals.map((p, k) => {
               const r = result?.proposals[k];
               const instead = r && !r.refused && p.kind !== 'return' ? result!.changed.find((x) => x.tail === p.tail)?.from : undefined;
               return (
                 <li key={k} className="flex gap-2">
-                  <button className="text-slate-400 hover:text-slate-700" aria-label="Remove this change" onClick={() => onProposals(proposals.filter((_, j) => j !== k))}>
+                  <button className="text-slate-400 hover:text-slate-900" aria-label="Remove this change" onClick={() => onProposals(proposals.filter((_, j) => j !== k))}>
                     ×
                   </button>
                   <span>
                     <span className="font-medium">{p.tail}</span> {r ? (r.refused ? r.asked : r.label) : '…'}
                     {r?.refused && (
-                      <span className="block text-xs text-red-800">
+                      <span className="block text-label font-medium">
                         Refused: <ClauseText tail={p.tail} text={r.refused} />
                       </span>
                     )}
-                    {instead && <span className="block text-xs text-slate-500">instead of {instead}</span>}
+                    {instead && <span className="block text-label text-slate-500">instead of {instead}</span>}
                   </span>
                 </li>
               );
@@ -132,8 +132,8 @@ function Details({ c, kind, extension, onAdd }: { c: TailChoices; kind: Proposal
     </select>
   );
   return (
-    <div className="mt-1.5">
-      <div className="flex flex-wrap items-center gap-2 text-sm text-slate-800">
+    <div className="mt-2">
+      <div className="flex flex-wrap items-center gap-2">
         {kind === 'swap' && (
           <>
             {positions}
@@ -195,12 +195,12 @@ function Details({ c, kind, extension, onAdd }: { c: TailChoices; kind: Proposal
             </select>
           </>
         )}
-        <button className="rounded border border-violet-300 bg-white px-2 py-0.5 text-violet-800 hover:bg-violet-50" onClick={() => onAdd(proposal)}>
+        <button className="link rounded-md border border-slate-200 bg-white px-3 py-1 hover:border-accent hover:no-underline" onClick={() => onAdd(proposal)}>
           Add to the scenario
         </button>
       </div>
       {kind === 'return' && extension && (
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-2 text-label text-slate-500">
           {!ext || ext.months === null
             ? `On its own, moving ${c.tail}'s return changes no recommendation at any length up to ${extension.maxMonths} months.`
             : `On its own, moving ${c.tail}'s return first changes a recommendation at ${ext.months} ${ext.months === 1 ? 'month' : 'months'}: ${ext.changes
@@ -214,7 +214,7 @@ function Details({ c, kind, extension, onAdd }: { c: TailChoices; kind: Proposal
 
 /** Today's plan beside the plan with the changes: exposure, spend, all-in, and the tails whose action changes. */
 function Difference({ result }: { result: WhatIfResult }) {
-  if (result.applied === 0) return <p className="mt-2 text-xs text-slate-500">Nothing applied: today's plan stands.</p>;
+  if (result.applied === 0) return <p className="mt-3 text-label text-slate-500">Nothing applied: today's plan stands.</p>;
   // Your own actions are listed above, with what each replaces; below, the tails that change as a result — a moved return date's included.
   const knockOn = result.changed.filter((x) => !result.scenario.byTail[x.tail]?.proposed);
   const rows = [
@@ -223,34 +223,34 @@ function Difference({ result }: { result: WhatIfResult }) {
     { label: 'All-in, with downtime', d: result.allIn },
   ];
   return (
-    <div className="mt-2">
-      <table className="w-full text-[13px] tabular-nums">
-        <thead className="text-[10.5px] text-slate-500 uppercase">
-          <tr>
-            <th className="py-1 text-left font-medium">Against today's plan</th>
-            <th className="py-1 text-right font-medium">Today</th>
-            <th className="py-1 text-right font-medium">With yours</th>
-            <th className="py-1 text-right font-medium">Change</th>
+    <div className="mt-6">
+      <table className="w-full tabular-nums">
+        <thead className="caps">
+          <tr className="border-b border-slate-200">
+            <th className="pb-2 text-left font-medium">Against today's plan</th>
+            <th className="pb-2 text-right font-medium">Today</th>
+            <th className="pb-2 text-right font-medium">With yours</th>
+            <th className="pb-2 text-right font-medium">Change</th>
           </tr>
         </thead>
         <tbody>
           {rows.map(({ label, d }) => (
-            <tr key={label} className="border-t border-violet-100">
-              <td className="py-1">{label}</td>
-              <td className="py-1 text-right text-slate-500">{money(d.before)}</td>
-              <td className="py-1 text-right">{money(d.after)}</td>
-              <td className={`py-1 text-right font-medium ${d.change > 0.5 ? 'text-red-800' : d.change < -0.5 ? 'text-emerald-800' : 'text-slate-500'}`}>{signed(d.change)}</td>
+            <tr key={label} className="border-t border-slate-100 first:border-t-0">
+              <td className="py-2">{label}</td>
+              <td className="py-2 text-right text-slate-500">{money(d.before)}</td>
+              <td className="py-2 text-right">{money(d.after)}</td>
+              <td className={`py-2 text-right ${Math.abs(d.change) > 0.5 ? 'font-medium' : 'text-slate-500'}`}>{signed(d.change)}</td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div className="mt-2 text-xs text-slate-500">
+      <div className="mt-3 text-label text-slate-500">
         {knockOn.length === 0 ? 'No other tail changes its action.' : `${knockOn.length} ${knockOn.length === 1 ? 'tail changes its' : 'tails change their'} action as a result:`}
       </div>
-      <ul className="space-y-0.5 text-[13px]">
+      <ul className="mt-1 space-y-1">
         {knockOn.map((x) => (
           <li key={x.tail}>
-            <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.from}</span> → <span className="text-violet-800">{x.to}</span>
+            <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.from}</span> → <span className="font-medium">{x.to}</span>
           </li>
         ))}
       </ul>

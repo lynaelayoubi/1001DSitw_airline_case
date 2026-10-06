@@ -14,6 +14,10 @@ export function money(n: number, opts: { compact?: boolean } = {}): string {
 
 export const int = (n: number): string => Math.round(n).toLocaleString('en-GB');
 
+const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+/** A count as a word in running text — "these ten" — and as figures past twelve. */
+export const count = (n: number): string => WORDS[n] ?? int(n);
+
 /** A rate per unit, to the cent: a lease's compensation rate as written. */
 export const perUnit = (n: number): string => '$' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 

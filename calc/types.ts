@@ -47,7 +47,7 @@ export interface Lessor {
   id: string;
   name: string;
   architecture: LeaseArchitecture;
-  /** compensationRate = reserveRate × negotiationMultiplier. ASSUMPTIONS §7. Range 1.0–1.5. */
+  /** Held at 1.0: the compensation rate is the lease's own reserve rate, which already carries the lessor's margin. ASSUMPTIONS §7. */
   negotiationMultiplier: number;
   /** The clause in this lessor's lease template that defines a qualified maintenance event. */
   qmeClauseRef: string;
@@ -141,7 +141,7 @@ export interface ReturnCondition {
   threshold: number;
   /** FH, FC, months, APU-FH. */
   unit: 'FH' | 'FC' | 'months' | 'APU-FH';
-  /** USD per unit of shortfall. Derived: reserveRate × negotiationMultiplier. ASSUMPTIONS §7. */
+  /** USD per unit of shortfall: the lease's own reserve rate for the item. ASSUMPTIONS §7. */
   compensationRate: number;
   /** How compensationRate was derived — the arithmetic, as a string. */
   rateTrace: string;
@@ -158,6 +158,7 @@ export interface Assumptions {
   /** Per tail. */
   leaseExtensionMonths: Record<string, number>;
   shopSlotLeadTimeMonths: number;
+  /** Whether over-delivery bought at past shop visits counts in exposure. Off at rest: it is sunk (ASSUMPTIONS §8). */
   countOverDeliveryAsLoss: boolean;
   reservesReclaimPct: number;
   /** Lost contribution per aircraft day out of service, by body class. ASSUMPTIONS §13. */

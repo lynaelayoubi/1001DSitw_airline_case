@@ -44,65 +44,65 @@ export function LeaseView({
 
   const l = lease.lessor;
   const arch = ARCHITECTURE[l.architecture];
-  const ring = (a: string) => (a === anchor ? 'ring-2 ring-violet-300' : '');
+  const ring = (a: string) => (a === anchor ? 'ring-2 ring-accent/40' : '');
   const kinds = [...new Set(lease.conditions.map((rc) => rc.componentKind))];
   const term = (a: string, title: string, ref: string, text: string, extra?: string) => (
-    <section data-anchor={a} className={`scroll-mt-4 rounded-md border border-slate-200 px-3 py-2 ${ring(a)}`}>
-      <div className="text-sm font-semibold">
+    <section data-anchor={a} className={`scroll-mt-6 rounded-lg border border-slate-200 px-4 py-3 ${ring(a)}`}>
+      <div className="font-semibold">
         {title} <span className="font-normal text-slate-500">· {ref}</span>
       </div>
-      {extra && <div className="mt-0.5 text-xs text-slate-600">{extra}</div>}
-      <blockquote className="mt-1 border-l-2 border-slate-200 pl-3 text-[13px] leading-relaxed text-slate-700">{text}</blockquote>
+      {extra && <div className="mt-1 text-label text-slate-500">{extra}</div>}
+      <blockquote className="mt-2 border-l-2 border-slate-200 pl-3 text-slate-700">{text}</blockquote>
     </section>
   );
 
   return (
     <>
       <div className="fixed inset-0 z-30 bg-slate-900/20" onClick={onClose} aria-hidden />
-      <aside ref={panel} role="dialog" aria-label={`Lease for ${lease.tail}`} className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl overflow-y-auto bg-white px-5 py-4 shadow-2xl">
+      <aside ref={panel} role="dialog" aria-label={`Lease for ${lease.tail}`} className="fixed inset-y-0 right-0 z-40 w-full max-w-2xl overflow-y-auto bg-white px-6 py-6 shadow-2xl">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-[11px] font-medium tracking-wide text-slate-500 uppercase">Lease</div>
-            <h2 className="text-lg font-semibold">
+            <div className="caps">Lease</div>
+            <h2 className="mt-1 font-semibold">
               {lease.tail} · {lease.type} · {l.name}
             </h2>
-            <div className="text-sm text-slate-600">
+            <div className="text-slate-500">
               {date(lease.leaseStart)} to {date(lease.leaseEnd)}
             </div>
           </div>
-          <button className="rounded px-2 py-1 text-slate-500 hover:bg-slate-100" onClick={onClose} aria-label="Close">
+          <button className="rounded-md px-2 py-1 text-slate-500 hover:bg-slate-100" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
 
-        <section className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm">
+        <section className="mt-6 rounded-lg bg-slate-50 px-4 py-3">
           <span className="font-semibold">{arch.label}.</span> <span className="text-slate-700">{arch.means}</span>
         </section>
 
-        <h3 className="mt-5 mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Return conditions</h3>
-        <div className="space-y-4">
+        <h3 className="caps mt-12 mb-3">Return conditions</h3>
+        <div className="space-y-6">
           {kinds.map((k) => (
             <div key={k}>
-              <div className="mb-1 text-sm font-semibold">{kindLabel[k]}</div>
-              <div className="space-y-2">
+              <div className="mb-2 font-semibold">{kindLabel[k]}</div>
+              <div className="space-y-3">
                 {lease.conditions
                   .filter((rc) => rc.componentKind === k)
                   .map((rc) => (
-                    <section key={rc.id} data-anchor={conditionAnchor(rc)} className={`scroll-mt-4 rounded-md border border-slate-200 px-3 py-2 ${ring(conditionAnchor(rc))}`}>
+                    <section key={rc.id} data-anchor={conditionAnchor(rc)} className={`scroll-mt-6 rounded-lg border border-slate-200 px-4 py-3 ${ring(conditionAnchor(rc))}`}>
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <span className="text-sm font-semibold">{rc.clauseRef}</span>
-                        <span className="text-xs text-slate-600 tabular-nums">
+                        <span className="font-semibold">{rc.clauseRef}</span>
+                        <span className="text-label text-slate-500 tabular-nums">
                           at handback ≥ {int(rc.threshold)} {rc.unit === 'months' ? 'months' : rc.unit}
                           {rc.metric.startsWith('llp') ? ' of LLP life' : ''} · {perUnit(rc.compensationRate)} per {rc.unit === 'months' ? 'month' : rc.unit} short
                         </span>
                       </div>
-                      <blockquote className="mt-1 border-l-2 border-slate-200 pl-3 text-[13px] leading-relaxed text-slate-700">{rc.clauseText}</blockquote>
-                      <div className="mt-1 text-xs text-slate-500">
+                      <blockquote className="mt-2 border-l-2 border-slate-200 pl-3 text-slate-700">{rc.clauseText}</blockquote>
+                      <div className="mt-2 text-label text-slate-500">
                         Applies to{' '}
                         {rc.drives.map((d, i) => (
                           <span key={d.componentId}>
                             {i > 0 && ', '}
-                            <button className="text-violet-800 underline decoration-dotted underline-offset-2" onClick={() => onGoToRow(d.componentId, rc.id)}>
+                            <button className="link" onClick={() => onGoToRow(d.componentId, rc.id)}>
                               show {d.position}'s row
                             </button>
                           </span>
@@ -115,8 +115,8 @@ export function LeaseView({
           ))}
         </div>
 
-        <h3 className="mt-5 mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Lease terms applied</h3>
-        <div className="space-y-2">
+        <h3 className="caps mt-12 mb-3">Lease terms applied</h3>
+        <div className="space-y-3">
           {term('qme', 'Qualified maintenance event', l.qmeClauseRef, l.qmeClauseText)}
           {term('replacement', 'Replacement engines and parts', l.replacementClauseRef, l.replacementClauseText)}
           {term('notice', 'Notice of engine removal', l.noticeClauseRef, l.noticeClauseText, `${l.engineRemovalNoticeDays} days`)}

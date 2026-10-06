@@ -13,7 +13,7 @@ export function Working({ tail, text }: { tail: string; text: string }) {
   return (
     <div>
       <button
-        className="text-xs text-slate-500 underline decoration-dotted underline-offset-2 hover:text-slate-800"
+        className="link text-label"
         aria-expanded={open}
         onClick={(e) => {
           e.stopPropagation();
@@ -23,7 +23,7 @@ export function Working({ tail, text }: { tail: string; text: string }) {
         {open ? 'Hide the calculation' : 'Show the calculation'}
       </button>
       {open && (
-        <div className="mt-1 border-l-2 border-slate-200 pl-3 text-xs leading-relaxed whitespace-pre-wrap text-slate-600 normal-case">
+        <div className="mt-2 border-l-2 border-slate-200 pl-3 text-label whitespace-pre-wrap text-slate-500 normal-case">
           <ClauseText tail={tail} text={text} />
         </div>
       )}

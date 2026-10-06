@@ -31,29 +31,33 @@ export function WhatThisAssumes({
   const moving = robustness?.changing.length ?? 0;
   const overridden = ASSUMPTION_INPUTS.filter((i) => readInput(assumptions, i.id) !== readInput(DEFAULT_ASSUMPTIONS, i.id)).length;
   return (
-    <details className="mb-2 rounded-lg border border-slate-200 bg-white">
-      <summary className="cursor-pointer px-4 py-2 text-sm text-slate-700">
-        Assumptions behind these numbers —{' '}
-        {robustness ? (
-          <span className={pending ? 'opacity-60' : ''}>
-            {moving} of {ASSUMPTION_INPUTS.length} {moving === 1 ? 'moves' : 'move'} an answer
-          </span>
-        ) : (
-          <span className="text-slate-500">checking which move an answer…</span>
-        )}
-        {overridden > 0 && <span className="ml-2 font-medium text-violet-800">· {overridden} overridden</span>}
+    <details className="mt-12">
+      <summary className="cursor-pointer">
+        <span className="caps">Assumptions behind these numbers</span>
+        <span className="text-label text-slate-500">
+          {' '}
+          —{' '}
+          {robustness ? (
+            <span className={pending ? 'opacity-60' : ''}>
+              {moving} of {ASSUMPTION_INPUTS.length} {moving === 1 ? 'moves' : 'move'} an answer
+            </span>
+          ) : (
+            <span>checking which move an answer…</span>
+          )}
+          {overridden > 0 && <span className="ml-2 font-medium text-slate-900">· {overridden} overridden</span>}
+        </span>
       </summary>
-      <table className="w-full text-[13px]">
-        <thead className="bg-slate-50 text-[10.5px] font-medium tracking-wide text-slate-500 uppercase">
-          <tr>
-            <th className="px-3 py-2 text-left font-medium">Assumption</th>
-            <th className="px-3 py-2 text-left font-medium">Value used</th>
-            <th className="px-3 py-2 text-left font-medium">Evidenced range</th>
-            <th className="px-3 py-2 text-left font-medium">Real number from</th>
-            <th className="px-3 py-2 text-left font-medium" title="Whether moving it anywhere in its evidenced range changes any tail's recommendation.">
+      <table className="mt-3 w-full">
+        <thead className="caps">
+          <tr className="border-b border-slate-200">
+            <th className="pr-3 pb-3 text-left font-medium">Assumption</th>
+            <th className="px-3 pb-3 text-left font-medium">Value used</th>
+            <th className="px-3 pb-3 text-left font-medium">Evidenced range</th>
+            <th className="px-3 pb-3 text-left font-medium">Real number from</th>
+            <th className="px-3 pb-3 text-left font-medium" title="Whether moving it anywhere in its evidenced range changes any tail's recommendation.">
               Changes an answer
             </th>
-            <th className="px-3 py-2 text-left font-medium">Override</th>
+            <th className="pb-3 pl-3 text-left font-medium">Override</th>
           </tr>
         </thead>
         <tbody>
@@ -62,29 +66,29 @@ export function WhatThisAssumes({
             const stated = readInput(DEFAULT_ASSUMPTIONS, input.id);
             const set = (v: number) => onChange(writeInput(assumptions, input.id, v));
             return (
-              <tr key={input.id} className="border-t border-slate-100 align-top">
-                <td className="px-3 py-2 font-medium">{input.label}</td>
-                <td className="px-3 py-2 whitespace-nowrap tabular-nums">
+              <tr key={input.id} className="border-t border-slate-100 align-baseline first:border-t-0">
+                <td className="py-3 pr-3 font-medium">{input.label}</td>
+                <td className="px-3 py-3 whitespace-nowrap tabular-nums">
                   {value === stated ? (
                     inputValue(input, value)
                   ) : (
                     <>
-                      <span className="font-medium text-violet-800">{inputValue(input, value)}</span>
-                      <span className="block text-xs text-slate-500">stated {inputValue(input, stated)}</span>
+                      <span className="font-medium">{inputValue(input, value)}</span>
+                      <span className="block text-label text-slate-500">stated {inputValue(input, stated)}</span>
                     </>
                   )}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap tabular-nums">
+                <td className="px-3 py-3 whitespace-nowrap tabular-nums">
                   {inputValue(input, input.range.min)} to {inputValue(input, input.range.max)}
                 </td>
-                <td className="px-3 py-2 text-slate-600">{input.source}</td>
-                <td className={`px-3 py-2 whitespace-nowrap ${pending ? 'opacity-60' : ''}`}>
-                  {!robustness ? <span className="text-slate-400">checking…</span> : changing.has(input.id) ? <span className="font-medium text-violet-800">Yes</span> : <span className="text-slate-500">No</span>}
+                <td className="px-3 py-3 text-slate-500">{input.source}</td>
+                <td className={`px-3 py-3 whitespace-nowrap ${pending ? 'opacity-60' : ''}`}>
+                  {!robustness ? <span className="text-slate-400">checking…</span> : changing.has(input.id) ? <span className="font-medium">Yes</span> : <span className="text-slate-500">No</span>}
                 </td>
-                <td className="px-3 py-2 whitespace-nowrap">
+                <td className="py-3 pl-3 whitespace-nowrap">
                   <Override input={input} value={value} stated={stated} onChange={set} />
                   {value !== stated && (
-                    <button className="ml-2 text-xs text-violet-800 underline" onClick={() => set(stated)}>
+                    <button className="link ml-2 text-label" onClick={() => set(stated)}>
                       reset to {inputValue(input, stated)}
                     </button>
                   )}
@@ -116,9 +120,9 @@ function Override({ input, value, stated, onChange }: { input: AssumptionInput; 
   const inRange = (v: number) => Math.min(input.range.max, Math.max(input.range.min, v));
   return (
     <label className="inline-flex items-center gap-1">
-      {prefix && <span className="text-xs text-slate-500">{prefix}</span>}
+      {prefix && <span className="text-label text-slate-500">{prefix}</span>}
       <input
-        className="w-24 rounded border border-slate-300 px-1.5 py-0.5 text-right tabular-nums"
+        className="w-24 rounded-md border border-slate-200 px-2 py-1 text-right tabular-nums"
         type="number"
         step={step}
         min={toField(input.range.min)}
@@ -133,7 +137,7 @@ function Override({ input, value, stated, onChange }: { input: AssumptionInput; 
         }}
         onBlur={() => setTyping(null)}
       />
-      {suffix && <span className="text-xs text-slate-500">{suffix}</span>}
+      {suffix && <span className="text-label text-slate-500">{suffix}</span>}
     </label>
   );
 }

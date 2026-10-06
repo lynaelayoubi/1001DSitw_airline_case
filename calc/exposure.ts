@@ -328,7 +328,7 @@ export function assessComponent(
     : '';
   const trace =
     `${c.position} (${c.serial}, ${c.qmeStatus}), ${basis}: ${bindingNote}${llpNote}${capNote} ` +
-    `Compensation ${usd(compensation)}, over-delivery ${usd(overDelivery)}${a.countOverDeliveryAsLoss ? '' : ' (not counted as a loss in this scenario)'} → exposure ${usd(exposure)}.`;
+    `Compensation ${usd(compensation)}, over-delivery ${usd(overDelivery)}${a.countOverDeliveryAsLoss ? '' : ' (bought at past shop visits: sunk, so not counted)'} → exposure ${usd(exposure)}.`;
   return {
     componentId: c.id,
     serial: c.serial,
@@ -403,7 +403,7 @@ function assessTailOnBasis(
   const exposure = components.reduce((s, c) => s + c.exposure, 0);
   const trace =
     `${ac.tail} ${basis}: ${KINDS.map((k) => `${k} ${usd(byKind[k].exposure)}`).join(', ')} = ${usd(exposure)} ` +
-    `(${usd(compensation)} compensation + ${usd(overDelivery)} over-delivery${a.countOverDeliveryAsLoss ? '' : ', the latter not counted'}).`;
+    `(${usd(compensation)} compensation + ${usd(overDelivery)} over-delivery${a.countOverDeliveryAsLoss ? '' : ', the latter sunk and not counted'}).`;
   return { basis, components, byKind, compensation, overDelivery, exposure, trace };
 }
 
@@ -556,7 +556,7 @@ export function assessFleet(data: Pick<Dataset, 'asOf' | 'aircraft' | 'returnCon
   const totals = totalsOf(returning);
   const trace =
     `${returning.length} tails returning; as of ${data.asOf}. Exposure if nothing changes ${usd(totals.doNothing)} ` +
-    `(${usd(totals.compensation)} compensation + ${usd(totals.overDelivery)} over-delivery${a.countOverDeliveryAsLoss ? '' : ', not counted'}); ` +
+    `(${usd(totals.compensation)} compensation + ${usd(totals.overDelivery)} over-delivery${a.countOverDeliveryAsLoss ? '' : ', sunk and not counted'}); ` +
     `as the lease allows ${usd(totals.asLeaseAllows)}; QME delta ${usd(totals.qmeDelta)} on ${totals.qmeTails} tails. ` +
     `By component: ${KINDS.map((k) => `${k} ${usd(totals.byKind[k].exposure)}`).join(', ')}.`;
   return { asOf: data.asOf, assumptions: a, tails, returning, totals, trace };

@@ -28,7 +28,7 @@ export function ClauseText({ tail, text }: { tail: string; text: string }) {
     parts.push(
       <button
         key={parts.length}
-        className="text-violet-800 underline decoration-dotted underline-offset-2 hover:decoration-solid"
+        className="link"
         title="Open the lease at this clause."
         onClick={(e) => {
           e.stopPropagation();

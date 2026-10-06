@@ -166,8 +166,13 @@ export const OTHER_RESERVE_RATES = {
 // §7 Return-condition thresholds and the compensation rate.
 // ---------------------------------------------------------------------------------------
 
-/** No published tariff exists; the rate is derived. Default 1.25, range 1.0–1.5, per lessor. */
-export const NEGOTIATION_MULTIPLIER = { default: 1.25, min: 1.0, max: 1.5 } as const;
+/**
+ * Held at 1.0: the compensation rate is the lease's own reserve rate, which already carries the
+ * lessor's margin over accrual (RESERVE_MARKUP_OVER_ACCRUAL); multiplying again would count it twice.
+ * min and max are only the range the generator still draws from and discards, so that every later
+ * draw is unchanged. ASSUMPTIONS §7.
+ */
+export const NEGOTIATION_MULTIPLIER = { default: 1.0, min: 1.0, max: 1.5 } as const;
 
 /**
  * The executed lease's remedy is indemnity "at commercial rates then charged" by the lessor's
@@ -605,13 +610,17 @@ export function costEstimateQuality() {
  */
 export const COST_ESTIMATE_UNCERTAINTY = costEstimateQuality().uncertainty;
 
-/** The scenario panel at rest: every multiplier at 1, no extensions, over-delivery counted. */
+/**
+ * The scenario panel at rest: every multiplier at 1, no extensions. Over-delivery bought at past shop
+ * visits is not counted: it is sunk, so it is reported on its own line rather than in forward-looking
+ * money (ASSUMPTIONS §8). A spare's life handed over still counts — that life leaves going forward.
+ */
 export const DEFAULT_ASSUMPTIONS: Assumptions = {
   maintenanceCostMultiplier: 1,
   utilisationMultiplier: 1,
   leaseExtensionMonths: {},
   shopSlotLeadTimeMonths: SHOP_SLOT_LEAD_TIME_MONTHS.default,
-  countOverDeliveryAsLoss: true,
+  countOverDeliveryAsLoss: false,
   /** Share of a reserve balance reclaimable against qualifying work, credited by levers 1 and 4. Must be negotiated, not assumed (CLAUDE.md); 1.0 is the lessee-favourable case until the scenario panel exposes it. */
   reservesReclaimPct: 1,
   downtimeCostPerDay: DOWNTIME_COST_PER_DAY,

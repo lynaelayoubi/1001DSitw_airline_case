@@ -173,16 +173,21 @@ const NOTICE_CLAUSE = {
 };
 
 function makeLessors(): Lessor[] {
-  return LESSOR_NAMES.map((name, i) => ({
-    id: 'L' + String(i + 1).padStart(2, '0'),
-    name,
-    architecture: (i % 2 === 0 ? 'reserve' : 'no-reserve') as LeaseArchitecture,
-    negotiationMultiplier: Math.round(roundTo(between(NEGOTIATION_MULTIPLIER.min, NEGOTIATION_MULTIPLIER.max), 0.05) * 100) / 100,
-    qmeClauseRef: '',
-    qmeClauseText: '',
-    ...REPLACEMENT_CLAUSE,
-    ...NOTICE_CLAUSE,
-  }));
+  return LESSOR_NAMES.map((name, i) => {
+    // The multiplier is held at 1.0 (ASSUMPTIONS §7). The draw that used to set it is still made, so
+    // every draw after it — and the rest of the dataset — is unchanged.
+    between(NEGOTIATION_MULTIPLIER.min, NEGOTIATION_MULTIPLIER.max);
+    return {
+      id: 'L' + String(i + 1).padStart(2, '0'),
+      name,
+      architecture: (i % 2 === 0 ? 'reserve' : 'no-reserve') as LeaseArchitecture,
+      negotiationMultiplier: NEGOTIATION_MULTIPLIER.default,
+      qmeClauseRef: '',
+      qmeClauseText: '',
+      ...REPLACEMENT_CLAUSE,
+      ...NOTICE_CLAUSE,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------------------
@@ -638,7 +643,6 @@ function settlementText(arch: LeaseArchitecture): string {
 
 function makeReturnConditions(ac: Aircraft, lessor: Lessor, tpl: LeaseTemplate): ReturnCondition[] {
   const arch = lessor.architecture;
-  const neg = lessor.negotiationMultiplier;
   const fhFc = ac.hoursPerMonth / ac.cyclesPerMonth;
   const eng1 = ac.components.find((c) => c.position === 'ENG1')!;
   const jitter = between(0.9, 1.2);
@@ -687,29 +691,29 @@ function makeReturnConditions(ac: Aircraft, lessor: Lessor, tpl: LeaseTemplate):
   const checkName = AIRFRAME[ac.type].checks[0]!.name;
 
   return [
-    row('engine', 'hoursRemaining', engHours, 'FH', compensationRate(prRate, neg, 'FH'), '4.1(a)',
+    row('engine', 'hoursRemaining', engHours, 'FH', compensationRate(prRate, 'FH'), '4.1(a)',
       `At Redelivery each Engine shall have not less than ${engHours.toLocaleString('en-US')} Flight Hours remaining until the next ` +
       `scheduled Performance Restoration Shop Visit, calculated by reference to the Manufacturer's recommended removal interval at the ` +
       `Titled Thrust Rating and the Engine's operating environment. ${settle}`),
-    row('engine', 'cyclesRemaining', engCycles, 'FC', compensationRate(prRatePerFC, neg, 'FC'), '4.1(b)',
+    row('engine', 'cyclesRemaining', engCycles, 'FC', compensationRate(prRatePerFC, 'FC'), '4.1(b)',
       `At Redelivery each Engine shall have not less than ${engCycles.toLocaleString('en-US')} Flight Cycles remaining until the next ` +
       `scheduled Performance Restoration Shop Visit. Where both the Flight Hour and Flight Cycle conditions of this paragraph 4.1 ` +
       `are not met, the greater of the two amounts shall be payable. ${settle}`),
-    row('engine', 'llpCyclesRemaining', llp, 'FC', compensationRate(llpReservePerFC(ac.engineModel), neg, 'FC'), '4.2(b)',
+    row('engine', 'llpCyclesRemaining', llp, 'FC', compensationRate(llpReservePerFC(ac.engineModel), 'FC'), '4.2(b)',
       `Each Life Limited Part installed in each Engine shall have not less than ${llp.toLocaleString('en-US')} Flight Cycles remaining ` +
       `to its life limit as specified in Chapter 5 (Airworthiness Limitations) of the Engine Manual at the Titled Thrust Rating. ` +
       `Compensation for any shortfall shall be calculated pro rata by reference to the Manufacturer's then-current catalogue list ` +
       `price for the relevant part divided by its total certified life. ${settle}`),
-    row('landing-gear', 'monthsRemaining', gearMonths, 'months', compensationRate(gear.perMonth, neg, 'month'), '5.1',
+    row('landing-gear', 'monthsRemaining', gearMonths, 'months', compensationRate(gear.perMonth, 'month'), '5.1',
       `The Landing Gear shall have not less than ${gearMonths} months remaining to the next scheduled overhaul under the Maintenance ` +
       `Programme, measured from the Redelivery Date. ${settle}`),
-    row('landing-gear', 'cyclesRemaining', gearCycles, 'FC', compensationRate(gear.perFC, neg, 'FC'), '5.2',
+    row('landing-gear', 'cyclesRemaining', gearCycles, 'FC', compensationRate(gear.perFC, 'FC'), '5.2',
       `The Landing Gear shall have not less than ${gearCycles.toLocaleString('en-US')} Flight Cycles remaining to the next scheduled ` +
       `overhaul, whichever of the calendar and cycle limits of paragraphs 5.1 and 5.2 is the more restrictive to apply. ${settle}`),
-    row('airframe', 'monthsRemaining', afMonths, 'months', compensationRate(af, neg, 'month'), '3.2',
+    row('airframe', 'monthsRemaining', afMonths, 'months', compensationRate(af, 'month'), '3.2',
       `The Airframe shall be fresh from, or have not less than ${afMonths} months remaining to, the next ${checkName} structural ` +
       `inspection under the Maintenance Programme, with all deferred items cleared. ${settle}`),
-    row('apu', 'hoursRemaining', apuHours, 'APU-FH', compensationRate(apu, neg, 'APU-FH'), '6.1',
+    row('apu', 'hoursRemaining', apuHours, 'APU-FH', compensationRate(apu, 'APU-FH'), '6.1',
       `The APU shall have not less than ${apuHours.toLocaleString('en-US')} APU Hours remaining to the next scheduled performance ` +
       `restoration, as determined by the APU Manufacturer's recommended interval and the APU hour meter. ${settle}`),
   ];
@@ -848,4 +852,4 @@ for (const a of returning.sort((x, y) => x.leaseEnd.localeCompare(y.leaseEnd))) 
 }
 console.log(`Pool: ${dataset.pool.length} (${dataset.pool.map((c) => c.kind + ':' + c.model).join(', ')})`);
 console.log(`Return conditions: ${dataset.returnConditions.length}`);
-console.log(`Lessors: ${dataset.lessors.map((l) => `${l.name} [${l.architecture}, ×${l.negotiationMultiplier}]`).join('; ')}`);
+console.log(`Lessors: ${dataset.lessors.map((l) => `${l.name} [${l.architecture}]`).join('; ')}`);

@@ -122,6 +122,8 @@ export interface LeverOption {
    */
   spend: number;
   spendDate: ISODate | null;
+  /** Reserves reclaimed against the work, which spend is already net of; absent where none are. */
+  reservesReclaimed?: number;
   /** cost + downtimeCost + newExposure — SPEC §2.7's totalCost. */
   total: number;
   /** Exposure if nothing changes, less total. */
@@ -132,6 +134,8 @@ export interface LeverOption {
   trace: string;
   /** The component acted on, where there is one. */
   position?: string;
+  /** The position whose own unit comes off into the pool for good — kept by the airline, its life with it. */
+  toPool?: string;
   /** The physical action, so two levers reaching the same one are ranked once. */
   actionKey: string;
   move?: SwapDetail;
@@ -291,7 +295,7 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
     actionKey: 'pay',
     trace:
       `Pay at handback: no maintenance and no downtime. The lease takes ${usd(r.compensation)} in compensation and ` +
-      `${usd(r.overDelivery)} of life goes back over the thresholds${ctx.a.countOverDeliveryAsLoss ? '' : ' (not counted in this scenario)'} → ${usd(r.exposure)}.` +
+      `${usd(r.overDelivery)} of life goes back over the thresholds${ctx.a.countOverDeliveryAsLoss ? '' : ' (bought at past shop visits: sunk, so not counted)'} → ${usd(r.exposure)}.` +
       (timedOut.length
         ? ` Caution: ${timedOut.join('; ')}, before handback at month ${num(p.monthsToReturn, 1)}. It will have to come off; this figure is the ` +
           `lease's price for the shortfall, capped at the shop visit that would put it right, not the cost of the required removal.`
@@ -341,8 +345,7 @@ function visitMonths(ctx: LeverContext): number[] {
 
 /**
  * Supplemental rent held by the lessor against this component, reclaimable against the work.
- * The rate is the lease's own: the clause's compensation rate ÷ the lessor's negotiation
- * multiplier. The balance runs from the last event the lease recognises — a visit not
+ * The rate is the lease's own reserve rate, which is the clause's compensation rate. The balance runs from the last event the lease recognises — a visit not
  * evidenced as a QME was never reimbursed — capped at what the lease period could have
  * accrued, and no more than the qualifying work costs. Whether an unclaimed balance comes back
  * at lease end is negotiated, not assumed (CLAUDE.md): reservesReclaimPct is that negotiation.
@@ -352,12 +355,11 @@ function reservesAt(ctx: LeverContext, i: number, month: number, restoration: nu
   if (lessor.architecture !== 'reserve') return { amount: 0, trace: 'no-reserve lease, so no balance to reclaim' };
   const p = baseline.projection;
   const c = ac.components[i]!;
-  const neg = lessor.negotiationMultiplier;
   const pct = a.reservesReclaimPct;
   const leaseMonths = Math.max(0, monthsBetween(ac.leaseStart, p.asOf));
   const rateOf = (kind: ComponentKind, metric: ReturnCondition['metric']) => {
     const rc = conditions.find((x) => x.componentKind === kind && x.metric === metric);
-    return rc ? rc.compensationRate / neg : 0;
+    return rc ? rc.compensationRate : 0;
   };
   const claim = (label: string, rate: number, unit: string, history: number, cap: number, future: number, against: number) => {
     const used = Math.min(history, cap) + future;
@@ -378,7 +380,7 @@ function reservesAt(ctx: LeverContext, i: number, month: number, restoration: nu
   const amount = held * pct;
   return {
     amount,
-    trace: `rate = clause rate ÷ negotiation ${neg.toFixed(2)}; ${parts.map((x) => x.trace).join('; ')}; × ${num(pct * 100)}% reclaimable`,
+    trace: `at the lease's reserve rates: ${parts.map((x) => x.trace).join('; ')}; × ${num(pct * 100)}% reclaimable`,
   };
 }
 
@@ -565,6 +567,7 @@ export function doTheWork(ctx: LeverContext): LeverOption {
     newExposure: v.newExposure,
     newCompensation: v.newCompensation,
     spend: v.cost,
+    reservesReclaimed: v.reserves,
     spendDate: v.date,
     feasible: true,
     deadline,
@@ -644,6 +647,7 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     newExposure: v.newExposure,
     newCompensation: v.newCompensation,
     spend: v.cost,
+    reservesReclaimed: v.reserves,
     spendDate: v.date,
     feasible: true,
     deadline,
@@ -751,11 +755,25 @@ function routeOption(ctx: LeverContext, r: RouteRun): LeverOption {
  * thresholds leaves the airline because of the swap — not only the part a past visit did not
  * need to buy. It is priced at a build-for-interval visit's rates, which is what makes
  * tightness of fit cost money. A unit swapped between two returning tails is handed to a lessor
- * either way, so it stays on the over-delivery rule on both tails. Returns the spare's exposure
- * on this tail: its compensation plus that life.
+ * either way, so it stays on the over-delivery rule on both tails. The spare's life leaves going
+ * forward, so it counts even though over-delivery bought at past shop visits does not. Returns the
+ * spare's exposure on this tail: its compensation plus that life.
  */
 function spareExposure(ac: Aircraft, unit: Component, result: ComponentResult, conditions: ReturnCondition[], a: Assumptions) {
-  if (!a.countOverDeliveryAsLoss) return { exposure: result.compensation, trace: '' };
+  const life = lifeAboveThresholds(ac, unit, result, conditions, a);
+  return {
+    exposure: result.compensation + life.amount,
+    trace: life.amount ? `${unit.serial} is a spare, so all its life above the thresholds leaves the airline with it, priced at a build-for-interval visit's rates: ${life.trace}` : '',
+  };
+}
+
+/**
+ * The life a unit carries above this tail's thresholds at handback — the binding clock and LLPs —
+ * priced at a build-for-interval visit's rates. What an engine costs when it leaves the airline
+ * (back with the aircraft, or on for good as a spare), and what one earns back when it comes off
+ * into the pool: one valuation for both, so life is counted the same way in every option.
+ */
+export function lifeAboveThresholds(ac: Aircraft, unit: Component, result: ComponentResult, conditions: ReturnCondition[], a: Assumptions): { amount: number; trace: string } {
   const priced: Component = { ...unit, shopVisitCount: Math.max(1, unit.shopVisitCount), lastWorkscope: 'build-for-interval' };
   const parts = result.requirements
     .filter((r) => r.surplusUnits > 0 && (r.requirementId === result.binding.requirementId || r.group === 'llp'))
@@ -764,13 +782,7 @@ function spareExposure(ac: Aircraft, unit: Component, result: ComponentResult, c
       return { r, rate, amount: r.surplusUnits * rate };
     });
   const amount = parts.reduce((s, x) => s + x.amount, 0);
-  return {
-    exposure: result.compensation + amount,
-    trace: amount
-      ? `${unit.serial} is a spare, so all its life above the thresholds leaves the airline with it, priced at a build-for-interval visit's rates: ` +
-        `${parts.map((x) => `${num(x.r.surplusUnits)} ${x.r.unit} × ${usd2(x.rate)}`).join(' + ')} = ${usd(amount)}`
-      : '',
-  };
+  return { amount, trace: `${parts.map((x) => `${num(x.r.surplusUnits)} ${x.r.unit} × ${usd2(x.rate)}`).join(' + ')} = ${usd(amount)}` };
 }
 
 /**
@@ -1029,6 +1041,7 @@ function swapOption(ctx: LeverContext, s: Swap, trace: string): LeverOption {
   return finish(ctx, {
     lever: 'L3',
     label: s.donor ? `Swap ${c.position} with ${s.donor.d.ac.tail}'s ${s.donor.d.ac.components[s.donor.j]!.position}` : `Swap ${c.position} for spare ${s.unit.serial}`,
+    toPool: s.donor ? undefined : c.position,
     cost: s.cost,
     downtimeDays: s.downtimeDays,
     downtimeCost: s.downtimeCost,
@@ -1158,6 +1171,7 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
     newExposure: v.newExposure,
     newCompensation: v.newCompensation,
     spend: v.cost,
+    reservesReclaimed: v.reserves,
     spendDate: v.date,
     feasible: true,
     deadline,
@@ -1237,6 +1251,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
           feasible: true,
           deadline: null,
           position: c.position,
+          toPool: c.position,
           actionKey: `late:${c.position}:swap`,
           trace: `${at}Spare ${swap.unit.serial} is free that day and the lease permits it as a replacement (${lessor.replacementClauseRef}): ${swap.trace}`,
         }),
@@ -1259,6 +1274,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
             newExposure: v.newExposure,
             newCompensation: v.newCompensation,
             spend: v.cost,
+            reservesReclaimed: v.reserves,
             spendDate: v.date,
             feasible: true,
             deadline: null,
@@ -1284,6 +1300,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
         newExposure: v.newExposure,
         newCompensation: v.newCompensation,
         spend: v.cost,
+        reservesReclaimed: v.reserves,
         spendDate: v.date,
         feasible: true,
         deadline: null,
@@ -1356,6 +1373,7 @@ export function onTheGround(ctx: LeverContext): LeverOption {
       newExposure: v.newExposure,
       newCompensation: v.newCompensation,
       spend: v.cost,
+      reservesReclaimed: v.reserves,
       spendDate: v.date,
       feasible: true,
       deadline: null,
@@ -1478,6 +1496,7 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
       newExposure: v.newExposure,
       newCompensation: v.newCompensation,
       spend: v.cost,
+      reservesReclaimed: v.reserves,
       spendDate: v.date,
       feasible: true,
       deadline,

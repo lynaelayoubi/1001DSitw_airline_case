@@ -34,24 +34,24 @@ export function RecommendedActions({
   asOf: string;
 }) {
   return (
-    <section className="mb-4 grid gap-3 lg:grid-cols-[3fr_1fr]">
-      <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-        <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Recommended actions, soonest first</h2>
+    <section className="grid gap-x-12 gap-y-12 lg:grid-cols-12">
+      <div className="lg:col-span-8">
+        <h2 className="caps mb-2">Recommended actions, soonest first</h2>
         {closing.items.length === 0 ? (
-          <p className="text-sm text-slate-500">No tail needs to act: every recommendation is to pay at handback.</p>
+          <p className="text-slate-500">No tail needs to act: every recommendation is to pay at handback.</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full">
             <tbody>
               {closing.items.map((x) => (
-                <tr key={x.tail} className={`border-t border-slate-100 align-top first:border-t-0 ${x.grounded ? 'text-amber-900' : ''}`}>
-                  <td className="py-1.5 pr-3 font-medium whitespace-nowrap">{x.tail}</td>
-                  <td className="py-1.5 pr-3">
+                <tr key={x.tail} className="align-baseline">
+                  <td className="py-2 pr-6 font-medium whitespace-nowrap">{x.tail}</td>
+                  <td className="py-2 pr-6">
                     {x.label}
                     {checks.some((c) => c.tail === x.tail) && (
-                      <div className="text-xs text-slate-600">Check before acting: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
+                      <div className="mt-1 text-label text-slate-500">Check before acting: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
                     )}
                   </td>
-                  <td className="py-1.5 pr-3 whitespace-nowrap">
+                  <td className="py-2 pr-6 whitespace-nowrap">
                     {x.grounded ? (
                       <span className="font-medium">from {date(x.grounded.from)}</span>
                     ) : x.startNow ? (
@@ -62,17 +62,17 @@ export function RecommendedActions({
                       </span>
                     )}
                   </td>
-                  <td className="py-1.5 text-right whitespace-nowrap tabular-nums">
+                  <td className="py-2 text-right whitespace-nowrap tabular-nums">
                     {x.grounded ? (
-                      <span className="rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900">
+                      <span className="rounded bg-amber-50 px-2 py-0.5 text-label font-medium text-amber-800">
                         {x.grounded.days} days on the ground · {money(x.grounded.cost)}
                       </span>
                     ) : x.saving === null ? (
-                      <span className="cursor-help rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
+                      <span className="cursor-help rounded bg-amber-50 px-2 py-0.5 text-label font-medium text-amber-800" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
                         required
                       </span>
                     ) : (
-                      <span className="font-medium text-emerald-800">saves {money(x.saving)}</span>
+                      <span>saves {money(x.saving)}</span>
                     )}
                   </td>
                 </tr>
@@ -81,12 +81,15 @@ export function RecommendedActions({
           </table>
         )}
       </div>
-      <div className={`rounded-lg border px-4 py-3 ${r.avoidable > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
-        <div className="cursor-help text-[11px] font-medium tracking-wide text-slate-500 uppercase" title="If nothing changes, less after recommendations.">
+      <div className="lg:col-span-4">
+        <div className="caps cursor-help" title="If nothing changes, less after recommendations.">
           What acting now saves
         </div>
-        <div className={`mt-1 text-2xl font-semibold tabular-nums ${r.avoidable > 0 ? 'text-emerald-800' : 'text-slate-900'}`}>{money(r.avoidable)}</div>
-        <div className="mt-1 text-xs text-slate-600">
+        <div className={`mt-2 text-display font-semibold tabular-nums ${r.avoidable > 0 ? 'text-accent' : ''}`}>{money(r.avoidable)}</div>
+        <div className="mt-1 text-label text-slate-500">
+          {money(r.avoidableCash)} less cash to lessors · {money(r.avoidableLife)} of engine life kept
+        </div>
+        <div className="mt-1 text-label text-slate-500">
           {money(r.avoidableChosen)} optional · {money(r.avoidableForced)} required
         </div>
       </div>

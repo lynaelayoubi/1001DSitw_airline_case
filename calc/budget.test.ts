@@ -46,6 +46,19 @@ describe('fitToBudget on the generated fleet', () => {
     expect(open.funded.filter((x) => x.forced && x.spend > 0).map((x) => x.tail).sort()).toEqual(['9H-ZUU', 'A6-MVC', 'A6-YTM']);
   });
 
+  it('says what reserves pay: the work is net of them, and its gross cost is beside it', () => {
+    // A6-MVC's and A6-YTM's shop visits both fall inside the year — A6-YTM's inducted 3 Sep 2027, A6-MVC's
+    // on 3 Oct 2027, the year's last day — and reserves pay all but their removal and installation.
+    const ytm = plans.byTail['A6-YTM']!;
+    expect(ytm.spendDate! <= open.windowEnd).toBe(true);
+    expect(ytm.spendDate).toBe('2027-09-03');
+    expect(plans.byTail['A6-MVC']!.spendDate).toBe(open.windowEnd);
+    expect(open.reserves).toBeCloseTo(ytm.reservesReclaimed + plans.byTail['A6-MVC']!.reservesReclaimed, 3);
+    expect(open.reserves / 1e6).toBeCloseTo(16.97, 2);
+    expect((open.needed + open.reserves) / 1e6).toBeCloseTo(17.12, 2);
+    expect(open.trace).toContain('net of');
+  });
+
   it('on this fleet, needs no cash for anything chosen: the one chosen action is a route change', () => {
     // A6-GPZ's route change spends nothing, so any budget funds it; 9H-KVJ's, which keeps its APU
     // flying, is forced, and stays labelled so though it costs nothing.

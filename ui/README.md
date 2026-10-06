@@ -4,15 +4,31 @@
 why these screens, in SPEC §3's build order. Every figure on screen is read off a result
 object from `calc/`; the UI formats, it never calculates.
 
+## How it looks
+
+Calm, sparse, aligned. Defined once, in `index.css`:
+- **One type scale, three sizes**: label (12px, for labels and secondary lines), body (14px) and
+  headline numbers (28px) — `text-label`, `text-body`, `text-display`. The default sizes are switched
+  off, so no other size can creep in. Section labels and column heads share one style, `caps`: small
+  caps with a little letter-spacing.
+- **One accent** (`accent`) for links — the `link` style — and the headline saving. Amber only for
+  "required" and overdue dates. Everything else is grey.
+- **Space, not frames.** Sections sit 48px apart on one spacing scale (4, 8, 12, 16, 24, 48px). A
+  border stays only where it groups: the table's rows, a tail's cards, your changes in scenario
+  planning, a lease's clauses, form controls.
+- **The table**: rows aligned to the top so every figure shares a line, numbers right-aligned in
+  tabular figures, and secondary lines — the ENG/MLG/AF/APU split, "acting late…" — at label size in
+  grey.
+
 ## Built
 
 **Recommended actions** (`components/RecommendedActions.tsx`), at the top, above everything: the
-screen's answer. Every recommended action, soonest first — tail, action, the date to decide by,
-and either "required" or what it saves; the tip on the date says what passing it costs. An aircraft
-on the ground because nothing keeps it flying comes first, with its days and their cost at the
-downtime rate; a route change ("Route change: fly it mixed…") reads "no deadline · loses $X a
-month", inline. Beside it, what acting now saves, split so the savings in the list add up to its
-"optional" part and the rest is shown as what it is ("required": the difference where a part runs
+screen's answer. Every recommended action by date — tail, action, the date to decide by ("decide
+today" when it is the data's date), and either "required" or what it saves; the tip on the date says
+what passing it costs. An aircraft on the ground because nothing keeps it flying is listed by the day
+it goes down, with its days and their cost at the downtime rate; the route changes ("Route change:
+fly it mixed…"), which have no date, come last and read "no deadline · loses $X a month", inline. Beside it, what acting now saves, split plainly — "$X less cash to lessors · $Y of
+engine life kept" — and split again so the savings in the list add up to its "optional" part and the rest is shown as what it is ("required": the difference where a part runs
 out first, against acting late — nobody acting until it does). The "required" badge's tip: "A part
 runs out before the aircraft goes back, so it has to be dealt with."
 Everything below justifies the list, and sits under it.
@@ -31,8 +47,8 @@ Everything below justifies the list, and sits under it.
   costs — on the row ("not counted: ENG1 · $19.2M more at handback"), in one plain line above the
   table that sums the column, and on the component card, which shows the figure if the reset counts beside the figure under the
   lease.
-- **Amber** means a required removal (or a deadline passed), and nothing else: not the clock-reset
-  finding, which is not an error.
+- **Amber** means "required" or an overdue date, and nothing else: not the clock-reset finding,
+  which is not an error.
 - A tail with **no exposure**, as recorded or under the lease, has nothing to decide: the row reads
   "cleared: meets every return condition, as recorded and under the lease", and stops.
 - A row whose recommendation is to **pay at handback** says by how much paying beats the next best
@@ -43,14 +59,29 @@ Everything below justifies the list, and sits under it.
   the work, its downtime, and what is still owed at handback, with what it saves against doing
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
   could fly to handback. The option's name sits underneath; the tail's detail ranks all five.
-- The headline says what kind of money each number is, in six words or fewer. "If nothing changes"
-  carries a stacked bar — cash out against life given away (engine life paid for at past shop
-  visits, beyond what the lease asks, which goes back to the lessor with the aircraft; that is the
-  segment's tip) — and, as a second line, "→ $X after the actions above" (SPEC §2.8: work, downtime
-  and what's still owed). After recommendations is not a tile of its own.
-  Under them, a single line of plain text sums the clock-reset column of the table below it — not a
-  fourth total, so no box, fill or badge. Anything longer — the avoidable total in cash and life, how the tails split, what
-  "life given away" means — is in one disclosure under the tiles.
+- The headline counts forward-looking money only, and says what kind each number is. "If nothing
+  changes" carries a stacked bar — cash out against engine life handed over (a spare fitted for good
+  when a part runs out and nobody acted, or the aircraft's own engine where another option would keep
+  it in the pool — life counted the same way in every option; that is the segment's tip) — and, as
+  a second line, "→ $X after the actions above" (SPEC §2.8: work, downtime and what's still owed).
+  After recommendations is not a tile of its own.
+  Under them, two lines of plain text, not totals, so no box, fill or badge: life already
+  over-delivered at past shop visits on engines that stay on the aircraft whatever is done — "Sunk on
+  these ten; preventable on the next ten" — which is in none of the figures, and the sum of the clock-reset column of the table below. Anything longer —
+  the saving in cash and spare engines, how the tails split — is in one disclosure under the tiles.
+- **Sets the bill** names the clock that decides what the tail pays at handback (its tip says so).
+  The figure after the recommendation is labelled **all-in**; a tail that pays says what the cheque
+  is — "Pay at handback: $677K cheque" — and what paying beats is the best option on the part that
+  owes most, not the cheapest anywhere: "paying beats a shop visit on ENG2 by $15.9M", not an APU
+  overhaul on a part owing $13K.
+- An opened tail never shows a compensation above the cap. Where the cost of the work caps it, the
+  capped figure sits on the clock that sets the bill, "capped at the cost of the work", and the other
+  rows read "—"; the uncapped figure is only in Show the calculation.
+- The budget's need is net of reserves reclaimed, and says so with the gross beside it: "$143K in
+  this window, net of reserves reclaimed ($17.1M gross)".
+- The readiness checklist, opened, shows what comes from the recommendations and the lease and
+  anything due in the next 90 days; each tail's standard items not yet due fold into one line — "4
+  items standard for every return, the first due 6 Jan 2028" — in the list and in the tail's detail.
 - A row marked **required** has a component that runs out before handback, so doing nothing is not
   a cheque at handback: it is **acting late** — nobody acts until the part runs out, then the
   cheapest option still open that day. That is the row's "if nothing changes", and its saving reads

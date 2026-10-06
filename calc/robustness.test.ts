@@ -69,11 +69,11 @@ describe('computeRobustness', () => {
   });
 
   it('on this fleet: two firm, five close, three with nothing to decide', () => {
-    // Close, nearest first: A6-MXM at a percent more flying; A6-MVC and A6-YTM if less of their
-    // reserves could be reclaimed; 9H-KVJ at 12% more flying; A6-DLL if a widebody day cost far less.
+    // Close, nearest first: A6-MVC if 90% or less of its reserves could be reclaimed; A6-MXM at 2% more
+    // flying; 9H-KVJ at 12% more; A6-YTM at 30% of its reserves; A6-DLL only if a widebody day cost nothing.
     expect(r.close.map((c) => [c.tail, c.input.id])).toEqual([
-      ['A6-MXM', 'utilisation'],
       ['A6-MVC', 'reservesReclaim'],
+      ['A6-MXM', 'utilisation'],
       ['9H-KVJ', 'utilisation'],
       ['A6-YTM', 'reservesReclaim'],
       ['A6-DLL', 'downtimeWidebody'],
@@ -111,17 +111,18 @@ describe('computeRobustness', () => {
 describe('check before acting', () => {
   it('lists the close calls an assumption flips within the first half of its evidenced range, with the way it has to move', () => {
     expect(r.checks.map((c) => [c.tail, c.input.id, c.direction])).toEqual([
-      ['A6-MXM', 'utilisation', 'up'],
       ['A6-MVC', 'reservesReclaim', 'down'],
+      ['A6-MXM', 'utilisation', 'up'],
     ]);
     for (const c of r.checks) expect(c.flip.reach).toBeLessThan(0.5);
     for (const c of r.close.filter((x) => !r.checks.includes(x))) expect(c.flip.reach).toBeGreaterThanOrEqual(0.5);
   });
 
-  it("flips A6-MXM to a shop visit at 2% more flying — not to a day-less 'on the ground'", () => {
+  it("flips A6-MXM at 2% more flying, to a shop visit or six real days on the ground — not a day-less one", () => {
+    // ENG1 then runs out on 13 April, six days before its 19 April 2028 handback.
     const mxm = r.close.find((c) => c.tail === 'A6-MXM')!;
     expect(mxm.flip.change).toBe('+2%');
-    expect(mxm.flip.to).toBe('Do the work: ENG1 build-for-cash visit');
+    expect(mxm.flip.to).toBe('Cannot tell apart: On the ground from 2028-04-13 to handback / Do the work: ENG1 build-for-cash visit');
   });
 });
 

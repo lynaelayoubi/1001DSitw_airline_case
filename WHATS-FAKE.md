@@ -1,5 +1,13 @@
 # What's real and what's faked
 
+**The ten returning tails were redrawn so that most decision windows are open, with nothing tuned to
+a number.** Their engines that have been to the shop are placed to come due between six months from
+today and a year after return — the tool in use, not an autopsy — and one tail, 9H-ZUU, is left late
+so the cost of lateness stays on screen. The criterion was open windows; every total falls out of it.
+Every rate, threshold and cost is as everywhere else; only where in its run each engine sits was
+chosen. See `BUILD-LOG.md`, Step 17 · the returning ten drawn ahead of handback, and `ASSUMPTIONS.md`,
+"How the returning ten are drawn".
+
 Stated up front, not left to be discovered. Naming it first is the difference between a
 prototype whose limits are known and one whose limits are found out.
 
@@ -39,12 +47,6 @@ The one-sentence version:
 Built to match the figures from the discovery call: ~270 aircraft, ~10 returning in two years, 3–6 month
 shop slot lead time, reconciliation inside the last six months. Orders of magnitude for
 costs from public sources — see `ASSUMPTIONS.md`.
-
-**The returning ten are placed on purpose.** Their engines that have been to the shop are drawn to
-come due between six months from today and a year after return, so most decision windows are still
-open — the tool in use, not an autopsy — and one tail, 9H-ZUU, is left late so the cost of lateness
-stays on screen. Every rate, threshold and cost is as everywhere else; only where in its run each
-engine sits was chosen. See `ASSUMPTIONS.md`, "How the returning ten are drawn".
 
 > Where the data came from, in one line: **what the customer described, plus public figures
 > for shop visit and LLP costs.**

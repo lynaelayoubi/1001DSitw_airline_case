@@ -1010,3 +1010,85 @@ of its own. · Because they are the builder's words or blur the one big number: 
 accusation, "start now" hides the cost of waiting behind a hover, and "already spent" said nothing
 about where that life goes. Text and layout only; internal names (forced, avoidableForced, startNow)
 stay, and calc strings that reach the screen — the calculation, labels, refusals — say the same.
+
+**A calm visual pass: one type scale of three sizes (label, body, headline numbers), one accent for
+links and the headline saving, amber only for "required" and overdue dates, greys for the rest, and
+sections separated by space on one scale instead of framed in boxes.** · Rejected: the boxed tiles,
+the green, red and violet scattered through the screen, and five-plus ad-hoc text sizes. · Because a
+head of fleet should see the answer, not the chrome; a border is kept only where it groups (table
+rows, a tail's cards, your changes, a lease's clauses). The table needed its gutters narrowed from the
+first attempt, which overflowed at 1440px, and the lease view keeps its clause wording in a darker
+grey than other quoted text, because there it is what you read. Text, numbers, logic, order and
+what is open or collapsed are unchanged — checked by diffing every rendered word and tooltip.
+
+**The compensation rate is the lease's own reserve rate: every lessor's negotiation multiplier is
+held at 1.0 and gone from the trace.** · Rejected: a per-lessor multiplier of 1.0–1.5 (default 1.25)
+on top. · Because the reserve rate already carries the lessor's margin over pure cost accrual (1.54
+on the executed lease), so multiplying again counted it twice. The generator still makes the draw
+that set it and discards it, so only the rates moved: all 1,890 fell by exactly their lessor's old
+multiplier, and nothing else in the dataset changed.
+
+**Over-delivery bought at past shop visits is in no money figure: "if nothing changes" is cash plus
+the spare engines acting late would fit for good, and the over-delivery has its own line — "Already
+over-delivered at past shop visits: $33.0M. Sunk on these ten; preventable on the next ten."** ·
+Rejected: counting it in exposure, where it was $33.0M of $64.4M. · Because it was paid for when
+the work was done; what is left to decide is cash and any spare's life handed over from here. It is
+out of the ranking too, so rows, totals and recommendations count the same money — no recommended
+action changed. Declared consequence: a swap that sends a unit to the pool no longer earns credit for
+the life it keeps, while a spare going on for good still costs its life; on A6-MVC and A6-YTM acting
+late would keep $11.8M of engines in the pool that the new count does not offset.
+
+**What acting now saves is split plainly: "$X less cash to lessors · $Y of spare engines kept".** ·
+Rejected: the split only in the disclosure. · Because the two halves are different kinds of money,
+and the second is most of it. Tests hold saved = if nothing changes − after, per tail and in total,
+with both splits adding up, under moved assumptions too.
+
+**Display fixes, no logic or totals change (the full money report is byte-identical before and
+after).**
+- **Recommended actions by date, route changes last.** · Rejected: an aircraft on the ground first,
+  then the route changes, then dates. · Because the list answers "what is due when"; a route change
+  has no date to decide by, and an aircraft on the ground sorts by the day it goes down.
+- **"Runs out first" is "Sets the bill"** — the clock that decides what the tail pays at handback. ·
+  Rejected: "Runs out first", which read as a date, not as what drives the money.
+- **A paying tail shows its cheque, and the tail total is labelled all-in.** · Rejected: "Pay at
+  handback" with a figure beside it the reader had to take for the cheque.
+- **What paying beats is the best option on the part that owes most.** · Rejected: the cheapest other
+  option anywhere, which on A6-DLL was an APU overhaul ($0.85M more) on a part owing $13K, while
+  $3.9M sits on ENG2, where the best is a shop visit, $15.9M more. Priced with the levers focused on
+  that part, as for a part that runs out; the recommendation does not move.
+- **An opened row never shows an uncapped compensation.** · Rejected: per-clause linear figures
+  ($53.3M under the lease on A6-MVC's ENG2) beside a component capped at $13.9M. The capped figure
+  sits on the clock that sets the bill, "capped at the cost of the work"; the uncapped one stays in
+  Show the calculation.
+- **The budget's need says it is net of reserves, with the gross beside it** — $143K net, $17.1M
+  gross. · Rejected: $143K alone, which reads as though the shop visits were nearly free. A6-YTM's
+  visit is inducted 3 Sep 2027 and A6-MVC's 3 Oct 2027, both inside the year to 3 Oct 2027.
+- **The readiness checklist opens on what the plan and the lease require and what is due in 90
+  days; each tail's standard items fold into one line.** · Rejected: all 55 items, 40 of them
+  template, at once.
+- **WHATS-FAKE leads with the redraw of the returning ten**, pointing at Step 17. · Rejected: the
+  same paragraph halfway down.
+
+**Life is counted the same way in every option: an engine that leaves the airline — back with the
+aircraft, through the shop, or on for good as a spare — costs the life it carries above the
+thresholds; one that comes off into the pool earns that same life back, at the same rates.
+Over-delivery is sunk only on a unit that stays on the aircraft in every option.** · Rejected: the
+count from the step before, which charged a spare's life when it went on but gave no credit for the
+engine a swap kept in the pool. · Because that tilted every comparison toward acting now. Applied to
+each unit some feasible option or acting late sends to the pool, in every option of that tail and in
+its "if nothing changes"; the negotiation multiplier stays at 1.0 and every display fix stands.
+
+The fall is $15.17M, not the $11.8M the step before named: that figure was the two engines'
+over-delivery, but valued as a spare's life is, an engine keeps all its life above the thresholds —
+A6-MVC's ENG2 12,785 LLP FC at $873/FC, $11.17M, where over-delivery counted only the 9,000 FC a
+cheaper workscope would not have left ($7.86M); A6-YTM's ENG2 $4.00M against $3.96M. Not tuned.
+
+Required tails, acting late → acting now: A6-MVC $16.61M → $15.27M, saves $1.35M (was $12.51M);
+A6-YTM $8.98M → $4.15M, saves $4.83M (was $8.83M); 9H-ZUU $6.22M both, the same swap; 9H-KVJ
+$1.59M → $0.21M, saves $1.38M. No recommendation changes. If nothing changes $40.02M ($11.78M
+cash, $28.25M engine life), after $31.35M, saved $8.67M — $1.12M optional, $7.55M required; $2.26M
+less cash, $6.41M of engine life kept. Already over-delivered, on units that stay on whatever is
+done: $21.18M (was $33.00M; A6-MVC's and A6-YTM's ENG2 are now in the totals). Check before
+acting adds A6-MVC: it turns if 90% or less of its reserves could be reclaimed. The labels say
+"engine life" where they said "spare engines": the life split now carries the aircraft's own
+engines too.

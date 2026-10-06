@@ -8,9 +8,9 @@
 // booked. So there is no single sentence for what happens after a date; each row says its own.
 //
 // No window: every open decision is listed with its date. Which of them count as "soon" is for
-// the reader, not a threshold. Two kinds have no date and come first: an aircraft on the ground
-// because nothing keeps it flying — the most urgent item, never hidden — and a route change, which
-// starts now and loses value each month it waits.
+// the reader, not a threshold. In date order — an aircraft on the ground because nothing keeps it
+// flying by the day it goes down, never hidden — and last, the route changes, which have no date to
+// decide by and lose value each month they wait.
 
 import { addMonths } from './projection';
 import { usd } from './format';
@@ -42,7 +42,8 @@ export interface ClosingDecisions {
   trace: string;
 }
 
-const rank = (x: Closing) => (x.grounded ? 0 : x.startNow ? 1 : 2);
+/** The date an item sorts by: its decide-by, or the day the aircraft goes down; none for a route change. */
+const when = (x: Closing) => x.decideBy ?? x.grounded?.from ?? null;
 
 export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): ClosingDecisions {
   const items = plans.plans
@@ -95,13 +96,17 @@ export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): Clo
               : `After that date no other option is open.`),
       };
     })
-    // On the ground first, then what starts now, then by date.
-    .sort((x, y) => rank(x) - rank(y) || (x.grounded?.from ?? x.decideBy ?? '').localeCompare(y.grounded?.from ?? y.decideBy ?? ''));
+    // By date; the route changes, with no date to decide by, last.
+    .sort((x, y) => {
+      const a = when(x);
+      const b = when(y);
+      return a === null || b === null ? Number(a === null) - Number(b === null) : a.localeCompare(b);
+    });
 
   const trace =
     `Every recommended action with a date after which it can no longer be taken — a shop slot that must be booked a lead time ` +
-    `ahead, a swap that must happen before a component runs out or before a shop visit stops being the fallback — soonest first, ` +
-    `after any aircraft on the ground (most urgent) and any route change (start now). ` +
+    `ahead, a swap that must happen before a component runs out or before a shop visit stops being the fallback, an aircraft ` +
+    `on the ground by the day it goes down — soonest first, and the route changes, which have no date, last. ` +
     `For each, what the tail does once the date has passed: the cheapest option still open then, or, for a forced removal with ` +
     `nothing left, the date the component runs out. No window: every open decision is listed.\n\n` +
     (items.length ? items.map((x) => x.trace).join('\n') : 'No recommended action has a date: nothing is closing.');

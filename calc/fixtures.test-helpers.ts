@@ -131,7 +131,8 @@ export function lessor(over: Partial<Lessor> = {}): Lessor {
     id: 'L00',
     name: 'Test Lessor',
     architecture: 'no-reserve',
-    negotiationMultiplier: 1.25,
+    // Held at 1.0, as every lessor's is: the compensation rate is the lease's own reserve rate (ASSUMPTIONS §7).
+    negotiationMultiplier: 1,
     qmeClauseRef: 'Clause 14.1',
     qmeClauseText: 'fixture',
     // The strict form every current lessor carries (LEASE-NOTES.md).
