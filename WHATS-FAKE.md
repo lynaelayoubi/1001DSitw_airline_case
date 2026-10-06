@@ -40,6 +40,12 @@ Built to match the figures from the discovery call: ~270 aircraft, ~10 returning
 shop slot lead time, reconciliation inside the last six months. Orders of magnitude for
 costs from public sources — see `ASSUMPTIONS.md`.
 
+**The returning ten are placed on purpose.** Their engines that have been to the shop are drawn to
+come due between six months from today and a year after return, so most decision windows are still
+open — the tool in use, not an autopsy — and one tail, 9H-ZUU, is left late so the cost of lateness
+stays on screen. Every rate, threshold and cost is as everywhere else; only where in its run each
+engine sits was chosen. See `ASSUMPTIONS.md`, "How the returning ten are drawn".
+
 > Where the data came from, in one line: **what the customer described, plus public figures
 > for shop visit and LLP costs.**
 

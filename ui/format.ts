@@ -14,6 +14,9 @@ export function money(n: number, opts: { compact?: boolean } = {}): string {
 
 export const int = (n: number): string => Math.round(n).toLocaleString('en-GB');
 
+/** A rate per unit, to the cent: a lease's compensation rate as written. */
+export const perUnit = (n: number): string => '$' + n.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export function months(n: number): string {
   return `${n.toFixed(1).replace(/\.0$/, '')} mo`;
 }

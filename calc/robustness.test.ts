@@ -68,24 +68,26 @@ describe('computeRobustness', () => {
     for (const x of r.inputs) expect(r.changing.includes(x.input)).toBe(x.first !== null);
   });
 
-  it('on this fleet: four firm, two close, two with no recommendation, two with nothing to decide', () => {
-    // Close: A6-MXM flips at a percent more flying, A6-MVC at 8% — inside the evidenced +20%.
-    expect(r.close.map((c) => [c.tail, c.flip.change])).toEqual([
-      ['A6-MXM', '+1%'],
-      ['A6-MVC', '+8%'],
+  it('on this fleet: two firm, five close, three with nothing to decide', () => {
+    // Close, nearest first: A6-MXM at a percent more flying; A6-MVC and A6-YTM if less of their
+    // reserves could be reclaimed; 9H-KVJ at 12% more flying; A6-DLL if a widebody day cost far less.
+    expect(r.close.map((c) => [c.tail, c.input.id])).toEqual([
+      ['A6-MXM', 'utilisation'],
+      ['A6-MVC', 'reservesReclaim'],
+      ['9H-KVJ', 'utilisation'],
+      ['A6-YTM', 'reservesReclaim'],
+      ['A6-DLL', 'downtimeWidebody'],
     ]);
-    expect([...r.firm].sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL', 'A6-GPZ']);
-    // No recommendation: for A6-YTM and 9H-MMC the only alternative is a route change that comes to the same money.
-    expect(r.undecided.map((x) => x.tail).sort()).toEqual(['9H-MMC', 'A6-YTM']);
-    // No exposure: nothing to decide, so how firm is not asked.
-    expect(r.byTail['9H-RYM']).toBe('nothing to decide');
-    expect(r.byTail['9H-PJS']).toBe('nothing to decide');
+    expect([...r.firm].sort()).toEqual(['9H-ZUU', 'A6-GPZ']);
+    expect(r.undecided).toEqual([]);
+    for (const t of ['9H-MMC', '9H-RYM', '9H-PJS']) expect(r.byTail[t]).toBe('nothing to decide');
     expect(r.byTail['A6-MXM']).toBe('close');
-    // Only flying and the cost of a widebody day on the ground change anything inside their evidence.
-    expect(r.changing.map((x) => x.id)).toEqual(['utilisation', 'downtimeWidebody']);
+    // Flying, both costs of a day on the ground and the share of reserves reclaimable change an answer
+    // inside their evidence; shop costs, the lessor's markup and the slot lead time change none.
+    expect(r.changing.map((x) => x.id)).toEqual(['utilisation', 'downtimeNarrowbody', 'downtimeWidebody', 'reservesReclaim']);
     expect(inputsLine(r.changing, r.holding)).toBe(
-      'Inside their evidence, utilisation, widebody day on the ground change at least one answer; shop costs, narrowbody day on the ground, ' +
-        "lessor's provider over our cost, share of reserves reclaimable, shop-slot lead time change none.",
+      'Inside their evidence, utilisation, narrowbody day on the ground, widebody day on the ground, share of reserves reclaimable change at least ' +
+        "one answer; shop costs, lessor's provider over our cost, shop-slot lead time change none.",
     );
     // Shop costs change nothing anywhere between −9% and +50%.
     expect(r.inputs.find((x) => x.input.id === 'maintenanceCost')!.first).toBeNull();
@@ -113,13 +115,13 @@ describe('computeExtensionEffects — does the one control change anything?', ()
   it('finds the shortest extension of each lease that changes any recommendation, or none', () => {
     expect(e.any).toBe(true);
     expect(e.byTail['A6-MXM']!.months).toBe(1);
-    for (const t of ['A6-DLL', '9H-KVJ', '9H-MMC', '9H-PJS']) expect(e.byTail[t]!.months, t).toBeNull();
+    for (const t of ['A6-MVC', 'A6-YTM', '9H-ZUU', 'A6-GPZ', '9H-PJS']) expect(e.byTail[t]!.months, t).toBeNull();
   });
 
-  it('is right about it: a month on A6-MXM changes an answer, a year on A6-DLL changes none', () => {
+  it('is right about it: a month on A6-MXM changes an answer, a year on A6-GPZ changes none', () => {
     const changed = ext('A6-MXM', 1).plans.filter((p) => actionOf(p) !== actionOf(rest.byTail[p.tail]!));
     expect(changed.map((p) => p.tail)).toEqual(e.byTail['A6-MXM']!.changes.map((c) => c.tail));
-    const none = ext('A6-DLL', 12).plans.filter((p) => actionOf(p) !== actionOf(rest.byTail[p.tail]!));
+    const none = ext('A6-GPZ', 12).plans.filter((p) => actionOf(p) !== actionOf(rest.byTail[p.tail]!));
     expect(none).toEqual([]);
   });
 });

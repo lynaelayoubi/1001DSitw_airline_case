@@ -177,24 +177,23 @@ describe('compareRecommendations — SPEC §3.4, which tails change what they ar
   });
 
   it('reports the tails whose action changes when a control moves', () => {
-    // Ten per cent more flying opens a shortfall on the two reserve-lease widebodies, and their
-    // reserves pay for the visit: paying gives way to doing the work.
+    // Ten per cent more flying opens a shortfall on A6-MXM's ENG1: paying gives way to doing the work.
     const c = compareRecommendations(atRest, run({ utilisationMultiplier: 1.1 }));
-    expect(c.changed.map((x) => x.tail).sort()).toEqual(['A6-MVC', 'A6-MXM']);
+    expect(c.changed.map((x) => x.tail)).toEqual(['A6-MXM']);
     for (const x of c.changed) expect(x).toMatchObject({ from: 'Pay at handback', to: expect.stringContaining('Do the work') });
   });
 
   it('does not count a different spare for the same swap as a change', () => {
-    // 9H-KVJ's swap with another spare in place of ESN-6513 is the same decision.
-    const p = atRest.byTail['9H-KVJ']!;
+    // 9H-ZUU's swap with another spare in place of ESN-6513 is the same decision.
+    const p = atRest.byTail['9H-ZUU']!;
     const o = p.recommendation.recommended;
     const other = { ...o, actionKey: 'swap:ENG2:OTHER', move: { ...o.move!, incoming: { ...o.move!.incoming, id: 'OTHER', serial: 'ESN-OTHER' } } };
     expect(actionOf({ ...p, recommendation: { ...p.recommendation, recommended: other } })).toBe(actionOf(p));
   });
 
   it('names the action, not the month: the same visit a month later is the same decision', () => {
-    const plan = atRest.byTail['A6-DLL']!;
-    expect(actionOf(plan)).toBe('visit:ENG1:build-for-cash');
+    const plan = atRest.byTail['A6-YTM']!;
+    expect(actionOf(plan)).toBe('visit:ENG2:build-for-cash');
   });
 });
 
@@ -230,14 +229,14 @@ describe('the money in play and the forced cases', () => {
   });
 
   it('labels the tails that cannot reach handback as forced, not recommended', () => {
-    // A6-DLL ENG1, 9H-KVJ ENG2 and 9H-ZUU ENG2 each run out before handback.
-    expect(r.plans.filter((p) => p.forced).map((p) => p.tail).sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL']);
+    // 9H-KVJ's APU, and the ENG2 of 9H-ZUU, A6-MVC and A6-YTM, each run out before handback.
+    expect(r.plans.filter((p) => p.forced).map((p) => p.tail).sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-MVC', 'A6-YTM']);
     for (const p of r.plans.filter((x) => x.forced)) {
       expect(p.forced).toContain('doing nothing is not an option');
       expect(p.recommendation.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
     }
     // Measured against a do-nothing that assumed the engine could fly to handback: never a saving the tool chose.
-    for (const t of ['A6-DLL', '9H-KVJ']) expect(r.byTail[t]!.trace, t).toContain('is not a saving the tool chose');
+    for (const t of ['9H-KVJ', 'A6-MVC', 'A6-YTM']) expect(r.byTail[t]!.trace, t).toContain('is not a saving the tool chose');
     expect(r.byTail['9H-ZUU']!.trace).toContain('not choosing the dearer option');
   });
 });
@@ -304,30 +303,20 @@ describe('the rule on the generated fleet', () => {
   const data = dataset as unknown as Dataset;
   const r = recommendFleet(data, assessFleet(data));
 
-  it('gives no recommendation where the options cannot be told apart, and pays', () => {
-    // A6-YTM and 9H-MMC: what is owed is life already handed over, and the only alternative is a
-    // route change that comes to the same money. 9H-MMC's swap for ESN-6512 is not a permitted
-    // replacement (12.2), and the swaps that are cost more than paying.
-    for (const t of ['A6-YTM', '9H-MMC']) {
-      const p = r.byTail[t]!;
-      expect(p.recommendation.call.stands, t).toBe(false);
-      expect(p.label).toBe('No recommendation — pay at handback');
-      expect(p.recommendation.recommended.lever).toBe('pay');
-    }
-    expect(r.totals.undecided).toBe(2);
+  it('has no call on this fleet that the cost estimates cannot tell apart', () => {
+    expect(r.totals.undecided).toBe(0);
+    for (const p of r.plans) expect(p.recommendation.call.stands, p.tail).toBe(true);
   });
 
   it('refuses a swap the lease does not permit, with the clause and the shortfall', () => {
-    const l3 = r.byTail['9H-MMC']!.recommendation.options.find((o) => o.lever === 'L3')!;
-    expect(l3.trace).toContain(
-      'not a permitted replacement under Clause 12.2(a): ESN-6512 has 8,851 fewer hours to its next shop visit and 5,469 fewer cycles to its next shop visit and 7,969 fewer LLP cycles than ENG1',
-    );
     const gpz = r.byTail['A6-GPZ']!.recommendation.options.find((o) => o.lever === 'L3')!;
-    expect(gpz.trace).toContain('ESN-6519 has 10,982 fewer LLP cycles than ENG1');
+    expect(gpz.trace).toContain(
+      'not a permitted replacement under Clause 12.2(a): ESN-6519 has 673 fewer hours to its next shop visit and 355 fewer cycles to its next shop visit and 12,355 fewer LLP cycles than ENG1',
+    );
   });
 
   it('gives a tail with no exposure nothing to decide — no recommendation, no routing suggestion, no note', () => {
-    for (const t of ['9H-RYM', '9H-PJS']) {
+    for (const t of ['9H-MMC', '9H-RYM', '9H-PJS']) {
       const p = r.byTail[t]!;
       expect(p.doNothing, t).toBe(0);
       expect(p.recommendation.nothingToDecide, t).toBe(true);
@@ -336,12 +325,12 @@ describe('the rule on the generated fleet', () => {
       expect(p.recommendation.options.some((o) => o.lever === 'L2')).toBe(false);
       expect(p.decisionDeadline).toBeNull();
     }
-    expect(r.totals.nothingToDecide).toBe(2);
+    expect(r.totals.nothingToDecide).toBe(3);
     expect(r.totals.paying).toBe(2);
   });
 
   it('lets every recommendation with a real alternative stand, by a wide margin', () => {
-    for (const t of ['9H-KVJ', 'A6-MXM', 'A6-GPZ', 'A6-MVC', '9H-ZUU']) {
+    for (const t of ['A6-MVC', 'A6-DLL', 'A6-MXM', 'A6-YTM', '9H-ZUU', 'A6-GPZ', '9H-KVJ']) {
       const c = r.byTail[t]!.recommendation.call;
       expect(c.stands, t).toBe(true);
       expect(c.advantage, t).toBeGreaterThan(c.uncertainty * 1.5);

@@ -12,10 +12,10 @@ export function HowFirm({ robustness: r, pending }: { robustness: Robustness | n
   return (
     <details className="mb-2 rounded-lg border border-slate-200 bg-white">
       <summary className="cursor-pointer px-4 py-2 text-sm text-slate-700">
-        How firm these answers are —{' '}
+        How confident to be in these answers —{' '}
         {r ? (
           <span className={pending ? 'opacity-60' : ''}>
-            {r.firm.length} firm · {r.close.length} close{r.undecided.length > 0 && ` · ${r.undecided.length} with no recommendation`}
+            {r.firm.length} solid · {r.close.length} fragile{r.undecided.length > 0 && ` · ${r.undecided.length} with no recommendation`}
           </span>
         ) : (
           <span className="text-slate-500">checking…</span>
@@ -25,7 +25,7 @@ export function HowFirm({ robustness: r, pending }: { robustness: Robustness | n
         <div className={`border-t border-slate-100 px-4 py-2 text-[13px] ${pending ? 'opacity-60' : ''}`}>
           {r.close.length > 0 && (
             <>
-              <div className="text-xs text-slate-500">Close — an input inside its evidenced range would change the answer</div>
+              <div className="text-xs text-slate-500">Fragile — an assumption inside its evidenced range would change the answer</div>
               <ul className="space-y-0.5">
                 {r.close.map((c) => (
                   <li key={c.tail}>
@@ -48,7 +48,7 @@ export function HowFirm({ robustness: r, pending }: { robustness: Robustness | n
               </ul>
             </>
           )}
-          <p className="mt-2 text-xs text-slate-500">One input at a time, so a lower bound: inputs that move together could change answers sooner.</p>
+          <p className="mt-2 text-xs text-slate-500">One assumption at a time, so a lower bound: assumptions that move together could change answers sooner.</p>
         </div>
       )}
     </details>

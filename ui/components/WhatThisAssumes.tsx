@@ -28,25 +28,29 @@ export function WhatThisAssumes({
 }) {
   // The sweep comes back from a worker as a copy, so inputs are matched by id.
   const changing = new Set(robustness?.changing.map((x) => x.id));
-  const none = robustness?.holding.length ?? 0;
+  const moving = robustness?.changing.length ?? 0;
   const overridden = ASSUMPTION_INPUTS.filter((i) => readInput(assumptions, i.id) !== readInput(DEFAULT_ASSUMPTIONS, i.id)).length;
   return (
     <details className="mb-2 rounded-lg border border-slate-200 bg-white">
       <summary className="cursor-pointer px-4 py-2 text-sm text-slate-700">
-        What this assumes — {ASSUMPTION_INPUTS.length} inputs ·{' '}
+        Assumptions behind these numbers —{' '}
         {robustness ? (
           <span className={pending ? 'opacity-60' : ''}>
-            {none} {none === 1 ? 'changes' : 'change'} no answer anywhere
+            {moving === 0
+              ? 'none moves any answer'
+              : moving === ASSUMPTION_INPUTS.length
+                ? `all ${moving} move an answer`
+                : `only ${moving} ${moving === 1 ? 'moves' : 'move'} any answer`}
           </span>
         ) : (
-          <span className="text-slate-500">checking which change an answer…</span>
+          <span className="text-slate-500">checking which move an answer…</span>
         )}
         {overridden > 0 && <span className="ml-2 font-medium text-violet-800">· {overridden} overridden</span>}
       </summary>
       <table className="w-full text-[13px]">
         <thead className="bg-slate-50 text-[10.5px] font-medium tracking-wide text-slate-500 uppercase">
           <tr>
-            <th className="px-3 py-2 text-left font-medium">Input</th>
+            <th className="px-3 py-2 text-left font-medium">Assumption</th>
             <th className="px-3 py-2 text-left font-medium">Value used</th>
             <th className="px-3 py-2 text-left font-medium">Evidenced range</th>
             <th className="px-3 py-2 text-left font-medium">Real number from</th>
@@ -85,7 +89,7 @@ export function WhatThisAssumes({
                   <Override input={input} value={value} stated={stated} onChange={set} />
                   {value !== stated && (
                     <button className="ml-2 text-xs text-violet-800 underline" onClick={() => set(stated)}>
-                      back to {inputValue(input, stated)}
+                      reset to {inputValue(input, stated)}
                     </button>
                   )}
                 </td>

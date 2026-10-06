@@ -68,7 +68,7 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
       </div>
       <div className={`rounded-lg border px-4 py-3 ${r.avoidable > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
         <div className="cursor-help text-[11px] font-medium tracking-wide text-slate-500 uppercase" title="If nothing changes, less after recommendations.">
-          Avoidable
+          What acting now saves
         </div>
         <div className={`mt-1 text-2xl font-semibold tabular-nums ${r.avoidable > 0 ? 'text-emerald-800' : 'text-slate-900'}`}>{money(r.avoidable)}</div>
         <div className="mt-1 text-xs text-slate-600">

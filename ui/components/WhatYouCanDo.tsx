@@ -30,7 +30,7 @@ export function WhatYouCanDo({
 }) {
   return (
     <section className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">What you can do</h2>
+      <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Scenario planning</h2>
       <div className="grid gap-6 lg:grid-cols-2">
         <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
         <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} />

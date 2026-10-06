@@ -247,6 +247,43 @@ export const UTILISATION_NOISE = 0.1;
  */
 export const QME_INCIDENCE = { engine: 0.03, landingGear: 0.02, apu: 0.02, airframe: 0.01 } as const;
 
+/**
+ * Who owns each kind of readiness item (calc/readiness.ts). The customer: return conditions are
+ * owned by the leasing team, shared with legal; maintenance people are told return dates late.
+ * Declared roles, not names.
+ */
+export const READINESS_OWNERS = {
+  maintenance: 'Maintenance',
+  planning: 'Maintenance planning',
+  leasing: 'Leasing team',
+  records: 'Technical records',
+  finance: 'Finance',
+} as const;
+
+/**
+ * The standard items every return carries, beside the ones the model derives, each due a fixed
+ * time before the return date. Declared — ASSUMPTIONS §17 — except where a basis is named.
+ */
+export const READINESS_TEMPLATE = [
+  {
+    id: 'records',
+    title: 'Records review: back-to-birth traces, LLP sheets, AD and modification status',
+    owner: READINESS_OWNERS.records,
+    monthsBefore: 6,
+    basis: 'the customer reconciles in the last six months today (discovery call); the review starts there',
+  },
+  { id: 'manuals', title: 'Manuals and the records transfer pack, to the return standard', owner: READINESS_OWNERS.records, monthsBefore: 3, basis: 'declared' },
+  { id: 'cabin', title: 'Cabin condition against the return conditions', owner: READINESS_OWNERS.maintenance, monthsBefore: 2, basis: 'declared' },
+  { id: 'inspection', title: 'Final inspection with the lessor', owner: READINESS_OWNERS.leasing, monthsBefore: 1, basis: 'declared' },
+] as const;
+
+/**
+ * An item is "due soon" inside this many days, and the digest counts the items due inside it. The
+ * longest notice the lease asks of any step (clause 12.3(b), 90 days): an item due inside it has to
+ * be started now to be on time.
+ */
+export const READINESS_WINDOW_DAYS = 90;
+
 /** Which profiles each type can fly. */
 export const PROFILES_BY_TYPE: Record<AircraftType, RouteProfile[]> = {
   'A320neo': ['short-dense', 'mixed'],
@@ -381,6 +418,17 @@ export const DAYS_PER_MONTH = 30.4375;
 
 /** Shop slots need 3–6 months of lead time (customer, ASSUMPTIONS §1). Default the midpoint. */
 export const SHOP_SLOT_LEAD_TIME_MONTHS = { default: 4, min: 3, max: 6 } as const;
+
+/**
+ * How the returning tails' engines are placed (data/generate.ts; ASSUMPTIONS, "How the returning ten
+ * are drawn"). For each engine that has been to the shop, the date it first falls short of a handback
+ * threshold — on any clock: hours or cycles to its next shop visit, LLP life — is drawn evenly from
+ * dueFromMonths after the data's date to dueAfterReturnMonths after its return. From: the top of the
+ * evidenced shop-slot lead time, so whatever comes due can still be slotted and its removal noticed.
+ * To: a year past return, so some engines clear handback and need no decision. A tool used ahead of
+ * handback sees engines coming due, not engines already gone.
+ */
+export const RETURNING_DRAW = { dueFromMonths: SHOP_SLOT_LEAD_TIME_MONTHS.max, dueAfterReturnMonths: 12 } as const;
 
 /**
  * The budget year for return-related maintenance: the next twelve months from the data's date. An

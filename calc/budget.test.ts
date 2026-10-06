@@ -40,34 +40,36 @@ describe('fitToBudget on the generated fleet', () => {
     expect(open.needed).toBeCloseTo(acting.reduce((s, p) => s + p.spend, 0), 3);
     expect(open.windowEnd).toBe(addMonths(data.asOf, 12));
     expect(open.leftOut).toEqual([]);
-    // A6-DLL's forced ENG1 shop visit is nearly all of it.
-    expect(open.funded.find((x) => x.tail === 'A6-DLL')!.forced).toBe(true);
-    expect(open.forcedSpend / open.needed).toBeGreaterThan(0.99);
+    // All of it is forced: reserves pay for A6-MVC's and A6-YTM's shop visits, leaving their removal and
+    // installation, and 9H-ZUU's swap.
+    expect(open.forcedSpend).toBeCloseTo(open.needed, 3);
+    expect(open.funded.filter((x) => x.forced && x.spend > 0).map((x) => x.tail).sort()).toEqual(['9H-ZUU', 'A6-MVC', 'A6-YTM']);
   });
 
   it('on this fleet, needs no cash for anything chosen: the one chosen action is a route change', () => {
-    // The lease's replacement test (12.2) refuses the swaps that used to compete for the budget;
-    // A6-GPZ's route change spends nothing, so any budget funds it.
+    // A6-GPZ's route change spends nothing, so any budget funds it; 9H-KVJ's, which keeps its APU
+    // flying, is forced, and stays labelled so though it costs nothing.
     const r = fitToBudget(plans, open.forcedSpend, data.asOf);
     expect(r.funded.filter((x) => !x.forced).map((x) => [x.tail, x.spend])).toEqual([['A6-GPZ', 0]]);
+    expect(r.funded.find((x) => x.tail === '9H-KVJ')).toMatchObject({ spend: 0, forced: true });
     expect(r.leftOut).toEqual([]);
   });
 
   it("says whether a left-out tail's decision closes inside the budget year", () => {
-    // On a what-if in which A6-YTM swaps ENG1 for ESN-6513: a budget that covers only the forced
+    // On a what-if in which 9H-MMC swaps ENG1 for ESN-6508: a budget that covers only the forced
     // removals leaves the swap out, and its decision closes inside the year.
-    const spare = data.pool.find((u) => u.serial === 'ESN-6513')!.id;
-    const w = whatIf(data, DEFAULT_ASSUMPTIONS, plans, [{ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare }]);
+    const spare = data.pool.find((u) => u.serial === 'ESN-6508')!.id;
+    const w = whatIf(data, DEFAULT_ASSUMPTIONS, plans, [{ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare }]);
     const r = fitToBudget(w.scenario, open.forcedSpend, data.asOf);
-    const ytm = r.leftOut.find((x) => x.tail === 'A6-YTM')!;
-    expect(ytm.closesThisYear).toBe(ytm.decisionDeadline! <= r.windowEnd);
-    expect(ytm.closesThisYear).toBe(true);
+    const mmc = r.leftOut.find((x) => x.tail === '9H-MMC')!;
+    expect(mmc.closesThisYear).toBe(mmc.decisionDeadline! <= r.windowEnd);
+    expect(mmc.closesThisYear).toBe(true);
     expect(r.trace).toContain('loses the option');
   });
 
   it('flags a budget the forced removals alone exceed, and funds nothing else that costs cash', () => {
-    const r = fitToBudget(plans, 1_000_000, data.asOf);
-    expect(r.shortfall).toBeCloseTo(open.forcedSpend - 1_000_000, 3);
+    const r = fitToBudget(plans, open.forcedSpend / 2, data.asOf);
+    expect(r.shortfall).toBeCloseTo(open.forcedSpend / 2, 3);
     expect(r.funded.filter((x) => !x.forced).every((x) => x.spend === 0)).toBe(true);
   });
 });

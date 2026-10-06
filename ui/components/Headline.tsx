@@ -39,7 +39,7 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
         <ul className="mt-1 space-y-1 pl-4">
           <li>Already spent: life paid for at past shop visits, sunk unless a swap keeps the unit in the pool.</li>
           <li>
-            Avoidable, {money(r.avoidable)}: {money(r.avoidableChosen)} saved by the actions chosen, {money(r.avoidableForced)} on forced tails, against a do-nothing
+            What acting now saves, {money(r.avoidable)}: {money(r.avoidableChosen)} saved by the actions chosen, {money(r.avoidableForced)} on forced tails, against a do-nothing
             that cannot happen. In cash, {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable ({Math.round(r.avoidableCashShare * 100)}%); in life,{' '}
             {money(r.avoidableLife)}, spares handed over net of units kept in the pool.
           </li>

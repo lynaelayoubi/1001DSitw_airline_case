@@ -87,7 +87,8 @@ export function fitToBudget(plans: FleetRecommendation, budget: number, asOf: IS
   const forcedSpend = forced.reduce((s, x) => s + x.spend, 0);
   const shortfall = Math.max(0, forcedSpend - budget);
   const chosen = shortfall > 0 ? [] : chooseWithinBudget(optional, budget - forcedSpend);
-  const funded = [...forced.map((x) => ({ ...x, forced: true })), ...[...chosen, ...free].map((x) => ({ ...x, forced: false }))];
+  const isForced = new Set(acting.filter((p) => p.forced).map((p) => p.tail));
+  const funded = [...forced.map((x) => ({ ...x, forced: true })), ...[...chosen, ...free].map((x) => ({ ...x, forced: isForced.has(x.tail) }))];
   const leftOut = optional
     .filter((x) => !chosen.includes(x))
     .map((x): LeftOut => {

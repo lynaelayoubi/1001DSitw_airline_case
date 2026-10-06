@@ -24,7 +24,7 @@ Everything below justifies the list, and sits under it.
   behind a toggle so it looks like a fleet; tails beyond the 24-month window show no figure,
   because projecting years with no shop visit in them is not a forecast.
 - Columns are the ones the customer named: tail, type, lessor, return date, months left,
-  exposure, binding clock, QME flag, decision deadline. The four components sit under the
+  exposure, the clock that runs out first, QME flag, decision deadline. The four components sit under the
   exposure as a one-line breakdown.
 - **Clock reset** says, in plain words, whether the lease recognises each component's last shop
   visit as resetting its clock (SPEC §2.5's QME) and, where it does not, how much more handback
@@ -52,21 +52,20 @@ Everything below justifies the list, and sits under it.
   cost estimates' ±10.1% (ASSUMPTIONS §0): the row says the options cannot be told apart, and why.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
   now. "Nothing to book" where the recommendation is to pay.
-- Click a tail for its detail: the recommendation and the next best option, how firm the answer
+- Click a tail for its detail: the recommendation and the next best option, how confident to be in the answer
   is (one line, collapsed), and the components — every clause, today's position, what will be
-  flown, the position at return, the gap and its price, the binding clock marked.
+  flown, the position at return, the gap and its price, the clock that costs most or runs out first marked.
 
-**What this assumes** and **how firm these answers are** (`components/WhatThisAssumes.tsx`,
+**Assumptions behind these numbers** and **How confident to be in these answers** (`components/WhatThisAssumes.tsx`,
 `components/HowFirm.tsx`, `robustness.worker.ts`), last and collapsed: each one line carrying
-its finding — "7 inputs · 5 change no answer anywhere", "4 firm · 3 close · 3 with no
-recommendation". Open, the first is the one place the seven assumptions live — value used,
+its finding — "only 4 move any answer", "2 solid · 5 fragile". Open, the first is the one place the seven assumptions live — value used,
 evidenced range, the system the real number should come from, whether it changes any answer, and
 an override that recomputes everything downstream, the sweep included, held inside the evidenced
 range. The second is the model assessing itself: the close calls by name, the tails with no
 recommendation, and the sweep's one limit. Neither is what a head of fleet acts on, so neither is
 open on the main screen.
 
-**What you can do** (`components/WhatYouCanDo.tsx`, `components/WhatIf.tsx`), under the table:
+**Scenario planning** (`components/WhatYouCanDo.tsx`, `components/WhatIf.tsx`), under the table:
 the head of fleet's own decisions. A what-if — swap a component, send one to the shop, change a tail's route,
 move its return date, several at once — priced against today's plan, which stays on screen: the
 output is the difference in what is still owed, in maintenance spend and all-in, and the tails
@@ -74,7 +73,20 @@ whose action changes as a result. A proposal the model knows cannot happen is li
 with the reason. Then a maintenance budget for the next twelve months — what it funds, what it
 leaves out, and whether a left-out decision closes inside the year.
 
-**The working, in place** (`components/Working.tsx`). The arithmetic the calc layer attaches to a
+**The lease** (`components/LeaseView.tsx`, `calc/lease.ts`), sliding over the right of the
+screen — not a page — from the lessor's name on a row or any clause reference anywhere: requirement
+rows, the calculation, a refusal in the what-if. It opens scrolled to the clause clicked; Esc or a click
+outside closes it. It quotes and never computes: the lessor and architecture, every return
+condition with its threshold, rate and text — each linked back to the requirement rows it drives —
+and the QME, replacement (12.2), notice (12.3(b)) and temporary-install (12.3(c)) clauses.
+
+**Readiness checklist** (`components/Readiness.tsx`, `calc/readiness.ts`), under the table and
+collapsed under its digest — "next 90 days: N items across M tails" — and inside each tail's
+detail: every item that must be true before handback, soonest first, with owner, due date and a
+status read off the date. Derived items point at their source (the lease clause, or the tail);
+standard items say "standard for every return".
+
+**Show the calculation, in place** (`components/Working.tsx`). The arithmetic the calc layer attaches to a
 figure is for checking, not acting, so it never sits in a tooltip: it opens on request, in place,
 below what it explains — a tail's recommendation (the options ranked) and each component's clauses.
 A tooltip is one sentence answering one question — what a column or a tile is — and nothing on

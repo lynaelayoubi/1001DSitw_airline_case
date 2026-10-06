@@ -876,3 +876,67 @@ handback $6.15M, all-in $6.22M) — ESN-6513 passes the replacement test; coveri
 the runner-up at $9.70M, the ground $21.34M. 9H-KVJ goes back to ESN-6508. Avoidable $7.11M →
 $4.92M (by choice $3.33M, forced $3.78M → $1.59M). Asked of the what-if, giving both permitted
 spares away covers 9H-ZUU's ENG2 with ESN-6512 — a spare the lease would not accept as permanent.
+
+## Step 16 · the lease, and what must be true before handback — Tuesday 6 October
+
+**The lease is a slide-over on the right, opened from the lessor's name or any clause reference and
+scrolled to that clause; it quotes the data and computes nothing.** · Rejected: a lease page or a
+new window. · Because the question is "is this recommendation really based on the lease?", asked
+from the row in front of you; the answer has to open over it and close back to it. Each condition
+links back to the requirement rows it drives. Clause references are linked only where the tail's
+lease carries them, matched as written — nothing guessed.
+
+**The readiness checklist lists what the model has already worked out — forced removals, notices,
+slots, QME evidence, what is owed — and four standard items from a declared template; status is
+read off the due date.** · Rejected: a hand-kept checklist with set statuses. · Because nothing on
+this screen is typed by hand. The levers now carry their notices and slot bookings as fields, so
+the checklist lists rather than recomputes; a shop visit's planned engine removal needs the same
+90 days' notice as a swap's.
+
+**A QME item names the documents the clause requires, not "the missing one".** · Rejected: naming a
+missing document. · Because the record holds only that a visit is not evidenced, not which document
+is absent; the item quotes the clause's list and says so.
+
+**"Due soon" is 90 days, the longest notice the lease asks.** · Rejected: a round number. · Because
+an item due inside the longest notice period has to be started now. The digest — "next 90 days: 4
+items across 3 tails" on this fleet — counts the same window.
+
+## Step 17 · the returning ten drawn ahead of handback — Tuesday 6 October
+
+**The returning tails' engines that have been to the shop are placed by one rule: each comes due —
+first falls short of a handback threshold — on a date drawn evenly from 6 months after the data's
+date to 12 months after its return; 9H-ZUU is left as first drawn, late on purpose.** · Rejected:
+the first draw, which left most of the ten past the point of acting — engines run out, windows shut
+— and a target for the avoidable figure. · Because a demo must show the tool in use, not only in
+autopsy; the criterion is open decision windows, and the number falls out of it. Six months is the
+top of the evidenced slot lead time, so whatever comes due can still be slotted and noticed; a year
+past return lets some engines clear handback. Only the last-visit date moves (cycles since new,
+visit count, workscope, serial and QME status stay), on its own seeded stream after everything else,
+so the rest of the fleet is byte-identical; gear, APU, airframe and first-run engines stay as drawn.
+Scale and reconciliation pass unchanged.
+
+On this draw: six of the ten with a live window, 9H-ZUU late, three with nothing to decide.
+Avoidable $4.92M → $14.88M — by choice $3.33M → $1.18M, forced $1.59M → $13.71M; cash $21.03M,
+life −$6.15M. Do nothing $68.82M → $66.83M; shop visits the lease doesn't count $33.1M → $22.6M.
+Most of the avoidable figure is on forced tails, measured against a do-nothing that cannot happen:
+an engine that comes due well before its return usually runs out before it, so the rule makes more
+forced removals with their windows still open.
+
+**A forced action that spends nothing stays labelled forced in the budget.** · Rejected: listing
+every free action as optional. · Because 9H-KVJ's route change keeps its APU flying: it is forced,
+whatever it costs.
+
+**A QME evidence chase is due today, not with the records review.** · Rejected: dating it like a
+template item, six months before return. · Because the document is already missing and the shop
+visit already past: there is nothing to wait for, and the chase only gets harder with time. The
+digest moves to "next 90 days: 5 items across 4 tails".
+
+**Titles and labels in the customer's words.** · Rejected: the builder's — "binding clock", "what you
+can do", "how firm", "what this assumes … inputs", "avoidable", "working", "terms the model applies",
+"template", and a close button that read as ending the lease. · Because the screen is read by a head
+of fleet, not by whoever built the model: "Runs out first", "Scenario planning", "How confident to
+be in these answers" (solid / fragile), "Assumptions behind these numbers — only N move any answer",
+"What acting now saves", "Show the calculation", "Lease terms applied", "Readiness checklist",
+"standard for every return", "Close". Every button now says what clicking it does — "Add to the
+scenario", "reset to × 1.00", "show ENG1's row", "show 9H-ZUU" — and the lessor and clause links say
+they open the lease. Text only: no logic or layout changed.

@@ -142,6 +142,10 @@ export interface LeverOption {
   startNow?: { perMonth: number };
   /** The aircraft on the ground because nothing keeps it flying: from when, for how many days, at what downtime cost. */
   grounded?: { from: ISODate; days: number; cost: number };
+  /** Notices the lessor must have (clause 12.3(b)): when, for what, and whether the full notice no longer fits. */
+  notices?: { due: ISODate; what: string; short: boolean }[];
+  /** A shop slot to book: by when, for what. */
+  slot?: { bookBy: ISODate; what: string };
 }
 
 type Scope = Exclude<Workscope, 'none'>;
@@ -561,6 +565,8 @@ export function doTheWork(ctx: LeverContext): LeverOption {
     deadline,
     position: v.position,
     actionKey: `visit:${v.position}:${v.month}:${v.workscope}`,
+    slot: { bookBy: deadline, what: `${v.position} ${visitName(v.kind, v.workscope)}, month ${v.month}` },
+    notices: visitNotice(ctx, v),
     trace:
       `Lever 1, do the work rather than pay: the cheapest workscope that clears the contract, inducted in the last month it can be ` +
       `(month ${v.month}; ${next ? `month ${v.month + 1} is out — ${next}` : 'the month before handback'}). ${v.trace} ` +
@@ -639,6 +645,8 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     position: v.position,
     actionKey: `visit:${v.position}:${v.month}:${v.workscope}`,
     curve,
+    slot: { bookBy: deadline, what: `${v.position} ${visitName(v.kind, v.workscope)}, month ${v.month}` },
+    notices: visitNotice(ctx, v),
     trace:
       `Lever 4, time the shop visit: ${v.position} swept month by month from the ${lead}-month slot lead time to handback, both workscopes. ` +
       `Open months: ${byMonth.join('; ')}. Cheapest: ${v.workscope} inducted month ${v.month}. ${v.trace} ` +
@@ -1029,6 +1037,9 @@ function swapOption(ctx: LeverContext, s: Swap, trace: string): LeverOption {
     position: c.position,
     actionKey: `swap:${c.position}:${s.unit.id}`,
     move: s.detail,
+    notices: notice
+      ? [{ due: deadline, what: `${c.position} comes off for the swap${s.donor ? `, and ${s.donor.d.ac.tail}'s ${s.donor.d.ac.components[s.donor.j]!.position} with it` : ''}`, short: forced !== null && deadline === p.asOf && addDays(by.date, -notice) < p.asOf }]
+      : undefined,
     trace: `${trace}Priced as fitted today. Decide by ${deadline}: the swap has to happen by ${why}.`,
   });
 }
@@ -1045,6 +1056,14 @@ function forcedSlot(ctx: LeverContext, i: number) {
   const out = runout(p, ctx.baseline.asRecorded.components[i]!);
   const slot = Math.max(Math.ceil(ctx.a.shopSlotLeadTimeMonths - EPS), Math.ceil(out.months - EPS));
   return { out, slot, outDate: addMonths(p.asOf, out.months) };
+}
+
+/** The notice a shop visit's planned engine removal needs (clause 12.3(b)), due that many days before induction. */
+function visitNotice(ctx: LeverContext, v: Visit): LeverOption['notices'] {
+  if (v.kind !== 'engine') return undefined;
+  const due = addDays(v.date, -ctx.lessor.engineRemovalNoticeDays);
+  const asOf = ctx.baseline.projection.asOf;
+  return [{ due: due < asOf ? asOf : due, what: `${v.position} comes off for its shop visit`, short: due < asOf }];
 }
 
 /** The cheapest workscope that clears the contract, for a component inducted at `month` after it stopped flying at `flownTo`. */
@@ -1129,6 +1148,11 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
     position: c.position,
     actionKey: `cover:${c.position}:${slot}:${v.workscope}`,
     covers: { id: sp.u.id, serial: sp.u.serial, from: out.months, until: back },
+    slot: { bookBy, what: `${c.position} ${visitName(c.kind, v.workscope)}, month ${slot}` },
+    notices: [
+      { due: notice.decideBy, what: `${c.position} comes off when it runs out, on ${outDate}`, short: addDays(outDate, -n) < p.asOf },
+      { due: addDays(addMonths(p.asOf, back), -n), what: `spare ${sp.u.serial} comes off to reinstall ${c.position}`, short: false },
+    ],
     trace:
       `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate} and comes off. Under ${lessor.temporaryInstallClauseRef} spare ` +
       `${sp.u.serial} goes on as a temporary engine; ${c.position} stays the permanent engine, so ${lessor.replacementClauseRef}'s replacement ` +
@@ -1175,6 +1199,16 @@ export function onTheGround(ctx: LeverContext): LeverOption {
       position: c.position,
       actionKey: `ground:${c.position}`,
       grounded: { from: outDate, days: groundDays, cost: downtimeCost },
+      slot: { bookBy: addMonths(p.asOf, slot - a.shopSlotLeadTimeMonths), what: `${c.position} ${visitName(c.kind, v.workscope)}, month ${slot}` },
+      notices:
+        c.kind === 'engine'
+          ? [
+              (() => {
+                const f = forcedNotice(ctx, outDate, ctx.lessor.engineRemovalNoticeDays, c.position);
+                return { due: f.decideBy, what: `${c.position} comes off when it runs out, on ${outDate}`, short: addDays(outDate, -ctx.lessor.engineRemovalNoticeDays) < p.asOf };
+              })(),
+            ]
+          : undefined,
       trace:
         `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}, and nothing keeps the aircraft flying: it stays on the ground until ` +
         `${c.position} is back from the first slot the lead time allows (month ${slot}) and a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround — ` +

@@ -28,37 +28,33 @@ describe('whatIf', () => {
   });
 
   it('takes a spare first, and the tails that would have had it re-plan around it', () => {
-    // ESN-6513 is today's spare for 9H-ZUU, whose ENG2 runs out next month. Given to A6-YTM, 9H-ZUU
-    // takes ESN-6508 instead — the same action, a different spare — and 9H-KVJ, which had ESN-6508,
-    // is left to send its ENG2 to the shop.
-    const w = run({ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare('ESN-6513') });
+    // ESN-6513 is today's spare for 9H-ZUU, whose ENG2 runs out next month. Given to 9H-MMC, 9H-ZUU
+    // takes ESN-6508 instead — the same action, a different spare.
+    const w = run({ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6513') });
     expect(w.proposals[0]!.refused).toBeNull();
     expect(w.scenario.byTail['9H-ZUU']!.recommendation.recommended.move?.incoming.serial).toBe('ESN-6508');
-    expect(w.changed.map((c) => [c.tail, c.to])).toEqual([
-      ['9H-KVJ', 'Do the work: ENG2 build-for-cash visit'],
-      ['A6-YTM', 'Swap ENG1 for spare ESN-6513'],
-    ]);
-    // An engine visit in place of a swap: maintenance spend goes up by millions.
-    expect(w.spend.change).toBeGreaterThan(5_000_000);
+    expect(w.changed.map((c) => c.tail)).toEqual(['9H-MMC']);
     expect(w.allIn.change).toBeCloseTo(w.scenario.totals.after - today.totals.after, 6);
   });
 
   it("with every spare the lease permits taken, covers 9H-ZUU's engine with one it would not let it keep (12.3(c))", () => {
-    // ESN-6512 would run out on 9H-ZUU as a permanent engine, but lasts the months ENG2 is at the shop.
-    const w = run({ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare('ESN-6513') }, { kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6508') });
+    // ESN-6513 to 9H-MMC and ESN-6508 to A6-YTM: ESN-6512 would run out on 9H-ZUU as a permanent
+    // engine, but lasts the months ENG2 is at the shop — and the shop visit costs millions.
+    const w = run({ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6513') }, { kind: 'swap', tail: 'A6-YTM', position: 'ENG2', unit: spare('ESN-6508') });
     expect(w.applied).toBe(2);
     expect(w.changed.find((c) => c.tail === '9H-ZUU')?.to).toBe('Cover ENG2 with spare ESN-6512 while it goes to the shop');
+    expect(w.spend.change).toBeGreaterThan(5_000_000);
   });
 
   it('refuses a swap the replacement test fails, with the clause; a forced removal is not refused for want of notice', () => {
     const w = run({ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6512') }, { kind: 'swap', tail: '9H-ZUU', position: 'ENG2', unit: null });
-    expect(w.proposals[0]!.refused).toContain('not a permitted replacement under Clause 12.2(a): ESN-6512 has 8,851 fewer hours to its next shop visit');
+    expect(w.proposals[0]!.refused).toContain('not a permitted replacement under Clause 12.2(a): ESN-6512 has 1,153 fewer hours to its next shop visit');
     expect(w.proposals[1]!.refused).toBeNull();
     expect(w.applied).toBe(1);
   });
 
   it('changes nothing when the proposal is what the model already recommends', () => {
-    const w = run({ kind: 'swap', tail: '9H-KVJ', position: 'ENG2', unit: spare('ESN-6508') });
+    const w = run({ kind: 'swap', tail: '9H-ZUU', position: 'ENG2', unit: spare('ESN-6513') });
     expect(w.applied).toBe(1);
     expect(w.changed).toEqual([]);
     expect(w.allIn.change).toBeCloseTo(0, 6);
@@ -91,11 +87,11 @@ describe('whatIf', () => {
 
   it('does not promise one spare twice, or give one tail two actions', () => {
     const w = run(
-      { kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare('ESN-6513') },
       { kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6513') },
-      { kind: 'route', tail: 'A6-YTM', profile: 'mixed' },
+      { kind: 'swap', tail: 'A6-YTM', position: 'ENG2', unit: spare('ESN-6513') },
+      { kind: 'route', tail: '9H-MMC', profile: 'mixed' },
     );
-    expect(w.proposals[1]!.refused).toBe('ESN-6513 already goes to A6-YTM in this what-if.');
+    expect(w.proposals[1]!.refused).toBe('ESN-6513 already goes to 9H-MMC in this what-if.');
     expect(w.proposals[2]!.refused).toContain('already has a change in this what-if');
     expect(w.applied).toBe(1);
   });
@@ -103,11 +99,11 @@ describe('whatIf', () => {
   it('holds several changes at once, and a return date moves the world the rest is priced in', () => {
     const w = run(
       { kind: 'return', tail: 'A6-MXM', months: 6 },
-      { kind: 'visit', tail: 'A6-MVC', position: 'ENG2', month: 14, workscope: 'build-for-cash' },
+      { kind: 'visit', tail: 'A6-MVC', position: 'ENG2', month: 10, workscope: 'build-for-interval' },
       { kind: 'route', tail: '9H-RYM', profile: 'short-dense' },
     );
     expect(w.applied).toBe(3);
-    expect(w.proposals[1]!.label).toBe('Send ENG2 to the shop: build-for-cash visit, month 14');
+    expect(w.proposals[1]!.label).toBe('Send ENG2 to the shop: build-for-interval visit, month 10');
     // A6-MXM's own recommendation, re-planned on the later return, is what the plan at that return date says.
     const later = { ...a, leaseExtensionMonths: { 'A6-MXM': 6 } };
     const alone = recommendFleet(data, assessFleet(data, later), later);

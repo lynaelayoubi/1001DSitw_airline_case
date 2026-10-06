@@ -20,7 +20,9 @@ import {
   LANDING_GEAR,
   NEGOTIATION_MULTIPLIER,
   PROFILES_BY_TYPE,
+  DEFAULT_ASSUMPTIONS,
   QME_INCIDENCE,
+  RETURNING_DRAW,
   RETURNING_WINDOW_MONTHS,
   THRESHOLD_RANGES,
   THRESHOLD_REFERENCE_FHFC,
@@ -37,6 +39,8 @@ import {
   phaseOf,
   workscopeBucketCycles,
 } from '../calc/rates';
+import { assessComponent } from '../calc/exposure';
+import { monthlyRate, projectUsage } from '../calc/projection';
 import type {
   Aircraft,
   AircraftType,
@@ -712,6 +716,68 @@ function makeReturnConditions(ac: Aircraft, lessor: Lessor, tpl: LeaseTemplate):
 }
 
 // ---------------------------------------------------------------------------------------
+// How the returning ten are drawn — ASSUMPTIONS. The first draw put most of them past the point
+// where anything could still be done: engines already run out, windows already shut. A demo has to
+// show the tool in use ahead of handback, so their engines are placed again, by one rule: each
+// engine that has been to the shop comes due (first falls short of a handback threshold) on a date
+// drawn evenly from RETURNING_DRAW.dueFromMonths after today to dueAfterReturnMonths past its
+// return. Only the date of its last shop visit moves — cycles since new, visit count, workscope,
+// serial and QME status stay as drawn — and the draw has its own stream, after everything else,
+// so nothing else in the fleet moves. Gear, APU and airframe stay as drawn, and so does an engine
+// still on its first run. One tail stays late on purpose, so the cost of lateness stays on screen.
+// ---------------------------------------------------------------------------------------
+
+/** Left as first drawn: its ENG2 runs out next month, too soon for full notice — lateness, on screen. */
+const KEEP_LATE = new Set(['9H-ZUU']);
+
+function redrawReturning(aircraft: Aircraft[], returnConditions: ReturnCondition[]): void {
+  const timing = mulberry32(SEED + 1);
+  const a = DEFAULT_ASSUMPTIONS;
+  for (const ac of aircraft) {
+    if (ac.status !== 'returning' || KEEP_LATE.has(ac.tail)) continue;
+    const rcs = returnConditions.filter((rc) => rc.tail === ac.tail);
+    const p = projectUsage(ac, DATA_AS_OF, a);
+    const fhFc = ac.hoursPerMonth / ac.cyclesPerMonth;
+    ac.components.forEach((c, i) => {
+      if (c.kind !== 'engine' || c.shopVisitCount === 0 || c.lastWorkscope === 'none') return;
+      const due = RETURNING_DRAW.dueFromMonths + timing() * (p.monthsToReturn + RETURNING_DRAW.dueAfterReturnMonths - RETURNING_DRAW.dueFromMonths);
+      const bucket = workscopeBucketCycles(c.model as Parameters<typeof workscopeBucketCycles>[0], c.lastWorkscope);
+      // The run before the last visit, which an unevidenced visit does not let the lease forget.
+      const lastSegment = c.asLeaseAllows.cso - c.cso;
+      const at = (cso: number): Component => {
+        const tso = Math.round(cso * fhFc);
+        const llp = bucket - cso;
+        return {
+          ...c,
+          cso,
+          tso,
+          llpMinCyclesRemaining: llp,
+          lastShopVisit: iso(addMonths(TODAY, -cso / ac.cyclesPerMonth)),
+          asLeaseAllows:
+            c.qmeStatus === 'not-evidenced'
+              ? { tso: Math.round((cso + lastSegment) * fhFc), cso: cso + lastSegment, llpMinCyclesRemaining: Math.max(0, llp - lastSegment) }
+              : { tso, cso, llpMinCyclesRemaining: llp },
+        };
+      };
+      // Months until it first falls short on any clock: fewer the further it is into its run.
+      const dueOf = (cso: number) =>
+        Math.min(...assessComponent(ac, at(cso), rcs, p, 'as-recorded', a).requirements.map((r) => (r.remainingToday - r.threshold) / monthlyRate(p, r.unit)));
+      let lo = 50; // just back from the shop
+      let hi = Math.min(c.csn - lastSegment, bucket);
+      if (due >= dueOf(lo)) hi = lo;
+      else if (due <= dueOf(hi)) lo = hi;
+      else
+        for (let k = 0; k < 40; k++) {
+          const mid = (lo + hi) / 2;
+          if (dueOf(mid) > due) lo = mid;
+          else hi = mid;
+        }
+      ac.components[i] = at(Math.round((lo + hi) / 2));
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------------------
 // Assemble
 // ---------------------------------------------------------------------------------------
 
@@ -748,6 +814,7 @@ function generate(): Dataset {
     const li = lessors.findIndex((l) => l.id === ac.lessorId);
     return makeReturnConditions(ac, lessors[li]!, templates[li]!);
   });
+  redrawReturning(aircraft, returnConditions);
 
   return {
     generatedAt: new Date().toISOString(),

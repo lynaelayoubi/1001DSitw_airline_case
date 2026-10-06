@@ -5,6 +5,7 @@ import type { ExtensionEffects } from '../../calc/robustness';
 import type { Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { date, money } from '../format';
+import { ClauseText } from './ClauseText';
 
 /** The four decisions the customer controls. Not the seven assumptions: those are the world's, and the sweep moves them. */
 const KINDS: { kind: Proposal['kind']; label: string }[] = [
@@ -78,7 +79,11 @@ export function WhatIf({
                   </button>
                   <span>
                     <span className="font-medium">{p.tail}</span> {r ? (r.refused ? r.asked : r.label) : '…'}
-                    {r?.refused && <span className="block text-xs text-red-800">Refused: {r.refused}</span>}
+                    {r?.refused && (
+                      <span className="block text-xs text-red-800">
+                        Refused: <ClauseText tail={p.tail} text={r.refused} />
+                      </span>
+                    )}
                     {instead && <span className="block text-xs text-slate-500">instead of {instead}</span>}
                   </span>
                 </li>
@@ -191,7 +196,7 @@ function Details({ c, kind, extension, onAdd }: { c: TailChoices; kind: Proposal
           </>
         )}
         <button className="rounded border border-violet-300 bg-white px-2 py-0.5 text-violet-800 hover:bg-violet-50" onClick={() => onAdd(proposal)}>
-          Add
+          Add to the scenario
         </button>
       </div>
       {kind === 'return' && extension && (

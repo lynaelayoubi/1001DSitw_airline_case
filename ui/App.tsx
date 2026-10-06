@@ -1,9 +1,11 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fitToBudget } from '../calc/budget';
 import { DEFAULT_ASSUMPTIONS } from '../calc/constants';
 import { closingDecisions } from '../calc/deadlines';
 import { assessFleet } from '../calc/exposure';
+import { leaseOf } from '../calc/lease';
+import { readiness } from '../calc/readiness';
 import { recommendFleet } from '../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../calc/robustness';
 import type { Assumptions, Dataset, Proposal } from '../calc/types';
@@ -27,11 +29,14 @@ export default function App() {
   const [budget, setBudget] = useState<number | null>(null);
   const budgetPlan = useMemo(() => fitToBudget(plans, budget ?? Infinity, data.asOf), [plans, budget]);
   const closing = useMemo(() => closingDecisions(plans, data.asOf), [plans]);
+  const ready = useMemo(() => readiness(data, fleet, plans), [fleet, plans]);
   // The head of fleet's own changes, against today's plan; the screen stays on today's plan.
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const proposed = useDeferredValue(proposals);
   const choices = useMemo(() => whatIfChoices(data, fleet), [fleet]);
   const scenario = useMemo(() => (proposed.length ? whatIf(data, live, plans, proposed) : null), [live, plans, proposed]);
+  // The lease behind any tail, quoted from the data for the lease view.
+  const leaseFor = useCallback((tail: string) => leaseOf(data, tail), []);
 
   const [robustness, setRobustness] = useState<{ id: number; result: Robustness; extension: ExtensionEffects } | null>(null);
   const worker = useRef<Worker | null>(null);
@@ -71,6 +76,8 @@ export default function App() {
       proposals={proposals}
       onProposals={setProposals}
       whatIf={scenario}
+      leaseOf={leaseFor}
+      readiness={ready}
       assumptions={assumptions}
       onAssumptions={setAssumptions}
     />

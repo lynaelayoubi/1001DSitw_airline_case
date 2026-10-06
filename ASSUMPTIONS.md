@@ -482,6 +482,28 @@ above. Each is a declared assumption or a derivation from one, not a sourced fig
 | Workscope on gear, APU, airframe | one tier (`build-for-interval`); the two-tier distinction is an engine matter |
 | Derate field on non-engines | 0, meaning not applicable |
 
+### How the returning ten are drawn
+
+The first draw placed each returning tail's components wherever its age and random shop-visit
+history left them, and most of the ten came out past the point where anything could still be done:
+engines already running out, slots and notice periods already missed — the fleet seen in autopsy,
+not in use. A tool used ahead of handback sees engines **coming due**, so the returning tails'
+engines are placed again, by one rule, after everything else is drawn:
+
+| | |
+|---|---|
+| What moves | each engine **that has been to the shop**, on every returning tail but one: the date of its last shop visit, and with it cycles and hours since that visit, LLP life left, and the lease-basis counters of an unevidenced visit |
+| The rule | the date it first falls short of a handback threshold — on any clock: hours or cycles to its next shop visit, LLP life — is drawn evenly from **6 months after the data's date** (the top of the evidenced 3–6 month shop-slot lead time, so whatever comes due can still be slotted and its removal noticed) to **12 months after its return** (so some engines clear handback and need no decision). `RETURNING_DRAW` in `calc/constants.ts` |
+| How | for each engine, its last-visit date is solved so the model's own clocks (`assessComponent`) put the first shortfall on the drawn date |
+| What does not move | cycles and hours since new, visit count, last workscope, serial, QME status; gear, APU and airframe; an engine still on its first run (the two youngest tails'); return dates, utilisation, lessors, thresholds, rates and every cost table. The draw has its own seeded stream, after everything else, so nothing else in the fleet changes |
+| Left late on purpose | **9H-ZUU**, exactly as first drawn: its ENG2 runs out of cycles 35 days after the data's date, too soon for the full notice of a planned removal — the cost of lateness stays on screen |
+
+No target was set for the avoidable figure: the criterion was open windows, and the numbers fall out
+of it. On this draw six of the ten have a live window — a slot bookable, a swap inside its notice,
+and on four of them both workscopes still open — 9H-ZUU is late, and three need nothing (9H-MMC's
+engines come due after its return; 9H-RYM's and 9H-PJS's are on their first run). The scale and
+reconciliation tests pass unchanged.
+
 ### QME incidence (components with at least one recorded event)
 
 | component | not-evidenced |
@@ -536,7 +558,7 @@ Lessors alternate architecture: four reserve, three no-reserve.
 | Engine interval clock | time on wing for the engine's phase and environment (§2, §10), in FC; in hours, the same interval × the appraiser's reference FH:FC (2.75 narrowbody, 7.0 widebody), not the tail's own | the interval is quoted at a reference flight leg; a tail on shorter legs burns the cycle clock faster, on longer legs the hours clock — the two clocks can only diverge if the hours limit is not re-derived from the current route |
 | Months since overhaul (gear, airframe) | cycles since overhaul ÷ the tail's cycles per month | one formula on both QME bases; exact for components original to the tail, ±20% on the 10% that are not |
 | Engine cycle thresholds on widebodies | × (2.75 ÷ engine reference FH:FC) = × 0.39 | the executed lease is an A320; a cycle clause carried unscaled onto a 7 FH:FC engine demands more cycles than a mature engine has between visits |
-| Binding clock | of the hours / cycles / months clauses on one component, the one producing the larger compensation; if none is short, the one that runs out first | SPEC §2.3; the lease's own "the greater of the two amounts shall be payable" |
+| Binding clock (on screen: "Runs out first") | of the hours / cycles / months clauses on one component, the one producing the larger compensation; if none is short, the one that runs out first | SPEC §2.3; the lease's own "the greater of the two amounts shall be payable" |
 | LLP clause | counted on top of the binding clock | a part-life limit, not the shop-visit interval |
 | **Over-delivery** | only the surplus that did not have to be bought: on an engine's LLP clause, the bucket a build-for-interval visit bought beyond a build-for-cash one (12,000 FC narrowbody, 9,000 FC widebody), if the smaller bucket would still have cleared the clause at handback; **nothing** on restoration, check or overhaul clocks | a shop visit is bought whole and every past one was forced (the engine came off at its limit, the check or overhaul fell due); both engine workscopes buy the same time on wing and the others have one tier. Was: every unit of surplus at what it cost to buy, which made over-delivery $93.6M of a $130M fleet figure (DIAGNOSIS.md) |
 | Over-delivery unit cost | LLP cost ÷ bucket cycles of the visit that bought it | the LLP half of the visit buys LLP life |
@@ -619,7 +641,7 @@ the customer's own decision, and lives in the what-if (§16).
 | Shop-slot lead time | 4 months (§1) | **3–6 months** | As the customer gave it. | MRO slot availability, from engineering planning |
 | Lease extension (the one control) | none | **0–12 months** | Twice the customer's own six-month example; beyond it a projection runs past three years with no shop visit modelled. Rent for the extra months is not modelled. | the customer's own decision |
 
-### How firm the answers are (`calc/robustness.ts`)
+### How firm the answers are (`calc/robustness.ts`; on screen "How confident to be in these answers": firm reads *solid*, close reads *fragile*)
 
 Each assumption is stepped outward from its current value, one at a time, across its plausible
 range, at the steps below, and the returning tails are re-recommended at every step — the same
@@ -701,3 +723,36 @@ stands, so a second action on the same tail is refused rather than priced on a s
 does not carry. On a tail with a component running out before handback, an action must deal with
 that component. Today's plan stays on screen; the what-if shows the difference — still owed at
 handback, maintenance spend, all-in with downtime — and the tails whose action changes.
+
+---
+
+## 17 · The readiness checklist (as built, `calc/readiness.ts`)
+
+Everything that must be true before each handback, with owner, due date and a status read off the
+date: **overdue** before today, **due soon** within 90 days, otherwise **open**. The window is the
+longest notice the lease asks of any step (clause 12.3(b), 90 days): an item due inside it has to be
+started now. The digest counts the items due inside it.
+
+**Derived items**, from what the model computes, each pointing at its source:
+
+| item | due | owner | from |
+|---|---|---|---|
+| A component that runs out before handback | the date it runs out | Maintenance | the recommendation |
+| The lessor's notice of an engine removal | 90 days before it (12.3(b)); today, short, when the removal is forced and the full notice no longer fits | Leasing team | the lease, 12.3(b) |
+| A shop slot to book | induction less the slot lead time | Maintenance planning | the recommendation |
+| QME evidence to chase | today — the document is already missing and the visit already past; the chase only gets harder with time | Technical records | the lease's QME clause — the record does not show which document is missing, so the item names the documents the clause requires |
+| What is owed at handback | the return date | Finance | the recommendation |
+
+**Standard items** (on screen: "standard for every return"), from a declared template (`READINESS_TEMPLATE`), due a fixed time before the
+return date:
+
+| item | due before return | owner | basis |
+|---|---|---|---|
+| Records review | 6 months | Technical records | the customer reconciles in the last six months today (discovery call) |
+| Manuals and the records transfer pack | 3 months | Technical records | declared |
+| Cabin condition against the return conditions | 2 months | Maintenance | declared |
+| Final inspection with the lessor | 1 month | Leasing team | declared |
+
+Owners are roles (`READINESS_OWNERS`), named in the customer's terms: return conditions are owned
+by the leasing team; maintenance people are told return dates late.
+

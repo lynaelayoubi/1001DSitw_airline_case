@@ -1,20 +1,25 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
 import { actionOf, type FleetRecommendation, type TailPlan } from '../../calc/recommend';
 import type { BudgetPlan } from '../../calc/budget';
 import type { ClosingDecisions } from '../../calc/deadlines';
+import { conditionAnchor, type Lease } from '../../calc/lease';
+import type { Readiness, ReadinessItem } from '../../calc/readiness';
 import { describeInput, type ExtensionEffects, type Robustness } from '../../calc/robustness';
 import type { Assumptions, Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
 import { HowFirm } from '../components/HowFirm';
+import { LeaseView } from '../components/LeaseView';
+import { ReadinessList, TailReadiness } from '../components/Readiness';
 import { WhatThisAssumes } from '../components/WhatThisAssumes';
 import { WhatYouCanDo } from '../components/WhatYouCanDo';
 import { Working } from '../components/Working';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
+import { LeaseLinksContext, useLeaseLinks } from '../leaseLinks';
 
 /**
  * SPEC §3.1 — the screen leads with its answer: the recommended actions, soonest first, with the
@@ -42,6 +47,8 @@ export default function FleetScreen({
   proposals,
   onProposals,
   whatIf,
+  leaseOf,
+  readiness,
 }: {
   fleet: FleetExposure;
   plans: FleetRecommendation;
@@ -59,9 +66,25 @@ export default function FleetScreen({
   proposals: Proposal[];
   onProposals: (p: Proposal[]) => void;
   whatIf: WhatIfResult | null;
+  leaseOf: (tail: string) => Lease | null;
+  readiness: Readiness;
 }) {
   const [showAll, setShowAll] = useState(false);
   const [open, setOpen] = useState<string | null>(null);
+  // The lease slide-over, and the requirement row a lease condition was followed back to.
+  const [lease, setLease] = useState<{ tail: string; anchor?: string } | null>(null);
+  const [flash, setFlash] = useState<string | null>(null);
+  const links = useMemo(() => ({ leaseOf, open: (tail: string, anchor?: string) => setLease({ tail, anchor }) }), [leaseOf]);
+  const shown = lease ? leaseOf(lease.tail) : null;
+  useEffect(() => {
+    if (!flash) return;
+    const t = setTimeout(() => document.getElementById(flash)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 0);
+    const off = setTimeout(() => setFlash(null), 2500);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(off);
+    };
+  }, [flash]);
 
   const rows = useMemo(() => {
     if (!showAll) return fleet.returning;
@@ -70,85 +93,108 @@ export default function FleetScreen({
   }, [fleet, showAll]);
 
   return (
-    <main className="mx-auto max-w-[1500px] px-4 py-6 text-slate-900">
-      <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Handback</h1>
-          <p className="text-sm text-slate-500">
-            End-of-lease exposure by tail · as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
-          </p>
+    <LeaseLinksContext.Provider value={links}>
+      <main className="mx-auto max-w-[1500px] px-4 py-6 text-slate-900">
+        <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold">Handback</h1>
+            <p className="text-sm text-slate-500">
+              End-of-lease exposure by tail · as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
+            </p>
+          </div>
+          <div className="flex overflow-hidden rounded-md border border-slate-300 text-sm">
+            <button className={`px-3 py-1.5 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(false)}>
+              Returning ({fleet.returning.length})
+            </button>
+            <button className={`px-3 py-1.5 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(true)}>
+              Whole fleet ({fleet.tails.length})
+            </button>
+          </div>
+        </header>
+
+        <RecommendedActions closing={closing} totals={plans.totals} />
+        <Headline fleet={fleet} plans={plans} />
+
+        <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
+          <table className="w-full text-[13px]">
+            <thead className="bg-slate-50 text-[10.5px] font-medium tracking-wide text-slate-500 uppercase">
+              <tr>
+                <Th>Tail</Th>
+                <Th>Type</Th>
+                <Th>Lessor</Th>
+                <Th>Return</Th>
+                <Th right>Months left</Th>
+                <Th right tip="Compensation and life handed over at handback if this tail does nothing.">
+                  If nothing changes
+                </Th>
+                <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
+                  After recommendation
+                </Th>
+                <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Runs out first</Th>
+                <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
+                  Clock reset
+                </Th>
+                <Th tip="The last date to commit to the recommended action.">Decide by</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((t) => (
+                <Fragment key={t.tail}>
+                  <TailRow
+                    t={t}
+                    plan={plans.byTail[t.tail]}
+                    before={atRest.byTail[t.tail]}
+                    leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
+                    open={open === t.tail}
+                    onToggle={() => setOpen(open === t.tail ? null : t.tail)}
+                  />
+                  {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} robustness={robustness} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
-        <div className="flex overflow-hidden rounded-md border border-slate-300 text-sm">
-          <button className={`px-3 py-1.5 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(false)}>
-            Returning ({fleet.returning.length})
-          </button>
-          <button className={`px-3 py-1.5 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'}`} onClick={() => setShowAll(true)}>
-            Whole fleet ({fleet.tails.length})
-          </button>
+
+        <ReadinessList
+          readiness={readiness}
+          onShowTail={(tail) => {
+            setShowAll(false);
+            setOpen(tail);
+            setFlash(`tail-${tail}`);
+          }}
+        />
+
+        <WhatYouCanDo
+          extension={extension}
+          budget={budget}
+          onBudget={onBudget}
+          budgetPlan={budgetPlan}
+          choices={choices}
+          proposals={proposals}
+          onProposals={onProposals}
+          whatIf={whatIf}
+        />
+
+        {/* What the answers rest on, and how firm they are: justification, under what it justifies. */}
+        <div className="mt-6">
+          <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
+          <HowFirm robustness={robustness} pending={robustnessPending} />
         </div>
-      </header>
 
-      <RecommendedActions closing={closing} totals={plans.totals} />
-      <Headline fleet={fleet} plans={plans} />
-
-      <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full text-[13px]">
-          <thead className="bg-slate-50 text-[10.5px] font-medium tracking-wide text-slate-500 uppercase">
-            <tr>
-              <Th>Tail</Th>
-              <Th>Type</Th>
-              <Th>Lessor</Th>
-              <Th>Return</Th>
-              <Th right>Months left</Th>
-              <Th right tip="Compensation and life handed over at handback if this tail does nothing.">
-                If nothing changes
-              </Th>
-              <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
-                After recommendation
-              </Th>
-              <Th tip="The clock that sets what this tail pays: short at handback, or the nearest to it.">Binding clock</Th>
-              <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
-                Clock reset
-              </Th>
-              <Th tip="The last date to commit to the recommended action.">Decide by</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((t) => (
-              <Fragment key={t.tail}>
-                <TailRow
-                  t={t}
-                  plan={plans.byTail[t.tail]}
-                  before={atRest.byTail[t.tail]}
-                  leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
-                  open={open === t.tail}
-                  onToggle={() => setOpen(open === t.tail ? null : t.tail)}
-                />
-                {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} robustness={robustness} />}
-              </Fragment>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <WhatYouCanDo
-        extension={extension}
-        budget={budget}
-        onBudget={onBudget}
-        budgetPlan={budgetPlan}
-        choices={choices}
-        proposals={proposals}
-        onProposals={onProposals}
-        whatIf={whatIf}
-      />
-
-      {/* What the answers rest on, and how firm they are: justification, under what it justifies. */}
-      <div className="mt-6">
-        <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
-        <HowFirm robustness={robustness} pending={robustnessPending} />
-      </div>
-
-    </main>
+      </main>
+      {lease && shown && (
+        <LeaseView
+          lease={shown}
+          anchor={lease.anchor}
+          onClose={() => setLease(null)}
+          onGoToRow={(componentId, conditionId) => {
+            setLease(null);
+            setOpen(shown.tail);
+            setFlash(`req-${componentId}-${conditionId}`);
+          }}
+        />
+      )}
+    </LeaseLinksContext.Provider>
   );
 }
 
@@ -167,13 +213,15 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
   // No exposure on either basis: the row says there is nothing to decide, and stops.
   const nothing = plan?.role === 'own' && plan.recommendation.nothingToDecide;
   return (
-    <tr className={`cursor-pointer border-t border-slate-100 hover:bg-slate-50 ${open ? 'bg-slate-50' : ''}`} onClick={onToggle}>
+    <tr id={`tail-${t.tail}`} className={`cursor-pointer border-t border-slate-100 hover:bg-slate-50 ${open ? 'bg-slate-50' : ''}`} onClick={onToggle}>
       <td className="px-2 py-2 font-medium whitespace-nowrap">
         <span className="mr-1 inline-block w-3 text-slate-400">{open ? '▾' : '▸'}</span>
         {t.tail}
       </td>
       <td className="px-2 py-2 whitespace-nowrap">{t.type}</td>
-      <td className="max-w-[9rem] px-2 py-2 leading-tight text-slate-600">{t.lessor}</td>
+      <td className="max-w-[9rem] px-2 py-2 leading-tight text-slate-600">
+        <LessorLink tail={t.tail} name={t.lessor} />
+      </td>
       <td className="px-2 py-2 whitespace-nowrap">{date(t.projection.effectiveLeaseEnd)}</td>
       <td className="px-2 py-2 text-right tabular-nums">
         {months(t.projection.monthsToReturn)}
@@ -279,7 +327,36 @@ function Breakdown({ t }: { t: TailResult }) {
   );
 }
 
-function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; robustness: Robustness | null }) {
+/** The lessor's name opens the tail's lease. */
+function LessorLink({ tail, name }: { tail: string; name: string }) {
+  const links = useLeaseLinks();
+  return (
+    <button
+      className="text-left underline decoration-slate-300 decoration-dotted underline-offset-2 hover:text-slate-900"
+      title={`Open ${tail}'s lease.`}
+      onClick={(e) => {
+        e.stopPropagation();
+        links?.open(tail);
+      }}
+    >
+      {name}
+    </button>
+  );
+}
+
+function TailDetail({
+  t,
+  plan,
+  robustness,
+  flash,
+  ready,
+}: {
+  t: TailResult;
+  plan?: TailPlan;
+  robustness: Robustness | null;
+  flash: string | null;
+  ready: ReadinessItem[];
+}) {
   const rec = plan?.role === 'own' ? plan.recommendation : null;
   const nothing = rec?.nothingToDecide ?? false;
   return (
@@ -297,12 +374,13 @@ function TailDetail({ t, plan, robustness }: { t: TailResult; plan?: TailPlan; r
                   </span>
                 )}
               </div>
-              <Working>{`${t.projection.trace}\n\n${plan.trace}`}</Working>
+              <Working tail={t.tail} text={`${t.projection.trace}\n\n${plan.trace}`} />
             </div>
           )}
           {!nothing && <TailRobustness tail={t.tail} robustness={robustness} />}
+          <TailReadiness items={ready} />
           {t.asRecorded.components.map((c, i) => (
-            <ComponentCard key={c.componentId} c={c} lease={t.asLeaseAllows.components[i]!} />
+            <ComponentCard key={c.componentId} tail={t.tail} c={c} lease={t.asLeaseAllows.components[i]!} flash={flash} />
           ))}
         </div>
       </td>
@@ -325,12 +403,12 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
       <span className="text-slate-400">holds to {describeInput(input.input, edge, input.current)}</span>
     );
   };
-  const state = robustness.byTail[tail] ?? 'firm';
+  const state = ({ firm: 'solid', close: 'fragile' } as Record<string, string>)[robustness.byTail[tail] ?? 'firm'] ?? robustness.byTail[tail];
   const near = robustness.close.find((c) => c.tail === tail);
   return (
     <details className="rounded-md border border-slate-200 bg-white">
       <summary className="cursor-pointer px-3 py-2 text-sm">
-        How firm this answer is — <span className="font-medium">{state}</span>
+        How confident to be in this answer — <span className="font-medium">{state}</span>
         {near && (
           <span className="text-slate-500">
             : {near.input.label.toLowerCase()} {near.flip.change} would change it
@@ -340,7 +418,7 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
       <table className="w-full text-xs">
         <thead className="text-[10px] tracking-wide text-slate-400 uppercase">
           <tr>
-            <Th>Input</Th>
+            <Th>Assumption</Th>
             <Th>Lower</Th>
             <Th>Higher</Th>
             <Th>Real number from</Th>
@@ -361,7 +439,7 @@ export function TailRobustness({ tail, robustness }: { tail: string; robustness:
   );
 }
 
-function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResult }) {
+function ComponentCard({ tail, c, lease, flash }: { tail: string; c: ComponentResult; lease: ComponentResult; flash: string | null }) {
   const flagged = c.qmeStatus === 'not-evidenced';
   return (
     <div className="rounded-md border border-slate-200 bg-white">
@@ -403,29 +481,66 @@ function ComponentCard({ c, lease }: { c: ComponentResult; lease: ComponentResul
         </thead>
         <tbody>
           {c.requirements.map((r, i) => (
-            <RequirementRow key={r.requirementId} r={r} binding={r.requirementId === c.binding.requirementId} how={c.binding.how} lease={flagged ? lease.requirements[i] : undefined} />
+            <RequirementRow
+              key={r.requirementId}
+              id={`req-${c.componentId}-${r.requirementId}`}
+              flash={flash}
+              tail={tail}
+              r={r}
+              binding={r.requirementId === c.binding.requirementId}
+              how={c.binding.how}
+              lease={flagged ? lease.requirements[i] : undefined}
+            />
           ))}
         </tbody>
       </table>
       <div className="border-t border-slate-100 px-3 py-1.5">
-        <Working>
-          {[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`Under the lease, where the reset does not count: ${lease.trace}`] : [])].join('\n\n')}
-        </Working>
+        <Working
+          tail={tail}
+          text={[c.trace, ...c.requirements.map((r) => r.trace), ...(flagged ? [`Under the lease, where the reset does not count: ${lease.trace}`] : [])].join('\n\n')}
+        />
       </div>
     </div>
   );
 }
 
-function RequirementRow({ r, binding, how, lease }: { r: RequirementResult; binding: boolean; how: 'shortfall' | 'tightest'; lease?: RequirementResult }) {
+function RequirementRow({
+  id,
+  flash,
+  tail,
+  r,
+  binding,
+  how,
+  lease,
+}: {
+  id: string;
+  flash: string | null;
+  tail: string;
+  r: RequirementResult;
+  binding: boolean;
+  how: 'shortfall' | 'tightest';
+  lease?: RequirementResult;
+}) {
+  const links = useLeaseLinks();
   const u = r.unit;
   const short = r.gap > 0;
   return (
-    <tr className={`border-t border-slate-100 ${binding ? 'bg-slate-50' : ''}`}>
-      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">{r.clauseRef}</td>
+    <tr id={id} className={`border-t border-slate-100 transition-colors ${flash === id ? 'bg-violet-100' : binding ? 'bg-slate-50' : ''}`}>
+      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">
+        <button
+          className="underline decoration-slate-300 decoration-dotted underline-offset-2 hover:text-violet-800"
+          onClick={(e) => {
+            e.stopPropagation();
+            links?.open(tail, conditionAnchor({ id: r.requirementId }));
+          }}
+        >
+          {r.clauseRef}
+        </button>
+      </td>
       <td className="px-3 py-1.5 whitespace-nowrap">
         {unitLabel[u]}
         {r.group === 'llp' && <span className="text-slate-400"> (LLP)</span>}
-        {binding && <span className="ml-2 rounded bg-slate-900 px-1.5 py-0.5 text-[10px] font-medium text-white">{how === 'shortfall' ? 'binds' : 'runs out first'}</span>}
+        {binding && <span className="ml-2 rounded bg-slate-900 px-1.5 py-0.5 text-[10px] font-medium text-white">{how === 'shortfall' ? 'costs most' : 'runs out first'}</span>}
       </td>
       <td className="px-3 py-1.5 text-right tabular-nums">{int(r.remainingToday)}</td>
       <td className="px-3 py-1.5 text-right tabular-nums text-slate-500">−{int(r.projectedUse)}</td>
