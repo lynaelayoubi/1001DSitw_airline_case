@@ -2,7 +2,7 @@ import type { BudgetPlan } from '../../calc/budget';
 import type { ExtensionEffects } from '../../calc/robustness';
 import type { Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
-import { date, money } from '../format';
+import { date, decideBy, money } from '../format';
 import { WhatIf } from './WhatIf';
 
 /**
@@ -18,6 +18,7 @@ export function WhatYouCanDo({
   budget,
   onBudget,
   budgetPlan,
+  asOf,
 }: {
   extension: ExtensionEffects | null;
   choices: TailChoices[];
@@ -27,20 +28,21 @@ export function WhatYouCanDo({
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
+  asOf: string;
 }) {
   return (
     <section className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-3">
       <h2 className="mb-2 text-[11px] font-medium tracking-wide text-slate-500 uppercase">Scenario planning</h2>
       <div className="grid gap-6 lg:grid-cols-2">
         <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
-        <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} />
+        <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} asOf={asOf} />
       </div>
     </section>
   );
 }
 
 /** This year's return-related maintenance budget: what it funds, and what it leaves out at what cost. */
-function Budget({ budget, onBudget, plan }: { budget: number | null; onBudget: (b: number | null) => void; plan: BudgetPlan }) {
+function Budget({ budget, onBudget, plan, asOf }: { budget: number | null; onBudget: (b: number | null) => void; plan: BudgetPlan; asOf: string }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 text-sm text-slate-800">
@@ -80,7 +82,7 @@ function Budget({ budget, onBudget, plan }: { budget: number | null; onBudget: (
                     <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.label}</span> · {money(x.spend)} · gives up{' '}
                     <span className="font-medium">{money(x.saving)}</span> ·{' '}
                     {x.closesThisYear ? (
-                      <span className="text-red-800">decide by {date(x.decisionDeadline!)} — inside the window, so the option is lost, not deferred</span>
+                      <span className="text-red-800">{decideBy(x.decisionDeadline!, asOf)} — inside the window, so the option is lost, not deferred</span>
                     ) : (
                       <span className="text-slate-500">can wait for next year's budget</span>
                     )}

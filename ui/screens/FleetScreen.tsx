@@ -117,7 +117,7 @@ export default function FleetScreen({
           </div>
         </header>
 
-        <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} />
+        <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} />
         <Headline fleet={fleet} plans={plans} />
 
         <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
@@ -174,6 +174,7 @@ export default function FleetScreen({
           budget={budget}
           onBudget={onBudget}
           budgetPlan={budgetPlan}
+          asOf={fleet.asOf}
           choices={choices}
           proposals={proposals}
           onProposals={onProposals}
@@ -283,7 +284,7 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
       {!nothing && (
         <td className="px-2 py-2 whitespace-nowrap">
           {plan?.decisionDeadline ? (
-            date(plan.decisionDeadline)
+            plan.decisionDeadline === t.projection.asOf ? 'decide today' : date(plan.decisionDeadline)
           ) : plan?.recommendation.recommended.grounded ? (
             <span className="text-xs font-medium text-amber-900">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
           ) : plan?.recommendation.recommended.startNow ? (

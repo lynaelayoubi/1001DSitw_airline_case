@@ -2,7 +2,7 @@ import type { ClosingDecisions, Closing } from '../../calc/deadlines';
 import type { FleetRecommendation } from '../../calc/recommend';
 import type { CloseCall } from '../../calc/robustness';
 import { checkNote } from './HowFirm';
-import { date, money } from '../format';
+import { date, decideBy, money } from '../format';
 
 /** What happens once the date has passed, in one sentence: the tip on the date. */
 function afterTheDate(x: Closing & { decideBy: string }): string {
@@ -22,7 +22,17 @@ function afterTheDate(x: Closing & { decideBy: string }): string {
  * total beside it, split so the saves in the list add up to its chosen part. Everything else on
  * the screen justifies this, and sits under it.
  */
-export function RecommendedActions({ closing, totals: r, checks }: { closing: ClosingDecisions; totals: FleetRecommendation['totals']; checks: CloseCall[] }) {
+export function RecommendedActions({
+  closing,
+  totals: r,
+  checks,
+  asOf,
+}: {
+  closing: ClosingDecisions;
+  totals: FleetRecommendation['totals'];
+  checks: CloseCall[];
+  asOf: string;
+}) {
   return (
     <section className="mb-4 grid gap-3 lg:grid-cols-[3fr_1fr]">
       <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -48,7 +58,7 @@ export function RecommendedActions({ closing, totals: r, checks }: { closing: Cl
                       <span>no deadline · loses {money(x.startNow.perMonth)} a month</span>
                     ) : (
                       <span className="cursor-help" title={afterTheDate({ ...x, decideBy: x.decideBy! })}>
-                        decide by {date(x.decideBy!)}
+                        {decideBy(x.decideBy!, asOf)}
                       </span>
                     )}
                   </td>

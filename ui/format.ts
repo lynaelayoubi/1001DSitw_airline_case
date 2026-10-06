@@ -21,6 +21,9 @@ export function months(n: number): string {
   return `${n.toFixed(1).replace(/\.0$/, '')} mo`;
 }
 
+/** A decide-by date as a person says it: "decide today" when it is the data's date, otherwise the date. */
+export const decideBy = (d: string, asOf: string): string => (d === asOf ? 'decide today' : `decide by ${date(d)}`);
+
 export function date(iso: string): string {
   const d = new Date(iso + 'T00:00:00Z');
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
