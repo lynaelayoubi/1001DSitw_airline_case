@@ -134,6 +134,15 @@ export function lessor(over: Partial<Lessor> = {}): Lessor {
     negotiationMultiplier: 1.25,
     qmeClauseRef: 'Clause 14.1',
     qmeClauseText: 'fixture',
+    // The strict form every current lessor carries (LEASE-NOTES.md).
+    replacementTest: 'strict',
+    replacementClauseRef: 'Clause 12.2(a)',
+    replacementClauseText: 'fixture',
+    engineRemovalNoticeDays: 90,
+    noticeClauseRef: 'Clause 12.3(b)',
+    noticeClauseText: 'fixture',
+    temporaryInstallClauseRef: 'Clause 12.3(c)',
+    temporaryInstallClauseText: 'fixture',
     ...over,
   };
 }

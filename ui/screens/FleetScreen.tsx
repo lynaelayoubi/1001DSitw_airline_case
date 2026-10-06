@@ -221,7 +221,15 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
       )}
       {!nothing && (
         <td className="px-2 py-2 whitespace-nowrap">
-          {plan?.decisionDeadline ? date(plan.decisionDeadline) : <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>}
+          {plan?.decisionDeadline ? (
+            date(plan.decisionDeadline)
+          ) : plan?.recommendation.recommended.grounded ? (
+            <span className="text-xs font-medium text-amber-900">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
+          ) : plan?.recommendation.recommended.startNow ? (
+            <span className="text-xs">start now</span>
+          ) : (
+            <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
+          )}
         </td>
       )}
     </tr>

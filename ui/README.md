@@ -8,7 +8,10 @@ object from `calc/`; the UI formats, it never calculates.
 
 **Recommended actions** (`components/RecommendedActions.tsx`), at the top, above everything: the
 screen's answer. Every recommended action, soonest first — tail, action, the date to decide by,
-and either "forced" or what it saves; the tip on the date says what passing it costs. Beside it,
+and either "forced" or what it saves; the tip on the date says what passing it costs. An aircraft
+on the ground because nothing keeps it flying comes first, with its days and their cost at the
+downtime rate; a route change has no date and says "start now", its tip what each month of waiting
+gives up. Beside it,
 the avoidable total, split so the savings in the list add up to its chosen part ("by choice") and
 the rest is shown as what it is ("forced": the difference on forced tails, against a do-nothing
 that cannot happen).
@@ -25,7 +28,7 @@ Everything below justifies the list, and sits under it.
   exposure as a one-line breakdown.
 - **Clock reset** says, in plain words, whether the lease recognises each component's last shop
   visit as resetting its clock (SPEC §2.5's QME) and, where it does not, how much more handback
-  costs — on the row ("not counted: ENG1 · $13.5M more at handback"), in one plain line above the
+  costs — on the row ("not counted: ENG1 · $19.2M more at handback"), in one plain line above the
   table that sums the column, and on the component card, which shows the figure if the reset counts beside the figure under the
   lease.
 - **Amber** means a forced removal (or a deadline passed), and nothing else: not the clock-reset

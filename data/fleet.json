@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-03T14:40:05.993Z",
+  "generatedAt": "2026-10-06T10:43:01.794Z",
   "asOf": "2026-10-03",
   "seed": 20261003,
   "lessors": [
@@ -9,7 +9,15 @@
       "architecture": "reserve",
       "negotiationMultiplier": 1.4,
       "qmeClauseRef": "Clause 14.1 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 30 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 3."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 30 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 3.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L02",
@@ -17,7 +25,15 @@
       "architecture": "no-reserve",
       "negotiationMultiplier": 1.35,
       "qmeClauseRef": "Clause 15.2 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 30 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 4."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 30 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 4.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L03",
@@ -25,7 +41,15 @@
       "architecture": "reserve",
       "negotiationMultiplier": 1.3,
       "qmeClauseRef": "Clause 16.3 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Annex D."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Annex D.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L04",
@@ -33,7 +57,15 @@
       "architecture": "no-reserve",
       "negotiationMultiplier": 1.3,
       "qmeClauseRef": "Clause 17.1 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 45 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Part 2 of Schedule 2."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 45 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Part 2 of Schedule 2.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L05",
@@ -41,7 +73,15 @@
       "architecture": "reserve",
       "negotiationMultiplier": 1.35,
       "qmeClauseRef": "Clause 14.2 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 5."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 5.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L06",
@@ -49,7 +89,15 @@
       "architecture": "no-reserve",
       "negotiationMultiplier": 1.05,
       "qmeClauseRef": "Clause 15.3 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 45 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 3."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 45 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 3.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     },
     {
       "id": "L07",
@@ -57,7 +105,15 @@
       "architecture": "reserve",
       "negotiationMultiplier": 1.3,
       "qmeClauseRef": "Clause 16.1 (Qualified Maintenance Event)",
-      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 4."
+      "qmeClauseText": "\"Qualified Maintenance Event\" means, in respect of an Engine, a Performance Restoration Shop Visit performed by a maintenance facility approved in writing by Lessor, in accordance with the Manufacturer's Workscope Planning Guide at the Titled Thrust Rating, in respect of which Lessee has delivered to Lessor (i) an EASA Form 1 or FAA Form 8130-3 release certificate, (ii) the complete shop visit report including back-to-birth trace for each Life Limited Part, and (iii) the test cell acceptance run record, in each case within 60 days of release. In respect of the Landing Gear, APU and Airframe, the corresponding overhaul or structural inspection evidenced in the same manner. Maintenance not so evidenced shall not reset the relevant interval for the purposes of Schedule 4.",
+      "replacementTest": "strict",
+      "replacementClauseRef": "Clause 12.2(a)",
+      "replacementClauseText": "An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test (12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).",
+      "engineRemovalNoticeDays": 90,
+      "noticeClauseRef": "Clause 12.3(b)",
+      "noticeClauseText": "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+      "temporaryInstallClauseRef": "Clause 12.3(c)",
+      "temporaryInstallClauseText": "Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled."
     }
   ],
   "aircraft": [
@@ -240,11 +296,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 20740,
-            "cso": 10540,
-            "llpMinCyclesRemaining": 9460
+            "tso": 7294,
+            "cso": 3707,
+            "llpMinCyclesRemaining": 16293
           },
           "onTailSince": "2021-02-01",
           "installedOn": "A6-HUH"
@@ -265,11 +321,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 20740,
-            "cso": 10540,
-            "llpMinCyclesRemaining": 9460
+            "tso": 6141,
+            "cso": 3121,
+            "llpMinCyclesRemaining": 16879
           },
           "onTailSince": "2021-02-01",
           "installedOn": "A6-HUH"
@@ -410,11 +466,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 2,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 14648,
-            "cso": 8451,
-            "llpMinCyclesRemaining": 11549
+            "tso": 2756,
+            "cso": 1590,
+            "llpMinCyclesRemaining": 18410
           },
           "onTailSince": "2024-03-25",
           "installedOn": "9H-MMC"
@@ -485,11 +541,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 11593,
-            "cso": 13463,
-            "llpMinCyclesRemaining": 0
+            "tso": 3653,
+            "cso": 4242,
+            "llpMinCyclesRemaining": 5048
           },
           "onTailSince": "2019-12-15",
           "installedOn": "9H-MMC"
@@ -3745,11 +3801,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 34960,
-            "cso": 17135,
-            "llpMinCyclesRemaining": 2865
+            "tso": 10085,
+            "cso": 4943,
+            "llpMinCyclesRemaining": 15057
           },
           "onTailSince": "2017-03-03",
           "installedOn": "9H-LNK"
@@ -4300,11 +4356,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 32760,
-            "cso": 14352,
-            "llpMinCyclesRemaining": 5648
+            "tso": 14511,
+            "cso": 6357,
+            "llpMinCyclesRemaining": 13643
           },
           "onTailSince": "2018-02-01",
           "installedOn": "A6-FVP"
@@ -4325,11 +4381,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 32760,
-            "cso": 14352,
-            "llpMinCyclesRemaining": 5648
+            "tso": 14547,
+            "cso": 6373,
+            "llpMinCyclesRemaining": 13627
           },
           "onTailSince": "2018-02-01",
           "installedOn": "A6-FVP"
@@ -4665,11 +4721,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 20250,
-            "cso": 10898,
-            "llpMinCyclesRemaining": 0
+            "tso": 1386,
+            "cso": 746,
+            "llpMinCyclesRemaining": 9406
           },
           "onTailSince": "2020-04-24",
           "installedOn": "A6-YTM"
@@ -5560,11 +5616,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 13016,
-            "cso": 15400,
-            "llpMinCyclesRemaining": 0
+            "tso": 6028,
+            "cso": 7132,
+            "llpMinCyclesRemaining": 2333
           },
           "onTailSince": "2017-08-02",
           "installedOn": "A6-ZMT"
@@ -8240,11 +8296,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 5,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 29940,
-            "cso": 16543,
-            "llpMinCyclesRemaining": 0
+            "tso": 12071,
+            "cso": 6670,
+            "llpMinCyclesRemaining": 1330
           },
           "onTailSince": "2018-04-18",
           "installedOn": "9H-KVJ"
@@ -8965,11 +9021,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 32758,
-            "cso": 13245,
-            "llpMinCyclesRemaining": 6755
+            "tso": 14196,
+            "cso": 5740,
+            "llpMinCyclesRemaining": 14260
           },
           "onTailSince": "2024-11-03",
           "installedOn": "A6-SNX"
@@ -9910,11 +9966,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 7739,
-            "cso": 9455,
-            "llpMinCyclesRemaining": 319
+            "tso": 771,
+            "cso": 942,
+            "llpMinCyclesRemaining": 8832
           },
           "onTailSince": "2021-09-02",
           "installedOn": "9H-PEJ"
@@ -11405,11 +11461,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 13152,
-            "cso": 7728,
-            "llpMinCyclesRemaining": 272
+            "tso": 604,
+            "cso": 355,
+            "llpMinCyclesRemaining": 7645
           },
           "onTailSince": "2022-10-03",
           "installedOn": "A6-PBL"
@@ -13605,11 +13661,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 22932,
-            "cso": 8502,
-            "llpMinCyclesRemaining": 11498
+            "tso": 6352,
+            "cso": 2355,
+            "llpMinCyclesRemaining": 17645
           },
           "onTailSince": "2020-04-02",
           "installedOn": "A6-GRC"
@@ -14305,11 +14361,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 5,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 23851,
-            "cso": 9227,
-            "llpMinCyclesRemaining": 0
+            "tso": 9034,
+            "cso": 3495,
+            "llpMinCyclesRemaining": 4505
           },
           "onTailSince": "2026-08-18",
           "installedOn": "A6-XFH"
@@ -14815,11 +14871,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 22320,
-            "cso": 8160,
-            "llpMinCyclesRemaining": 0
+            "tso": 2232,
+            "cso": 816,
+            "llpMinCyclesRemaining": 6528
           },
           "onTailSince": "2020-02-02",
           "installedOn": "A6-GPX"
@@ -15345,11 +15401,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 19110,
-            "cso": 6890,
-            "llpMinCyclesRemaining": 13110
+            "tso": 1686,
+            "cso": 608,
+            "llpMinCyclesRemaining": 19392
           },
           "onTailSince": "2021-05-03",
           "installedOn": "A6-HCD"
@@ -17640,11 +17696,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 5,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 16320,
-            "cso": 8109,
-            "llpMinCyclesRemaining": 11891
+            "tso": 4319,
+            "cso": 2146,
+            "llpMinCyclesRemaining": 17854
           },
           "onTailSince": "2022-07-03",
           "installedOn": "A6-KCB"
@@ -19455,11 +19511,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 21627,
-            "cso": 11907,
-            "llpMinCyclesRemaining": 0
+            "tso": 2403,
+            "cso": 1323,
+            "llpMinCyclesRemaining": 9261
           },
           "onTailSince": "2020-01-02",
           "installedOn": "9H-JTH"
@@ -22570,11 +22626,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 10,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 27740,
-            "cso": 15010,
-            "llpMinCyclesRemaining": 0
+            "tso": 549,
+            "cso": 297,
+            "llpMinCyclesRemaining": 7703
           },
           "onTailSince": "2018-11-02",
           "installedOn": "9H-BCK"
@@ -25860,11 +25916,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 9385,
-            "cso": 11231,
-            "llpMinCyclesRemaining": 0
+            "tso": 1806,
+            "cso": 2161,
+            "llpMinCyclesRemaining": 7413
           },
           "onTailSince": "2020-04-02",
           "installedOn": "9H-XTX"
@@ -28105,11 +28161,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 29625,
-            "cso": 3634,
-            "llpMinCyclesRemaining": 2366
+            "tso": 2592,
+            "cso": 318,
+            "llpMinCyclesRemaining": 5682
           },
           "onTailSince": "2020-03-03",
           "installedOn": "9H-YEZ"
@@ -31995,11 +32051,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 19100,
-            "cso": 2100,
-            "llpMinCyclesRemaining": 3900
+            "tso": 1228,
+            "cso": 135,
+            "llpMinCyclesRemaining": 5865
           },
           "onTailSince": "2022-08-03",
           "installedOn": "A6-NRK"
@@ -36055,11 +36111,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 4,
           "derate": 5,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 23256,
-            "cso": 3060,
-            "llpMinCyclesRemaining": 11940
+            "tso": 10161,
+            "cso": 1337,
+            "llpMinCyclesRemaining": 13663
           },
           "onTailSince": "2024-09-24",
           "installedOn": "A6-DLL"
@@ -36080,11 +36136,11 @@
           "lastWorkscope": "build-for-cash",
           "shopVisitCount": 3,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 13011,
-            "cso": 1712,
-            "llpMinCyclesRemaining": 4288
+            "tso": 585,
+            "cso": 77,
+            "llpMinCyclesRemaining": 5923
           },
           "onTailSince": "2016-11-09",
           "installedOn": "A6-DLL"
@@ -36200,11 +36256,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 5,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 22508,
-            "cso": 3060,
-            "llpMinCyclesRemaining": 11940
+            "tso": 213,
+            "cso": 29,
+            "llpMinCyclesRemaining": 14971
           },
           "onTailSince": "2021-02-01",
           "installedOn": "9H-YGB"
@@ -36805,11 +36861,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 21630,
-            "cso": 2870,
-            "llpMinCyclesRemaining": 12130
+            "tso": 7288,
+            "cso": 967,
+            "llpMinCyclesRemaining": 14033
           },
           "onTailSince": "2020-12-02",
           "installedOn": "A6-PXZ"
@@ -37845,11 +37901,11 @@
           "lastWorkscope": "build-for-interval",
           "shopVisitCount": 1,
           "derate": 0,
-          "qmeStatus": "not-evidenced",
+          "qmeStatus": "verified",
           "asLeaseAllows": {
-            "tso": 36630,
-            "cso": 4840,
-            "llpMinCyclesRemaining": 440
+            "tso": 1128,
+            "cso": 149,
+            "llpMinCyclesRemaining": 5131
           },
           "onTailSince": "2017-08-02",
           "installedOn": "A6-LUB"

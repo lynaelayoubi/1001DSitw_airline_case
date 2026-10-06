@@ -20,6 +20,7 @@ import {
   LANDING_GEAR,
   NEGOTIATION_MULTIPLIER,
   PROFILES_BY_TYPE,
+  QME_INCIDENCE,
   RETURNING_WINDOW_MONTHS,
   THRESHOLD_RANGES,
   THRESHOLD_REFERENCE_FHFC,
@@ -146,6 +147,27 @@ const LESSOR_NAMES = [
   'Tamar Leasing Company',
 ];
 
+// Two terms every lessor carries in the strict form of the source lease (LEASE-NOTES.md). Fixed
+// text, no random draw, so adding them leaves the seeded sequence — and every other number — as it was.
+const REPLACEMENT_CLAUSE = {
+  replacementTest: 'strict' as const,
+  replacementClauseRef: 'Clause 12.2(a)',
+  replacementClauseText:
+    'An Engine installed as a permanent replacement shall be in the same or better operating condition, has no less hours or ' +
+    'Engine LLP life available until the next scheduled checks, inspections, overhauls and shop visits and has the same or ' +
+    'greater value and utility as the replaced Engine (12.2(a)(i)(2)). Replacement Parts are held to the same test ' +
+    '(12.2(a)(ii)). Title to any replacement passes to Lessor (12.6).',
+};
+const NOTICE_CLAUSE = {
+  engineRemovalNoticeDays: 90,
+  noticeClauseRef: 'Clause 12.3(b)',
+  noticeClauseText: "Lessee shall give Lessor not less than 90 days' notice of any planned removal of an Engine.",
+  temporaryInstallClauseRef: 'Clause 12.3(c)',
+  temporaryInstallClauseText:
+    'Lessee may install another engine on the Airframe on a temporary basis while an Engine is removed for maintenance, the ' +
+    'removed Engine remaining the Engine for the purposes of this Agreement and to be reinstalled.',
+};
+
 function makeLessors(): Lessor[] {
   return LESSOR_NAMES.map((name, i) => ({
     id: 'L' + String(i + 1).padStart(2, '0'),
@@ -154,6 +176,8 @@ function makeLessors(): Lessor[] {
     negotiationMultiplier: Math.round(roundTo(between(NEGOTIATION_MULTIPLIER.min, NEGOTIATION_MULTIPLIER.max), 0.05) * 100) / 100,
     qmeClauseRef: '',
     qmeClauseText: '',
+    ...REPLACEMENT_CLAUSE,
+    ...NOTICE_CLAUSE,
   }));
 }
 
@@ -272,7 +296,7 @@ function makeEngine(host: Host, position: 'ENG1' | 'ENG2' | 'POOL', opts: Engine
   const tso = Math.round(cso * fhFc);
   const llpMinCyclesRemaining = llpBucket - cso;
   const lastShopVisit = count > 0 ? iso(addMonths(TODAY, -cso / host.cyclesPerMonth)) : null;
-  const notEvidenced = count > 0 && chance(0.12);
+  const notEvidenced = count > 0 && chance(QME_INCIDENCE.engine);
   const lastSegment = segments[segments.length - 1] ?? 0;
 
   const onTailSince = swapped
@@ -330,7 +354,7 @@ function makeLandingGear(host: Host, position: 'MLG' | 'POOL', opts: { monthsSin
   const cso = Math.round(remM * cpm);
   const tso = Math.round(cso * fhFc);
   const cyclesToNext = Math.round(Math.min(spec.intervalFC - cso, (spec.intervalMonths - remM) * cpm));
-  const notEvidenced = count > 0 && chance(0.08);
+  const notEvidenced = count > 0 && chance(QME_INCIDENCE.landingGear);
   const lastSegCycles = Math.round((segments[segments.length - 1] ?? 0) * cpm);
 
   return {
@@ -368,7 +392,7 @@ function makeAirframe(host: Host): Component {
   const cso = Math.round(monthsSince * host.cyclesPerMonth);
   const tso = Math.round(monthsSince * host.hoursPerMonth);
   const cyclesToNext = Math.round((interval - monthsSince) * host.cyclesPerMonth);
-  const notEvidenced = count > 0 && chance(0.04);
+  const notEvidenced = count > 0 && chance(QME_INCIDENCE.airframe);
   const lastSegCycles = Math.round(interval * host.cyclesPerMonth);
 
   return {
@@ -419,7 +443,7 @@ function makeApu(host: Host, position: 'APU' | 'POOL', opts: { csn?: number } = 
   const cyclesToNext = Math.round((spec.intervalApuHours - tso) / apuHoursPerCycle);
   const monthsSinceOverhaul = cso / host.cyclesPerMonth;
   const monthsSinceNew = csn / host.cyclesPerMonth;
-  const notEvidenced = count > 0 && chance(0.08);
+  const notEvidenced = count > 0 && chance(QME_INCIDENCE.apu);
   const lastSeg = segments[segments.length - 1] ?? 0;
 
   return {

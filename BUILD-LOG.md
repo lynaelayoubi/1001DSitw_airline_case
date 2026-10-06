@@ -806,3 +806,73 @@ emphasised, no box, no fill, no badge — and amber is kept for forced removals 
 and cards. · Because it is not an error and not a fourth total; a number that needs a caption
 saying where it does not belong is in the wrong place, and sitting above the table it summarises
 says so on its own. With amber reserved, the forced badges now carry it.
+
+## Step 14 · the swap lever under the lease's replacement test — Tuesday 6 October
+
+**A swap passes only if the incoming unit has no less life than the outgoing one on every clock
+the lease names — to the next shop visit or overhaul, and LLP life — held as a lessor-level term
+with its clause (LEASE-NOTES.md, 12.2; every lessor strict), and tested on both tails of a swap
+between two.** · Rejected: lever 3 as built, picking the unit just above the threshold and
+crediting the removed unit's life to the pool. · Because the source lease does not permit it:
+12.2(a)(i)(2) holds a permanent replacement to "no less hours or Engine LLP life available until
+the next scheduled ... shop visits", and 12.2(a)(ii) holds parts to the same test. The right-sized
+unit is usually exactly the one with less life. Both units are read as the records stand today,
+on the receiving tail's clauses; "value and utility" is not tested separately, having no
+valuation beyond life. Between two tails both tests pass only for units of equal life — in
+practice, never.
+
+**An engine swap is decided 90 days before it has to happen, and refused when that date has
+passed (12.3(b)).** · Rejected: deciding by the date the swap has to happen. · Because a planned
+engine removal needs 90 days' notice. 9H-ZUU's ENG2 must come off by 7 Nov 2026, 35 days away: no
+permitted action keeps it flying, so the plain ranking stands with its caution.
+
+**Nothing tuned to protect the headline.** On this fleet: 9H-ZUU's forced swap dies (12.3(b)) and
+the tail pays at handback with its engine running out; A6-GPZ's swap for ESN-6519 dies (10,982
+fewer LLP cycles than ENG1) and a route change to mixed takes its place; 9H-MMC's swap for
+ESN-6512 dies (fewer hours, cycles and LLP cycles than ENG1) and no option can be told apart from
+paying; 9H-KVJ takes ESN-6513, now free, decided by 10 Mar 2027 instead of 8 Jun. Avoidable $8.58M
+→ $7.11M; by choice $6.99M → $3.33M; forced $1.59M → $3.78M. The data was regenerated with the two
+terms added to every lessor and nothing else changed.
+
+**The source lease's clauses are in LEASE-NOTES.md, which did not exist before this step.** ·
+Rejected: reconstructing the rest of the lease. · Because only 12.2, 12.3(b) and 12.6 were given;
+the file quotes 12.2(a)(i)(2) and summarises the others, and says so.
+
+**QME incidence: engine 3%, gear and APU 2%, airframe 1% per component with a recorded visit — two
+of the ten returning tails carry a shop visit the lease doesn't count, against six.** · Rejected:
+12% / 8% / 4%, a generator setting with no source. · Because the customer said it happens
+"sometimes" (discovery call, 04:45), read as one or two tails in ten — a per-tail chance of 10–20%.
+The rates sit at the low end of that band (≈10.5% for a tail with five recorded visits); the
+band's middle (≈15%) still drew five of the ten on this seed. Each component keeps its draw, so the
+flagged set shrank to a subset and nothing else in the data moved; the consequence logic is
+untouched. At risk $54.4M on six tails → $33.1M on two (A6-MXM ENG1, A6-MVC ENG2); no
+recommendation and no total changes. The rates moved from inline literals in the generator to
+`QME_INCIDENCE` in `calc/constants.ts`.
+
+## Step 15 · a forced removal is never "pay at handback" — Tuesday 6 October
+
+**A component that runs out before handback never resolves to paying at handback; its options gain
+two: a pool spare covering it while it goes to the shop (12.3(c)), and the aircraft on the ground,
+priced in days at the downtime rate and leading the actions when it is the answer.** · Rejected:
+the fallback that showed 9H-ZUU as "pay at handback, nothing to book" with its ENG2 out of cycles
+on 7 Nov 2026. · Because an engine out of its clock cannot fly. The ground option is always open
+for a forced tail, so the old "no lever can keep it flying" fallback is gone.
+
+**12.3(b)'s notice blocks only planned removals; a removal forced by the engine running out goes
+with short notice, said in the working.** · Rejected: refusing 9H-ZUU's swap for want of 90 days'
+notice. · Because the clause asks notice of a planned removal; a forced one is a conversation with
+the lessor, not a refusal.
+
+**The spare's time away from the pool under 12.3(c) is priced as the life it burns, at
+build-for-interval rates.** · Rejected: a lease rate per day. · Because no spare-engine lease rate
+is in the evidence, and the model already prices a spare's life that way.
+
+**A route change has no decide-by date: "start now", and what each month of waiting gives up.** ·
+Rejected: the data date as its deadline. · Because the route change has no date after which it
+cannot be taken; it only loses value.
+
+On this fleet: 9H-ZUU becomes "Swap ENG2 for spare ESN-6513" (forced, decide now; exposure at
+handback $6.15M, all-in $6.22M) — ESN-6513 passes the replacement test; covering with ESN-6508 is
+the runner-up at $9.70M, the ground $21.34M. 9H-KVJ goes back to ESN-6508. Avoidable $7.11M →
+$4.92M (by choice $3.33M, forced $3.78M → $1.59M). Asked of the what-if, giving both permitted
+spares away covers 9H-ZUU's ENG2 with ESN-6512 — a spare the lease would not accept as permanent.

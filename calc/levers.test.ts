@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
 import { LABOUR_RATE_PER_MH } from './constants';
 import { assessTail } from './exposure';
 import { AS_OF, aircraft, assumptions, component, condition, conditions, lessor, spare } from './fixtures.test-helpers';
-import { doTheWork, flyItDifferently, moveAComponent, payAtHandback, timeTheShopVisit, type Donor, type LeverContext } from './levers';
+import { coverUntilRestored, doTheWork, flyItDifferently, moveAComponent, onTheGround, payAtHandback, timeTheShopVisit, type Donor, type LeverContext } from './levers';
 import { addMonths } from './projection';
 import type { Aircraft, Assumptions, Component, Lessor, ReturnCondition } from './types';
 
@@ -174,7 +174,9 @@ describe('L2 · fly it differently', () => {
     expect(o.label).toBe('Fly it mixed, not short-dense (flag to routing)');
     expect(o.newExposure).toBeCloseTo(2_541_600 + SUNK_OD, 3);
     expect(o.saving).toBeCloseTo(3_808_800 - 2_541_600, 3);
-    expect(o).toMatchObject({ cost: 0, downtimeDays: 0, deadline: AS_OF });
+    // No date to decide by: worth most started now, and each of the 16 months it waits gives up a sixteenth.
+    expect(o).toMatchObject({ cost: 0, downtimeDays: 0, deadline: null });
+    expect(o.startNow!.perMonth).toBeCloseTo((3_808_800 - 2_541_600) / 16, 3);
     expect(o.trace).toContain('not a schedule');
   });
 
@@ -194,40 +196,71 @@ describe('L2 · fly it differently', () => {
 });
 
 describe('L3 · move a component', () => {
-  // Fitted to ENG2 on the full fixture tail ($6,528,600 if nothing changes). A spare's life
-  // above the thresholds leaves the airline with it, priced at build-for-interval rates
-  // ($540/FC restoration, $330/FC LLP):
-  // TIGHT: 2,000 FC / 5,500 FH to its next visit, 12,000 FC of LLP. At handback 200 FC and
-  //        9,900 LLP FC over → 200 × $540 + 9,900 × $330 = $3,375,000.
+  // Fitted to ENG2 on the full fixture tail ($6,528,600 if nothing changes). The lease (clause
+  // 12.2, strict) lets a unit replace ENG2 only with no less life on every clock: 2,000 FH and
+  // 500 FC to its next visit, 19,500 FC of LLP. A spare's life above the thresholds leaves the
+  // airline with it, priced at build-for-interval rates ($540/FC restoration, $330/FC LLP):
+  // SNUG:  2,000 FC / 5,500 FH to its next visit, 19,500 FC of LLP — level with ENG2's LLP. At
+  //        handback 200 FC and 17,400 LLP FC over → 200 × $540 + 17,400 × $330 = $5,850,000.
   // RICH:  the most life — 7,700 FC and 17,400 LLP FC over → $9,900,000.
-  const tight = spare('U1', 'ESN-TIGHT', { tso: 22_000, cso: 8_000, llpMinCyclesRemaining: 12_000 });
+  // TIGHT: SNUG with 12,000 FC of LLP — right-sized for the contract, but 7,500 LLP FC short of
+  //        ENG2, so not a permitted replacement.
+  const snug = spare('U1', 'ESN-SNUG', { tso: 22_000, cso: 8_000, llpMinCyclesRemaining: 19_500 });
+  const tight = spare('U5', 'ESN-TIGHT', { tso: 22_000, cso: 8_000, llpMinCyclesRemaining: 12_000 });
   const rich = spare('U2', 'ESN-RICH', { tso: 1_375, cso: 500, llpMinCyclesRemaining: 19_500 });
   const baseline = 2_340_000 + SUNK_OD + 160_000 + 68_600; // gear surplus is not over-delivery
 
-  it('picks the right-sized unit, not the one with the most life', () => {
-    const o = moveAComponent(context(full, { pool: [rich, tight] }));
-    expect(o.label).toBe('Swap ENG2 for spare ESN-TIGHT');
+  it('picks the right-sized unit the lease permits, not the one with the most life', () => {
+    const o = moveAComponent(context(full, { pool: [rich, snug] }));
+    expect(o.label).toBe('Swap ENG2 for spare ESN-SNUG');
     // ENG2's compensation and its sunk over-delivery leave with it — it goes to the pool, so its
     // avoidable LLP life is not handed over — and the spare's priced life comes in.
-    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 3_375_000, 0);
+    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 5_850_000, 0);
     expect(o.cost).toBeCloseTo(ENGINE_RI, 3);
     expect(o.downtimeCost).toBe(45_000); // one overnight change
-    expect(o.saving).toBeCloseTo(2_340_000 + SUNK_OD - 3_375_000 - ENGINE_RI - 45_000, 0);
+    expect(o.saving).toBeCloseTo(2_340_000 + SUNK_OD - 5_850_000 - ENGINE_RI - 45_000, 0);
     expect(o.trace).toContain(`its $3,960,000 of avoidable LLP life is not handed over`);
     expect(o.move).toMatchObject({ position: 'ENG2', incoming: { id: 'U1', from: 'pool' } });
     expect(o.trace).toContain('200 FC above');
   });
 
-  it('decides by the date the outgoing unit runs out, when that comes before the slot deadline', () => {
-    expect(moveAComponent(context(full, { pool: [tight] })).deadline).toBe(addMonths(AS_OF, 5));
+  it('refuses a unit with less life than the one it replaces on any clock the lease names (12.2)', () => {
+    const o = moveAComponent(context(full, { pool: [tight] }));
+    expect(o.feasible).toBe(false);
+    expect(o.trace).toContain('not a permitted replacement under Clause 12.2(a): ESN-TIGHT has 7,500 fewer LLP cycles than ENG2');
+  });
+
+  it("decides 90 days before the outgoing unit runs out, when the notice can be given in full (12.3(b))", () => {
+    const o = moveAComponent(context(full, { pool: [snug] }));
+    const runsOut = addMonths(AS_OF, 5);
+    expect(o.deadline).toBe(new Date(Date.parse(runsOut + 'T00:00:00Z') - 90 * 86_400_000).toISOString().slice(0, 10));
+    expect(o.trace).toContain(`the swap has to happen by ${runsOut}`);
+    expect(o.trace).toContain("less 90 days' notice of the removal (Clause 12.3(b))");
+  });
+
+  it('does not refuse a removal forced by the engine running out: notice goes now, short — a conversation, not a refusal', () => {
+    // ENG2 runs out at month 5; a lessor wanting 180 days' notice cannot have it in full.
+    const o = moveAComponent(context(full, { pool: [snug], lessor: lessor({ engineRemovalNoticeDays: 180 }) }));
+    expect(o.feasible).toBe(true);
+    expect(o.deadline).toBe(AS_OF);
+    expect(o.trace).toContain('a removal forced by ENG2 running out, not a planned one');
+    expect(o.trace).toContain('a conversation with the lessor, not a refusal');
+  });
+
+  it('refuses a planned engine swap when its notice can no longer be given (12.3(b))', () => {
+    // Handing back in 3 months, ENG2 does not run out first, but it is short at handback: a planned
+    // swap, which had to be noticed 90 days before the shop-slot deadline — already past.
+    const o = moveAComponent(context(aircraft({ leaseEnd: addMonths(AS_OF, 3) }, [eng2]), { pool: [snug] }));
+    expect(o.feasible).toBe(false);
+    expect(o.trace).toContain("not possible under Clause 12.3(b): a planned engine removal needs 90 days' notice");
   });
 
   it("never treats a spare's life as free", () => {
     // Never been to the shop, so on its own tail its surplus would not be over-delivery at all.
-    // As a spare it leaves the airline: 6,700 FC × $540 + 13,900 LLP FC × $330 = $8,205,000.
-    const fresh = spare('U3', 'ESN-NEW', { tso: 11_000, cso: 4_000, llpMinCyclesRemaining: 16_000, lastWorkscope: 'none', shopVisitCount: 0 });
+    // As a spare it leaves the airline: 6,700 FC × $540 + 17,400 LLP FC × $330 = $9,360,000.
+    const fresh = spare('U3', 'ESN-NEW', { tso: 11_000, cso: 4_000, llpMinCyclesRemaining: 19_500, lastWorkscope: 'none', shopVisitCount: 0 });
     const o = moveAComponent(context(full, { pool: [fresh] }));
-    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 6_700 * 540 + 13_900 * 330, 0);
+    expect(o.newExposure).toBeCloseTo(baseline - (2_340_000 + SUNK_OD) + 6_700 * 540 + 17_400 * 330, 0);
     expect(o.saving).toBeLessThan(0);
     expect(o.trace).toContain('is a spare, so all its life');
   });
@@ -239,32 +272,31 @@ describe('L3 · move a component', () => {
     expect(o.trace).toContain('would run out');
   });
 
-  it('charges a swap between two tails with the exposure it creates on the other one', () => {
-    // A donor handing back in 4 months: ENG2 flies about 400 of its 500 FC there, so it gets to handback.
-    const donorAc = aircraft({ tail: 'T-DONOR', leaseEnd: addMonths(AS_OF, 4) }, [component('engine', 'ENG1', { ...tight, position: 'ENG1', installedOn: 'T-DONOR' })]);
-    const donorRcs = conditions('T-DONOR');
-    const a = assumptions();
-    const donor: Donor = { ac: donorAc, conditions: donorRcs, baseline: assessTail(donorAc, donorRcs, AS_OF, a) };
-    const o = moveAComponent(context(aircraft({}, [eng2]), { donors: [donor] }));
-    expect(o.label).toBe("Swap ENG2 with T-DONOR's ENG1");
-    // The donor's exposure afterwards is what the exposure engine says ENG2 costs there.
-    const withOurs = assessTail({ ...donorAc, components: [{ ...eng2, position: 'ENG1', installedOn: 'T-DONOR' }] }, donorRcs, AS_OF, a);
-    const d = o.move!.donor!;
-    expect(d.exposureBefore).toBeCloseTo(donor.baseline.asRecorded.exposure, 3);
-    expect(d.exposureAfter).toBeCloseTo(withOurs.asRecorded.exposure, 3);
-    expect(o.cost).toBeCloseTo(2 * ENGINE_RI + d.exposureAfter - d.exposureBefore, 3);
-    expect(o.downtimeDays).toBe(2);
-    // Between two returning tails a unit is handed to a lessor either way, so it stays on the
-    // over-delivery rule: the donor's engine here has 9,900 LLP FC over, less than the 12,000 a
-    // build-for-cash visit would have saved, so none of it was avoidable and it owes nothing.
-    expect(o.move!.own.newExposure).toBeCloseTo(0, 3);
+  it('tests a swap between two tails on both tails: each unit must have no less life than the one it replaces', () => {
+    // The lease holds each tail's incoming unit to the one it replaces, so between two tails both
+    // tests pass only when the two units have the same life on every clock.
+    const donorAt = (unit: Component, leaseEnd?: string) => {
+      const donorAc = aircraft({ tail: 'T-DONOR', ...(leaseEnd ? { leaseEnd } : {}) }, [component('engine', 'ENG1', { ...unit, position: 'ENG1', installedOn: 'T-DONOR' })]);
+      const donorRcs = conditions('T-DONOR');
+      const donor: Donor = { ac: donorAc, lessor: lessor(), conditions: donorRcs, baseline: assessTail(donorAc, donorRcs, AS_OF, assumptions()) };
+      return moveAComponent(context(aircraft({}, [eng2]), { donors: [donor] }));
+    };
+    // Here: the donor's unit has less LLP life than ENG2, so it cannot replace ENG2.
+    const short = donorAt(tight, addMonths(AS_OF, 4));
+    expect(short.feasible).toBe(false);
+    expect(short.trace).toContain('ESN-TIGHT has 7,500 fewer LLP cycles than ENG2');
+    // There: the donor's unit has more life on every clock, so ENG2 cannot replace it on the donor.
+    const there = donorAt(rich, addMonths(AS_OF, 4));
+    expect(there.feasible).toBe(false);
+    expect(there.trace).toContain("than T-DONOR's ENG1");
   });
 
   it('will not hand another tail a unit that runs out before its handback', () => {
-    // Same donor, handing back at 16 months: ENG2 would run out there at month 5.
-    const donorAc = aircraft({ tail: 'T-DONOR' }, [component('engine', 'ENG1', { ...tight, position: 'ENG1', installedOn: 'T-DONOR' })]);
+    // A unit with more life than ENG2 passes here; ENG2 would then run out on the donor at month 5.
+    const roomy = spare('U6', 'ESN-ROOMY', { tso: 18_000, cso: 6_000, llpMinCyclesRemaining: 19_500 });
+    const donorAc = aircraft({ tail: 'T-DONOR' }, [component('engine', 'ENG1', { ...roomy, position: 'ENG1', installedOn: 'T-DONOR' })]);
     const donorRcs = conditions('T-DONOR');
-    const donor: Donor = { ac: donorAc, conditions: donorRcs, baseline: assessTail(donorAc, donorRcs, AS_OF, assumptions()) };
+    const donor: Donor = { ac: donorAc, lessor: lessor(), conditions: donorRcs, baseline: assessTail(donorAc, donorRcs, AS_OF, assumptions()) };
     const o = moveAComponent(context(aircraft({}, [eng2]), { donors: [donor] }));
     expect(o.feasible).toBe(false);
     expect(o.trace).toContain('on T-DONOR');
@@ -272,6 +304,43 @@ describe('L3 · move a component', () => {
 
   it('has nothing to move when no engine, gear or APU carries exposure', () => {
     expect(moveAComponent(context(aircraft({}, [eng1]), { pool: [tight] })).feasible).toBe(false);
+  });
+});
+
+describe('a component that runs out before handback', () => {
+  // ENG2 runs out at month 5, after the 4-month lead time: its first slot is month 5, and a 200-day
+  // turnaround brings it back at month 11.6, before handback at month 16.
+  const snug = spare('U1', 'ESN-SNUG', { tso: 22_000, cso: 8_000, llpMinCyclesRemaining: 19_500 });
+  const out = { ...context(full, { pool: [snug] }), focus: 1 };
+
+  it('covers it with a pool spare while it goes to the shop, and puts it back (12.3(c))', () => {
+    const o = coverUntilRestored(out);
+    expect(o.feasible).toBe(true);
+    expect(o.label).toBe('Cover ENG2 with spare ESN-SNUG while it goes to the shop');
+    expect(o.covers!.from).toBeCloseTo(5, 6);
+    expect(o.covers!.until).toBeCloseTo(5 + 200 / 30.4375, 6);
+    // ENG2 stays the permanent engine, so the replacement test does not apply to the spare.
+    expect(o.trace).toContain('Clause 12.3(c)');
+    expect(o.trace).toContain("replacement test does not apply");
+    // Two overnight changes, and the spare's time away priced as the life it burns.
+    expect(o.downtimeDays).toBe(2);
+    expect(o.cost).toBeGreaterThan(o.spend);
+    expect(o.trace).toContain("The spare's time away from the pool");
+  });
+
+  it('is not on offer without a spare that lasts until the engine is back', () => {
+    const o = coverUntilRestored({ ...context(full), focus: 1 });
+    expect(o.feasible).toBe(false);
+    expect(o.trace).toContain('the pool has no');
+  });
+
+  it('prices the aircraft on the ground until the engine is back, at the downtime rate', () => {
+    const o = onTheGround(out);
+    expect(o.feasible).toBe(true);
+    expect(o.lever).toBe('ground');
+    expect(o.grounded!.days).toBe(200);
+    expect(o.grounded!.cost).toBe(200 * 45_000);
+    expect(o.downtimeCost).toBe(o.grounded!.cost);
   });
 });
 

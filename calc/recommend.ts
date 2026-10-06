@@ -13,11 +13,13 @@ import { COST_ESTIMATE_UNCERTAINTY, DEFAULT_ASSUMPTIONS } from './constants';
 import type { FleetExposure, TailResult } from './exposure';
 import { num, usd } from './format';
 import {
+  coverUntilRestored,
   describeProposal,
   doTheWork,
   firstTimeout,
   flyItDifferently,
   moveAComponent,
+  onTheGround,
   payAtHandback,
   proposedOption,
   timeTheShopVisit,
@@ -96,9 +98,19 @@ export function tellApart(best: LeverOption, next: LeverOption | null): Call {
   return { stands, advantage, differing, uncertainty, between: stands ? null : [best.label, next.label], why };
 }
 
-const LEVER_ORDER = ['pay', 'L1', 'L2', 'L3', 'L4'];
+const LEVER_ORDER = ['pay', 'L1', 'L2', 'L3', 'L4', 'ground'];
 
-const all = (ctx: LeverContext) => [payAtHandback(ctx), doTheWork(ctx), flyItDifferently(ctx), moveAComponent(ctx), timeTheShopVisit(ctx)];
+// With a component running out before handback (focus), two more routes: cover it with a spare
+// while it goes to the shop (12.3(c)), and the aircraft on the ground — always open, so a forced
+// tail never falls back to paying at handback.
+const all = (ctx: LeverContext) => [
+  payAtHandback(ctx),
+  doTheWork(ctx),
+  flyItDifferently(ctx),
+  moveAComponent(ctx),
+  timeTheShopVisit(ctx),
+  ...(ctx.focus === undefined ? [] : [coverUntilRestored(ctx), onTheGround(ctx)]),
+];
 
 export function recommendTail(ctx: LeverContext): TailRecommendation {
   // Nothing owed at handback on either basis (to the dollar shown): there is nothing to decide, so
@@ -122,20 +134,18 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       trace: `${ctx.ac.tail}: no exposure at handback, as recorded or under the lease — every clock clears its return condition. Nothing to decide.`,
     };
   }
-  // A component that runs out before handback has to be dealt with: the options become the
-  // levers applied to it. If none can keep it flying, fall back to the plain ranking.
+  // A component that runs out before handback has to be dealt with: the options become the levers
+  // applied to it, with a spare covering it at the shop and, always open, the aircraft on the ground.
+  // Paying at handback is never one of them: a component out of its clock cannot fly.
   const timeout = firstTimeout(ctx.baseline);
   let offered = all(ctx);
   let preamble = '';
   let forced: TailRecommendation['forced'] = null;
   if (timeout) {
-    const focused = all({ ...ctx, focus: ctx.ac.components.findIndex((c) => c.position === timeout.position) });
+    offered = all({ ...ctx, focus: ctx.ac.components.findIndex((c) => c.position === timeout.position) });
     const at = `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
-    if (focused.some((o) => o.feasible)) {
-      offered = focused;
-      preamble = `Forced: ${at}, so the options are the ones that keep it flying; paying at handback is not one of them. `;
-      forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
-    } else preamble = `${at}, and no lever can keep it flying, so the plain ranking stands: see the caution on paying. `;
+    preamble = `Forced: ${at}, so the options are the ones that deal with it; paying at handback is not one of them. `;
+    forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
   }
   const options = offered.sort(
     (x, y) => Number(y.feasible) - Number(x.feasible) || x.total - y.total || LEVER_ORDER.indexOf(x.lever) - LEVER_ORDER.indexOf(y.lever),
@@ -151,8 +161,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   const recommended = fallBack ?? best;
   const runnerUp = fallBack ? best : (distinct[1] ?? null);
   const delta = runnerUp ? runnerUp.total - recommended.total : 0;
-  // Not SPEC's min over every option: a route change is worth most if started now, so its
-  // deadline is always today, and the minimum would put today on every tail.
+  // Not SPEC's min over every option: a route change has no date (start now), and the minimum
+  // would put today on every tail.
   const decisionDeadline = recommended.deadline;
   const unavoidable = recommended.total;
   const avoidable = doNothing - unavoidable;
@@ -172,7 +182,13 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
         ? `, so ${usd(avoidable)} is avoidable. `
         : ': nothing is avoidable. ') +
     (runnerUp ? `Runner-up: ${runnerUp.label}, ${usd(delta)} more${runnerUp.deadline ? `, open until ${runnerUp.deadline}` : ''}. ` : '') +
-    (decisionDeadline ? `Decide by ${decisionDeadline}.` : 'Nothing to book.') +
+    (decisionDeadline
+      ? `Decide by ${decisionDeadline}.`
+      : recommended.grounded
+        ? `On the ground from ${recommended.grounded.from}: ${num(recommended.grounded.days)} days, ${usd(recommended.grounded.cost)} at the downtime rate.`
+        : recommended.startNow
+          ? `Start now: each month of waiting gives up about ${usd(recommended.startNow.perMonth)}.`
+          : 'Nothing to book.') +
     (call.stands && runnerUp ? ` It stands: ${call.why}.` : '') +
     `\n\n${options.map((o, k) => `${o.feasible ? `${k + 1}.` : '–'} ${line(o)}`).join('\n')}` +
     `\n\n${recommended.trace}`;
@@ -281,7 +297,7 @@ export function actionOf(plan: TailPlan): string {
   if (plan.recommendation.nothingToDecide) return 'nothing';
   const o = plan.recommendation.recommended;
   if (!plan.recommendation.call.stands && o.lever !== 'pay') return `undecided:${plan.recommendation.call.between!.join('|')}`;
-  return o.move ? `swap:${o.move.position}:${o.move.incoming.from}` : o.actionKey.replace(/^visit:([^:]+):\d+:/, 'visit:$1:');
+  return o.move ? `swap:${o.move.position}:${o.move.incoming.from}` : o.actionKey.replace(/^(visit|cover):([^:]+):\d+:/, '$1:$2:');
 }
 
 export interface ActionChange {
@@ -345,7 +361,12 @@ export function recommendFleet(
   for (const rc of data.returnConditions) conditions.set(rc.tail, [...(conditions.get(rc.tail) ?? []), rc]);
 
   const tails = fleet.returning;
-  const donors: Donor[] = tails.map((t) => ({ ac: aircraft.get(t.tail)!, conditions: conditions.get(t.tail) ?? [], baseline: t }));
+  const donors: Donor[] = tails.map((t) => {
+    const ac = aircraft.get(t.tail)!;
+    const lessor = lessors.get(ac.lessorId);
+    if (!lessor) throw new Error(`${t.tail}: no lessor ${ac.lessorId}`);
+    return { ac, lessor, conditions: conditions.get(t.tail) ?? [], baseline: t };
+  });
   const contextFor = (t: TailResult, usedPool: Set<string>, busy: Set<string>): LeverContext => {
     const ac = aircraft.get(t.tail)!;
     const lessor = lessors.get(ac.lessorId);
@@ -412,6 +433,7 @@ export function recommendFleet(
     if (o.lever === 'pay') continue;
     acting.add(t.tail);
     if (o.move?.incoming.from === 'pool') usedPool.add(o.move.incoming.id);
+    if (o.covers) usedPool.add(o.covers.id);
     if (o.move?.donor) gives.set(o.move.donor.tail, { to: t.tail, option: o });
   }
 

@@ -23,15 +23,17 @@ import {
 } from './constants';
 import { assessComponent, unitCostOfLife, type ComponentResult, type RequirementResult, type TailResult } from './exposure';
 import { num, usd, usd2 } from './format';
-import { addMonths, monthlyRate, monthsBetween, type UsageProjection } from './projection';
+import { addMonths, monthlyRate, monthsBetween, parseDate, toISO, type UsageProjection } from './projection';
 import { engineShopVisitCost } from './rates';
 import type { Aircraft, Assumptions, Component, ComponentKind, ISODate, Lessor, Proposal, ReturnCondition, RouteProfile, Workscope } from './types';
 
-export type LeverId = 'pay' | 'L1' | 'L2' | 'L3' | 'L4';
+export type LeverId = 'pay' | 'L1' | 'L2' | 'L3' | 'L4' | 'ground';
 
 /** Another returning tail, as a source of units for lever 3. */
 export interface Donor {
   ac: Aircraft;
+  /** Its lessor: the replacement test and the removal notice apply on its tail too. */
+  lessor: Lessor;
   conditions: ReturnCondition[];
   baseline: TailResult;
 }
@@ -134,6 +136,12 @@ export interface LeverOption {
   actionKey: string;
   move?: SwapDetail;
   curve?: CurvePoint[];
+  /** A pool spare installed temporarily while the component is at the shop (clause 12.3(c)), from and until (months from today). */
+  covers?: { id: string; serial: string; from: number; until: number };
+  /** No date to decide by: worth most started now, and each month of waiting gives up this much (a route change). */
+  startNow?: { perMonth: number };
+  /** The aircraft on the ground because nothing keeps it flying: from when, for how many days, at what downtime cost. */
+  grounded?: { from: ISODate; days: number; cost: number };
 }
 
 type Scope = Exclude<Workscope, 'none'>;
@@ -156,6 +164,13 @@ const SWAP_DAYS: Record<ComponentKind, number> = {
 const CLOCK_WORD: Record<ReturnCondition['unit'], string> = { FH: 'hours', FC: 'cycles', months: 'calendar time', 'APU-FH': 'APU hours' };
 const clockWord = (r: RequirementResult) => (r.group === 'llp' ? 'LLP life' : CLOCK_WORD[r.unit]);
 const days = (n: number) => `${n} ${n === 1 ? 'day' : 'days'}`;
+const MS_PER_DAY = 86_400_000;
+const addDays = (d: ISODate, n: number): ISODate => toISO(new Date(parseDate(d).getTime() + n * MS_PER_DAY));
+const daysBetween = (from: ISODate, to: ISODate) => Math.round((parseDate(to).getTime() - parseDate(from).getTime()) / MS_PER_DAY);
+/** A clock as the replacement clause names it: life to the next shop visit or overhaul, or LLP life. */
+const LIFE_NOUN: Record<ReturnCondition['unit'], string> = { FH: 'hours', FC: 'cycles', months: 'months', 'APU-FH': 'APU hours' };
+const lifeWord = (r: RequirementResult, kind: ComponentKind) =>
+  r.group === 'llp' ? 'LLP cycles' : `${LIFE_NOUN[r.unit]} to its next ${kind === 'engine' ? 'shop visit' : 'overhaul'}`;
 const signed = (n: number) => (n < 0 ? '−' : '+') + num(Math.abs(n));
 
 function scopesFor(kind: ComponentKind): Scope[] {
@@ -392,7 +407,12 @@ interface Visit {
  * LLP life of its last visit — is lost whether it is handed over or scrapped, so it is carried
  * unchanged and cancels against doing nothing. Only compensation moves.
  */
-function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope): Visit {
+/**
+ * opts.flownTo: the month the component stops flying before induction — earlier than the induction
+ * month when it has run out and sits off the wing waiting for its slot (default: the induction
+ * month). opts.cover: whether a pool spare covers the turnaround (default: whether the pool has one).
+ */
+function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope, opts: { flownTo?: number; cover?: boolean } = {}): Visit {
   const { ac, a, baseline, conditions } = ctx;
   const p = baseline.projection;
   const c = ac.components[i]!;
@@ -412,7 +432,7 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   let workTrace: string;
   if (engine) {
     const sv = engineShopVisitCost(ac.engineModel, ac.environment, scope, c.shopVisitCount + 1);
-    const llpAtInduction = c.llpMinCyclesRemaining - cyclesTo(month);
+    const llpAtInduction = c.llpMinCyclesRemaining - cyclesTo(opts.flownTo ?? month);
     const llpReplaced = llpAtInduction < sv.bucketCycles;
     restoration = sv.restoration * mult;
     llpCost = llpReplaced ? sv.llp * mult : 0;
@@ -443,8 +463,8 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   }
   const visitCost = restoration + llpCost;
 
-  const reserves = reservesAt(ctx, i, month, restoration, llpCost);
-  const spare = engine && ctx.pool.some((u) => u.kind === 'engine' && u.model === ac.engineModel);
+  const reserves = reservesAt(ctx, i, opts.flownTo ?? month, restoration, llpCost);
+  const spare = engine && (opts.cover ?? ctx.pool.some((u) => u.kind === 'engine' && u.model === ac.engineModel));
   const downtimeDays = engine
     ? spare
       ? 2 * DOWNTIME_DAYS.engineSwapWithSpare
@@ -691,7 +711,8 @@ function routeOption(ctx: LeverContext, r: RouteRun): LeverOption {
     spend: 0,
     spendDate: null,
     feasible: true,
-    deadline: p.asOf,
+    deadline: null,
+    startNow: { perMonth: Math.max(0, saving / T) },
     actionKey: `route:${r.profile}`,
     trace:
       `Lever 2, a flag for the routing team with a number on it, not a schedule. ${ac.tail} flies ${ac.routeProfile}: ` +
@@ -739,11 +760,79 @@ function spareExposure(ac: Aircraft, unit: Component, result: ComponentResult, c
   };
 }
 
+/**
+ * The replacement test (LEASE-NOTES.md, clause 12.2, strict form): a unit installed as a permanent
+ * replacement must have no less life than the one it replaces on every clock the clause names — to
+ * the next scheduled shop visit, check or overhaul, and in LLP life. Both units are read as the
+ * records stand today, on the receiving tail's clauses. '' when it passes; otherwise why not.
+ */
+function replacementBlock(lessor: Lessor, kind: ComponentKind, incoming: ComponentResult, outgoing: ComponentResult, serial: string, replaced: string): string {
+  if (lessor.replacementTest !== 'strict') return '';
+  const short = incoming.requirements.flatMap((r) => {
+    const out = outgoing.requirements.find((x) => x.requirementId === r.requirementId);
+    const gap = out ? out.remainingToday - r.remainingToday : 0;
+    return gap > 0.5 ? [`${num(gap)} fewer ${lifeWord(r, kind)}`] : [];
+  });
+  return short.length ? `not a permitted replacement under ${lessor.replacementClauseRef}: ${serial} has ${short.join(' and ')} than ${replaced}` : '';
+}
+
+/**
+ * The latest a swap on this component can happen: when it runs out, or the shop-slot deadline,
+ * whichever is sooner. forced: the component runs out before handback, so its removal is forced by
+ * the clock, not planned.
+ */
+function swapBy(ctx: LeverContext, i: number): { date: ISODate; why: string; forced: boolean } {
+  const p = ctx.baseline.projection;
+  const c = ctx.ac.components[i]!;
+  const out = runout(p, ctx.baseline.asRecorded.components[i]!);
+  const runoutDate = out.months < p.monthsToReturn ? addMonths(p.asOf, out.months) : null;
+  return runoutDate && runoutDate < p.shopSlotDeadline
+    ? { date: runoutDate, why: `${c.position} runs out of ${clockWord(out.requirement)} then and has to come off`, forced: true }
+    : { date: p.shopSlotDeadline, why: `the shop-slot deadline, after which a shop visit is no longer the fallback`, forced: runoutDate !== null };
+}
+
+/**
+ * 12.3(b) asks notice of a PLANNED engine removal. A removal forced by the engine running out is
+ * not planned: if the full notice can no longer be given, it goes to the lessor now, short — a
+ * conversation with the lessor, not a refusal. The date to decide by, and what the working says.
+ */
+function forcedNotice(ctx: LeverContext, outBy: ISODate, n: number, position: string): { decideBy: ISODate; note: string } {
+  const asOf = ctx.baseline.projection.asOf;
+  const full = addDays(outBy, -n);
+  if (full >= asOf) return { decideBy: full, note: `less ${n} days' notice of the removal (${ctx.lessor.noticeClauseRef})` };
+  const left = daysBetween(asOf, outBy);
+  return {
+    decideBy: asOf,
+    note:
+      `a removal forced by ${position} running out, not a planned one, so ${ctx.lessor.noticeClauseRef}'s ${n} days cannot be given in full: ` +
+      `notice goes to the lessor now, ${days(left)} ahead, ${days(n - left)} short — a conversation with the lessor, not a refusal`,
+  };
+}
+
+/** Days of notice a planned removal of this component needs (clause 12.3(b)): engines only, the longer of the two lessors' on a swap between tails. */
+function noticeDays(ctx: LeverContext, i: number, donor?: Donor): number {
+  if (ctx.ac.components[i]!.kind !== 'engine') return 0;
+  return Math.max(ctx.lessor.engineRemovalNoticeDays, donor?.lessor.engineRemovalNoticeDays ?? 0);
+}
+
+/** Clause 12.3(b): '' if the notice a planned engine removal needs can still be given before the swap has to happen; otherwise why not. */
+function noticeBlock(ctx: LeverContext, i: number, donor?: Donor): string {
+  const n = noticeDays(ctx, i, donor);
+  if (!n) return '';
+  const { date: by, forced } = swapBy(ctx, i);
+  if (forced) return ''; // a forced removal is not refused for want of notice (forcedNotice)
+  const asOf = ctx.baseline.projection.asOf;
+  const clause = donor && donor.lessor.engineRemovalNoticeDays > ctx.lessor.engineRemovalNoticeDays ? donor.lessor.noticeClauseRef : ctx.lessor.noticeClauseRef;
+  return addDays(by, -n) < asOf
+    ? `not possible under ${clause}: a planned engine removal needs ${n} days' notice, and ${ctx.ac.components[i]!.position} must come off by ${by}, ${days(daysBetween(asOf, by))} from today`
+    : '';
+}
+
 interface Swap {
   index: number;
   unit: Component;
   donor?: { d: Donor; j: number };
-  /** '' when both units can fly to their tail's handback; otherwise why not. */
+  /** '' when the swap can be made: both units fly to their tail's handback, and the lease permits each as a replacement. Otherwise why not. */
   blocked: string;
   detail: SwapDetail;
   cost: number;
@@ -777,9 +866,11 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
   // A swap that installs a unit which runs out before handback only moves the problem forward.
   const reach = (q: UsageProjection, r: ComponentResult, tail: string, serial: string) => {
     const out = runout(q, r);
-    return out.months < q.monthsToReturn - EPS ? `${serial} would run out of ${clockWord(out.requirement)} on ${tail} at month ${num(out.months, 1)}, before its handback` : '';
+    return out.months < q.monthsToReturn - EPS
+      ? `${serial} would run out of ${clockWord(out.requirement)} on ${tail} at month ${num(out.months, 1)}, before its handback, so the swap only moves the problem`
+      : '';
   };
-  let blocked = reach(p, after, ac.tail, unit.serial);
+  let blocked = reach(p, after, ac.tail, unit.serial) || replacementBlock(ctx.lessor, c.kind, after, before, unit.serial, c.position);
 
   let donorPart: SwapDetail['donor'];
   if (donor) {
@@ -790,7 +881,10 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
     const dAfter = assessComponent(d.ac, outgoing, d.conditions, d.baseline.projection, 'as-recorded', a);
     const exposureBefore = d.baseline.asRecorded.exposure;
     const exposureAfter = exposureBefore - dBefore.exposure + dAfter.exposure;
-    blocked ||= reach(d.baseline.projection, dAfter, d.ac.tail, c.serial);
+    blocked ||=
+      reach(d.baseline.projection, dAfter, d.ac.tail, c.serial) ||
+      replacementBlock(d.lessor, theirs.kind, dAfter, dBefore, c.serial, `${d.ac.tail}'s ${theirs.position}`) ||
+      (d.lessor.engineRemovalNoticeDays > ctx.lessor.engineRemovalNoticeDays ? noticeBlock(ctx, i, d) : '');
     donorPart = {
       tail: d.ac.tail,
       position: theirs.position,
@@ -858,10 +952,16 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
   if (!eligible.length) return unavailable(ctx, 'L3', label, focusOut(ctx) ?? 'No engine, landing gear or APU on this tail carries exposure for a swap to move.');
 
   const swaps: Swap[] = [];
+  const late: string[] = [];
   let fromPool = 0;
   let fromTails = 0;
   for (const i of eligible) {
     const c = ac.components[i]!;
+    const tooLate = noticeBlock(ctx, i);
+    if (tooLate) {
+      late.push(tooLate);
+      continue;
+    }
     const model = c.kind === 'engine' ? ac.engineModel : ac.type;
     const fits = (u: Component) => u.kind === c.kind && u.model === model;
     for (const u of ctx.pool.filter(fits)) {
@@ -876,11 +976,12 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
       });
   }
   const positions = eligible.map((i) => ac.components[i]!.position).join(', ');
-  if (!swaps.length) return unavailable(ctx, 'L3', label, `No unit in the pool or on another returning tail fits ${positions}.`);
+  if (!swaps.length)
+    return unavailable(ctx, 'L3', label, late.length ? `A swap is ${late.join('; ')}.` : `No unit in the pool or on another returning tail fits ${positions}.`);
   const open = swaps.filter((x) => !x.blocked).sort((x, y) => x.total - y.total);
-  const shut = swaps.length - open.length;
+  const shut = swaps.filter((x) => x.blocked);
   if (!open.length)
-    return unavailable(ctx, 'L3', label, `Every unit that fits ${positions} would run out before a handback: ${swaps.map((x) => x.blocked).join('; ')}.`);
+    return unavailable(ctx, 'L3', label, `No unit that fits ${positions} can go on: ${[...new Set(shut.map((x) => x.blocked))].join('; ')}${late.length ? `; and ${late.join('; ')}` : ''}.`);
 
   const s = open[0]!;
   const runnerUp = open[1];
@@ -889,24 +990,29 @@ export function moveAComponent(ctx: LeverContext): LeverOption {
     s,
     `Lever 3, move a component: the unit whose life sits just above what this contract demands, not the one with the most. ` +
       `Searched ${fromPool + fromTails} units that fit ${positions}: ${fromPool} in the pool, ${fromTails} on other returning tails` +
-      (shut ? `; ${shut} ruled out because a unit would run out before handback. ` : '. ') +
+      (shut.length ? `; ruled out — ${[...new Set(shut.map((x) => x.blocked))].join('; ')}. ` : '. ') +
+      (late.length ? `Elsewhere on the tail, a swap is ${late.join('; ')}. ` : '') +
       `Best: ${s.trace} ` +
       (runnerUp ? `Next best: ${runnerUp.unit.serial} into ${ac.components[runnerUp.index]!.position} at ${usd(runnerUp.total)} all-in. ` : ''),
   );
 }
 
-/** A swap as an option: decided by the earlier of the component running out and the shop-slot deadline. */
+/**
+ * A swap as an option: it has to happen by the earlier of the component running out and the
+ * shop-slot deadline, and a planned engine removal needs notice before that (clause 12.3(b)), so
+ * it is decided that much earlier.
+ */
 function swapOption(ctx: LeverContext, s: Swap, trace: string): LeverOption {
   const { ac, baseline } = ctx;
   const p = baseline.projection;
   const c = ac.components[s.index]!;
-  const out = runout(p, baseline.asRecorded.components[s.index]!);
-  const runoutDate = out.months < p.monthsToReturn ? addMonths(p.asOf, out.months) : null;
-  const deadline = runoutDate && runoutDate < p.shopSlotDeadline ? runoutDate : p.shopSlotDeadline;
+  const by = swapBy(ctx, s.index);
+  const notice = noticeDays(ctx, s.index, s.donor?.d);
+  const forced = notice && by.forced ? forcedNotice(ctx, by.date, notice, c.position) : null;
+  const deadline = forced ? forced.decideBy : notice ? addDays(by.date, -notice) : by.date;
   const why =
-    deadline === runoutDate
-      ? `${c.position} runs out of ${clockWord(out.requirement)} then and has to come off`
-      : `the shop-slot deadline, after which a shop visit is no longer the fallback`;
+    `${by.date}, ${by.why}` +
+    (forced ? `; ${forced.note}` : notice ? `, less ${notice} days' notice of a planned engine removal (${ctx.lessor.noticeClauseRef})` : '');
   return finish(ctx, {
     lever: 'L3',
     label: s.donor ? `Swap ${c.position} with ${s.donor.d.ac.tail}'s ${s.donor.d.ac.components[s.donor.j]!.position}` : `Swap ${c.position} for spare ${s.unit.serial}`,
@@ -923,7 +1029,179 @@ function swapOption(ctx: LeverContext, s: Swap, trace: string): LeverOption {
     position: c.position,
     actionKey: `swap:${c.position}:${s.unit.id}`,
     move: s.detail,
-    trace: `${trace}Priced as fitted today. Decide by ${deadline}: ${why}.`,
+    trace: `${trace}Priced as fitted today. Decide by ${deadline}: the swap has to happen by ${why}.`,
+  });
+}
+
+// ---------------------------------------------------------------------------------------
+// A component that runs out before handback. Two more routes than the four levers: cover it with a
+// pool spare while it goes to the shop (12.3(c)), and — when nothing keeps the tail flying — the
+// aircraft on the ground, priced, never hidden behind "pay at handback".
+// ---------------------------------------------------------------------------------------
+
+/** When the component runs out, and the first slot it can go into after that (the slot lead time from today). */
+function forcedSlot(ctx: LeverContext, i: number) {
+  const p = ctx.baseline.projection;
+  const out = runout(p, ctx.baseline.asRecorded.components[i]!);
+  const slot = Math.max(Math.ceil(ctx.a.shopSlotLeadTimeMonths - EPS), Math.ceil(out.months - EPS));
+  return { out, slot, outDate: addMonths(p.asOf, out.months) };
+}
+
+/** The cheapest workscope that clears the contract, for a component inducted at `month` after it stopped flying at `flownTo`. */
+function forcedVisit(ctx: LeverContext, i: number, month: number, flownTo: number, cover: boolean): Visit {
+  const visits = scopesFor(ctx.ac.components[i]!.kind)
+    .map((s) => simulateVisit(ctx, i, month, s, { flownTo, cover }))
+    .sort((x, y) => x.visitCost - y.visitCost);
+  return visits.find((v) => v.after.compensation === 0) ?? visits[visits.length - 1]!;
+}
+
+/**
+ * Clause 12.3(c): the engine comes off when it runs out, a pool spare goes on temporarily, the
+ * engine goes into the first slot the lead time allows, comes back after the turnaround and is
+ * reinstalled before handback. It stays the permanent engine, so 12.2's replacement test does not
+ * apply to the spare. Priced: the shop visit, two removals and installations, the downtime of two
+ * overnight changes, and the spare's time away from the pool — the life it burns on this tail,
+ * priced like any spare's life at a build-for-interval visit's rates.
+ */
+export function coverUntilRestored(ctx: LeverContext): LeverOption {
+  const label = 'Cover it with a spare while it goes to the shop';
+  if (ctx.focus === undefined) return unavailable(ctx, 'L1', label, 'Nothing runs out before handback, so no removal is forced.');
+  const { ac, a, baseline, conditions, lessor } = ctx;
+  const p = baseline.projection;
+  const i = ctx.focus;
+  const c = ac.components[i]!;
+  if (c.kind !== 'engine') return unavailable(ctx, 'L1', label, `${c.position} is not an engine: ${lessor.temporaryInstallClauseRef} covers temporary engines only.`);
+  const { out, slot, outDate } = forcedSlot(ctx, i);
+  const back = slot + ENGINE_TAT_MONTHS;
+  if (back > p.monthsToReturn + EPS)
+    return unavailable(
+      ctx,
+      'L1',
+      label,
+      `the first slot after ${c.position} runs out is month ${slot}; a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back at month ${num(back, 1)}, after handback at month ${num(p.monthsToReturn, 1)}.`,
+    );
+  // A spare has to fly from the run-out to the engine's return without running out itself.
+  const span = back - out.months;
+  const covers = ctx.pool
+    .filter((u) => u.kind === 'engine' && u.model === ac.engineModel)
+    .map((u) => {
+      const fitted = assessComponent(ac, { ...u, position: c.position, installedOn: ac.tail }, conditions, p, 'as-recorded', a);
+      const short = fitted.requirements.find((r) => r.remainingToday < monthlyRate(p, r.unit) * span - EPS);
+      const priced: Component = { ...u, shopVisitCount: Math.max(1, u.shopVisitCount), lastWorkscope: 'build-for-interval' };
+      const burn = fitted.requirements
+        .filter((r) => r.requirementId === fitted.binding.requirementId || r.group === 'llp')
+        .map((r) => {
+          const used = monthlyRate(p, r.unit) * span;
+          const rate = unitCostOfLife(ac, priced, conditionFor(conditions, r.requirementId), a).rate;
+          return { r, used, rate, amount: used * rate };
+        });
+      return { u, short, burn, cost: burn.reduce((s2, x) => s2 + x.amount, 0) };
+    });
+  const usable = covers.filter((x) => !x.short).sort((x, y) => x.cost - y.cost);
+  if (!usable.length)
+    return unavailable(
+      ctx,
+      'L1',
+      label,
+      covers.length
+        ? `no pool spare lasts the ${num(span, 1)} months from ${c.position}'s run-out to its return: ${covers.map((x) => `${x.u.serial} runs short of ${lifeWord(x.short!, 'engine')}`).join('; ')}.`
+        : `the pool has no ${ac.engineModel} to cover it.`,
+    );
+  const sp = usable[0]!;
+  const v = forcedVisit(ctx, i, slot, out.months, true);
+  const n = lessor.engineRemovalNoticeDays;
+  const notice = forcedNotice(ctx, outDate, n, c.position);
+  const bookBy = addMonths(p.asOf, slot - a.shopSlotLeadTimeMonths);
+  const deadline = notice.decideBy < bookBy ? notice.decideBy : bookBy;
+  const cost = v.cost + sp.cost;
+  return finish(ctx, {
+    lever: 'L1',
+    label: `Cover ${c.position} with spare ${sp.u.serial} while it goes to the shop`,
+    cost,
+    downtimeDays: v.downtimeDays,
+    downtimeCost: v.downtimeCost,
+    newExposure: v.newExposure,
+    newCompensation: v.newCompensation,
+    spend: v.cost,
+    spendDate: v.date,
+    feasible: true,
+    deadline,
+    position: c.position,
+    actionKey: `cover:${c.position}:${slot}:${v.workscope}`,
+    covers: { id: sp.u.id, serial: sp.u.serial, from: out.months, until: back },
+    trace:
+      `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate} and comes off. Under ${lessor.temporaryInstallClauseRef} spare ` +
+      `${sp.u.serial} goes on as a temporary engine; ${c.position} stays the permanent engine, so ${lessor.replacementClauseRef}'s replacement ` +
+      `test does not apply. ${c.position} goes into the first slot the ${a.shopSlotLeadTimeMonths}-month lead time allows (month ${slot}) and is ` +
+      `reinstalled at month ${num(back, 1)}, before handback at month ${num(p.monthsToReturn, 1)}. ${v.trace} ` +
+      `The spare's time away from the pool: ${num(span, 1)} months on this tail, ` +
+      `${sp.burn.map((x) => `${num(x.used)} ${x.r.unit}${x.r.group === 'llp' ? ' of LLP life' : ''} × ${usd2(x.rate)}`).join(' + ')} = ${usd(sp.cost)}, ` +
+      `priced at a build-for-interval visit's rates. Notice of the removal: ${notice.note}. Reinstalling ${c.position} is a planned ` +
+      `removal of the spare: ${n} days' notice before month ${num(back, 1)}. Book the slot by ${bookBy}.`,
+  });
+}
+
+/**
+ * When nothing keeps the tail flying: the aircraft on the ground from the run-out — until the
+ * component is back from the first slot the lead time allows, or until handback if that comes
+ * first — priced in days at the downtime rate. A forced tail never resolves to paying at handback.
+ */
+export function onTheGround(ctx: LeverContext): LeverOption {
+  const label = 'On the ground';
+  if (ctx.focus === undefined) return unavailable(ctx, 'ground', label, 'Nothing runs out before handback.');
+  const { ac, a, baseline } = ctx;
+  const p = baseline.projection;
+  const i = ctx.focus;
+  const c = ac.components[i]!;
+  const { out, slot, outDate } = forcedSlot(ctx, i);
+  const perDay = a.downtimeCostPerDay[ac.bodyClass];
+  const back = slot + (c.kind === 'engine' ? ENGINE_TAT_MONTHS : 0);
+  if (MOVABLE.includes(c.kind) && back <= p.monthsToReturn + EPS) {
+    const v = forcedVisit(ctx, i, slot, out.months, false);
+    const groundDays = Math.round((back - out.months) * DAYS_PER_MONTH);
+    const downtimeCost = groundDays * perDay;
+    return finish(ctx, {
+      lever: 'ground',
+      label: `On the ground from ${outDate} until ${c.position} is back from the shop`,
+      cost: v.cost,
+      downtimeDays: groundDays,
+      downtimeCost,
+      newExposure: v.newExposure,
+      newCompensation: v.newCompensation,
+      spend: v.cost,
+      spendDate: v.date,
+      feasible: true,
+      deadline: null,
+      position: c.position,
+      actionKey: `ground:${c.position}`,
+      grounded: { from: outDate, days: groundDays, cost: downtimeCost },
+      trace:
+        `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}, and nothing keeps the aircraft flying: it stays on the ground until ` +
+        `${c.position} is back from the first slot the lead time allows (month ${slot}) and a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround — ` +
+        `${days(groundDays)} × ${usd(perDay)} = ${usd(downtimeCost)} on the ground. ${v.trace}`,
+    });
+  }
+  const groundDays = Math.round((p.monthsToReturn - out.months) * DAYS_PER_MONTH);
+  const downtimeCost = groundDays * perDay;
+  return finish(ctx, {
+    lever: 'ground',
+    label: `On the ground from ${outDate} to handback`,
+    cost: 0,
+    downtimeDays: groundDays,
+    downtimeCost,
+    newExposure: baseline.asRecorded.exposure,
+    newCompensation: baseline.asRecorded.compensation,
+    spend: 0,
+    spendDate: null,
+    feasible: true,
+    deadline: null,
+    position: c.position,
+    actionKey: `ground:${c.position}`,
+    grounded: { from: outDate, days: groundDays, cost: downtimeCost },
+    trace:
+      `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}, and nothing keeps the aircraft flying or brings ${c.position} back ` +
+      `before handback: on the ground for ${days(groundDays)} × ${usd(perDay)} = ${usd(downtimeCost)}, and the lease's compensation at handback ` +
+      `as it stands, ${usd(baseline.asRecorded.exposure)}.`,
   });
 }
 
@@ -1013,6 +1291,8 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
   }
 
   if (!MOVABLE.includes(c.kind)) return unavailable(ctx, 'L3', label, `The airframe is the aircraft: it cannot be swapped.`);
+  const tooLate = noticeBlock(ctx, i);
+  if (tooLate) return unavailable(ctx, 'L3', label, `A swap of ${c.position} is ${tooLate}.`);
   const model = c.kind === 'engine' ? ac.engineModel : ac.type;
   const fits = (u: Component) => u.kind === c.kind && u.model === model;
   const what = `${model} ${c.kind === 'engine' ? 'engine' : c.kind === 'landing-gear' ? 'landing gear' : 'APU'}`;
@@ -1034,8 +1314,9 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
     }
   } else {
     if (!free.length) return unavailable(ctx, 'L3', label, `No ${what} is free: none in the pool, and none on another returning tail that is free to give one.`);
-    s = free.filter((x) => !x.blocked).sort((x, y) => x.total - y.total)[0] ?? free[0]!;
+    s = free.filter((x) => !x.blocked).sort((x, y) => x.total - y.total)[0];
+    if (!s) return unavailable(ctx, 'L3', label, `No free ${what} can go on: ${free.map((x) => x.blocked).join('; ')}.`);
   }
-  if (s.blocked) return unavailable(ctx, 'L3', `${label} for ${s.unit.serial}`, `${s.blocked}: the swap only moves the problem.`);
+  if (s.blocked) return unavailable(ctx, 'L3', `${label} for ${s.unit.serial}`, `${s.blocked}.`);
   return swapOption(ctx, s, `Your change: ${proposal.unit ? '' : 'the right-sized unit, as the model would pick. '}${s.trace} `);
 }

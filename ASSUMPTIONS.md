@@ -486,13 +486,23 @@ above. Each is a declared assumption or a derivation from one, not a sourced fig
 
 | component | not-evidenced |
 |---|---|
-| engine | 12% |
-| landing gear, APU | 8% |
-| airframe | 4% |
+| engine | 3% |
+| landing gear, APU | 2% |
+| airframe | 1% |
 
-Declared. The customer described the failure but did not give a rate. The alternative
-position (`asLeaseAllows`) withdraws the credit of the unevidenced event: cycles since the
-previous verified event, LLP life net of the last run.
+**Basis:** the customer said it happens *"sometimes"* (discovery call, 04:45) and gave no rate.
+Read as one or two tails in ten among those handing back — a per-tail chance of 10–20%. The four
+rates are scaled together, keeping their order (an engine shop visit has the longest paper trail),
+to the **low end** of that band: a tail whose five components all carry a recorded visit has at
+least one unevidenced 1 − 0.97² × 0.98² × 0.99 ≈ 10.5% of the time. Fleet-wide that is 4% of
+tails, because young tails have no recorded visit to fail. On this seed the returning ten draw two
+(A6-MXM ENG1, A6-MVC ENG2); the band's middle (≈15% per tail) drew five, which is why the low end is
+used. Held in `calc/constants.ts` (`QME_INCIDENCE`). Replaces 12% / 8% / 4%, which had no source and
+drew six of the ten.
+
+The alternative position (`asLeaseAllows`) withdraws the credit of the unevidenced event: cycles
+since the previous verified event, LLP life net of the last run. Only the incidence changed; the
+consequence is as before.
 
 ### Return conditions
 
@@ -564,13 +574,16 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 | Removal and installation | per change: engine 300, gear 180, APU 60 MH × $95 | §8 |
 | Lever 2 | the type's other profile in §9, at its published rates × utilisation, from today; no maintenance, no downtime; revenue not modelled | §9, §13; a flag to routing, never a schedule |
 | Lever 3 search | spare-pool units and same-model components on the other returning tails | in-service tails are beyond the 24-month window, where the exposure a swap creates is not a forecast |
-| Lever 3 feasibility | ruled out if either unit would run out before its tail's handback | a swap that moves the problem forward is not a saving |
+| Lever 3 feasibility | ruled out if either unit would run out before its tail's handback; if the incoming unit has less life than the one it replaces on any clock the lease names — to the next shop visit or overhaul, or LLP life — on either tail of a swap between two (LEASE-NOTES.md, clause 12.2: every lessor carries the strict form); or, for a planned engine removal, if its 90 days' notice can no longer be given (clause 12.3(b)); a removal forced by the engine running out is never refused for want of notice — it goes now, short | a swap that moves the problem forward is not a saving, and a swap the lease does not permit cannot be made |
 | Lever 3 cost | removal and installation on each tail touched + swap downtime (engine 1 day, gear 10, APU 1, per tail) + the exposure created on the other tail | SPEC §2.6 |
 | A spare's surplus life | all of a pool spare's surplus above the thresholds (binding clock and LLP), priced at a build-for-interval visit's rates (engine: restoration ÷ time on wing, LLP ÷ bucket; gear and APU: overhaul ÷ interval) | it would otherwise stay with the airline, so all of it leaves because of the swap; this is what makes tightness of fit cost money. A unit swapped between two returning tails is handed to a lessor either way and stays on the over-delivery rule |
+| A component that runs out before handback | never resolves to paying at handback: an engine out of its clock cannot fly. Its options are the levers applied to it, plus two: **cover it with a pool spare while it goes to the shop** (clause 12.3(c), engines) and **the aircraft on the ground** | LEASE-NOTES.md |
+| Cover until restored (12.3(c)) | the spare goes on at run-out; the engine goes into the first slot the lead time allows and is reinstalled after the turnaround, before handback; the spare must last from run-out to the engine's return. Priced: the shop visit (LLP read as at run-out — the engine stops flying then), two removals and installations, two overnight changes, and the spare's time away from the pool — the life it burns on the tail, at a build-for-interval visit's rates, as any spare's life is priced. No spare-engine lease rate is in the evidence, so time away is life burned, not rent | the engine stays the permanent engine, so 12.2's replacement test does not apply to the spare |
+| On the ground | from run-out until the component is back from the first slot the lead time allows (with the shop visit), or until handback if that comes first; days × the downtime rate. Always open for a forced tail, so it never falls back to paying; when it is the answer it leads the recommended actions | never hidden |
 | Airframe | not timed, not swapped | it is the aircraft; no heavy-check aircraft downtime in §13 |
 | A component that runs out before handback | only levers applied to it are offered; paying is off the table unless no lever can keep it flying | the exposure prices a clock past its limit as a capped shortfall; it does not force the removal |
 | Fleet allocation | tails with such a component first, soonest first; then by what each could save; each spare and each donor tail used once | they have to act; the rest are choosing |
-| Decision deadline | levers 1 and 4: induction − lead time; lever 3: the earlier of the outgoing unit running out and the shop-slot deadline; lever 2: today; pay: none | the date the recommended action has to be committed |
+| Decision deadline | levers 1 and 4: induction − lead time; lever 3: the earlier of the outgoing unit running out and the shop-slot deadline, less 90 days' notice for an engine (clause 12.3(b)) — or today, with short notice, when the removal is forced by the engine running out; cover until restored: today or the slot booking, whichever is sooner; lever 2: none — start now, with what each month of waiting gives up; on the ground and pay: none | the date the recommended action has to be committed |
 
 ### Reconciliation (§11, as built)
 
@@ -675,7 +688,7 @@ four decisions he controls:
 
 | decision | priced by | refused, with the reason, when |
 |---|---|---|
-| Swap a component | lever 3's swap (`evaluateSwap`), the unit he names or the right-sized one | no free unit of that type in the pool or on another returning tail; the unit would run out before a handback; it is already promised to another change in the what-if |
+| Swap a component | lever 3's swap (`evaluateSwap`), the unit he names or the right-sized one | no free unit of that type in the pool or on another returning tail; the unit would run out before a handback; it is not a permitted replacement under clause 12.2, on either tail; an engine's 90 days' notice (clause 12.3(b)) can no longer be given; it is already promised to another change in the what-if |
 | Send one to the shop | lever 4's visit (`simulateVisit`), the month and workscope he names | the month is inside the shop-slot lead time; the component runs out before the slot; the turnaround puts it back after handback |
 | Change its route | lever 2's run (`routeRun`) on the profile he names | the type flies only one profile in this network |
 | Move its return date | the lease extension, 1–12 months | moved twice, or past what the model projects |

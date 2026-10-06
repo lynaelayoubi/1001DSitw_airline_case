@@ -33,7 +33,6 @@ describe('whatIf', () => {
     // is left to send its ENG2 to the shop.
     const w = run({ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare('ESN-6513') });
     expect(w.proposals[0]!.refused).toBeNull();
-    expect(w.scenario.byTail['A6-YTM']!.proposed).toBe(true);
     expect(w.scenario.byTail['9H-ZUU']!.recommendation.recommended.move?.incoming.serial).toBe('ESN-6508');
     expect(w.changed.map((c) => [c.tail, c.to])).toEqual([
       ['9H-KVJ', 'Do the work: ENG2 build-for-cash visit'],
@@ -44,8 +43,22 @@ describe('whatIf', () => {
     expect(w.allIn.change).toBeCloseTo(w.scenario.totals.after - today.totals.after, 6);
   });
 
+  it("with every spare the lease permits taken, covers 9H-ZUU's engine with one it would not let it keep (12.3(c))", () => {
+    // ESN-6512 would run out on 9H-ZUU as a permanent engine, but lasts the months ENG2 is at the shop.
+    const w = run({ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare('ESN-6513') }, { kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6508') });
+    expect(w.applied).toBe(2);
+    expect(w.changed.find((c) => c.tail === '9H-ZUU')?.to).toBe('Cover ENG2 with spare ESN-6512 while it goes to the shop');
+  });
+
+  it('refuses a swap the replacement test fails, with the clause; a forced removal is not refused for want of notice', () => {
+    const w = run({ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6512') }, { kind: 'swap', tail: '9H-ZUU', position: 'ENG2', unit: null });
+    expect(w.proposals[0]!.refused).toContain('not a permitted replacement under Clause 12.2(a): ESN-6512 has 8,851 fewer hours to its next shop visit');
+    expect(w.proposals[1]!.refused).toBeNull();
+    expect(w.applied).toBe(1);
+  });
+
   it('changes nothing when the proposal is what the model already recommends', () => {
-    const w = run({ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6512') });
+    const w = run({ kind: 'swap', tail: '9H-KVJ', position: 'ENG2', unit: spare('ESN-6508') });
     expect(w.applied).toBe(1);
     expect(w.changed).toEqual([]);
     expect(w.allIn.change).toBeCloseTo(0, 6);

@@ -7,8 +7,10 @@ import dataset from '../data/fleet.json';
 import { chooseWithinBudget, fitToBudget } from './budget';
 import { assessFleet } from './exposure';
 import { addMonths } from './projection';
+import { DEFAULT_ASSUMPTIONS } from './constants';
 import { recommendFleet } from './recommend';
 import type { Dataset } from './types';
+import { whatIf } from './whatif';
 
 describe('chooseWithinBudget', () => {
   const A = { tail: 'A', label: 'a', spend: 5, saving: 10 };
@@ -43,26 +45,29 @@ describe('fitToBudget on the generated fleet', () => {
     expect(open.forcedSpend / open.needed).toBeGreaterThan(0.99);
   });
 
-  it('funds the forced removals first, then the optional action that saves most', () => {
-    // Room for one $28,500 swap after the forced ones: A6-GPZ's saves $5.68M, 9H-MMC's $1.31M.
-    const r = fitToBudget(plans, open.forcedSpend + 28_500, data.asOf);
-    expect(r.funded.filter((x) => !x.forced).map((x) => x.tail)).toEqual(['A6-GPZ']);
-    expect(r.leftOut.map((x) => x.tail)).toEqual(['9H-MMC']);
-    expect(r.savingForgone).toBeCloseTo(plans.byTail['9H-MMC']!.recommendation.recommended.saving, 3);
+  it('on this fleet, needs no cash for anything chosen: the one chosen action is a route change', () => {
+    // The lease's replacement test (12.2) refuses the swaps that used to compete for the budget;
+    // A6-GPZ's route change spends nothing, so any budget funds it.
+    const r = fitToBudget(plans, open.forcedSpend, data.asOf);
+    expect(r.funded.filter((x) => !x.forced).map((x) => [x.tail, x.spend])).toEqual([['A6-GPZ', 0]]);
+    expect(r.leftOut).toEqual([]);
   });
 
   it("says whether a left-out tail's decision closes inside the budget year", () => {
-    const r = fitToBudget(plans, 0, data.asOf);
-    const mmc = r.leftOut.find((x) => x.tail === '9H-MMC')!;
-    const gpz = r.leftOut.find((x) => x.tail === 'A6-GPZ')!;
-    expect(mmc.closesThisYear).toBe(true); // decide by 15 Aug 2027
-    expect(gpz.closesThisYear).toBe(false); // decide by 3 Jan 2028: next year's budget can take it
+    // On a what-if in which A6-YTM swaps ENG1 for ESN-6513: a budget that covers only the forced
+    // removals leaves the swap out, and its decision closes inside the year.
+    const spare = data.pool.find((u) => u.serial === 'ESN-6513')!.id;
+    const w = whatIf(data, DEFAULT_ASSUMPTIONS, plans, [{ kind: 'swap', tail: 'A6-YTM', position: 'ENG1', unit: spare }]);
+    const r = fitToBudget(w.scenario, open.forcedSpend, data.asOf);
+    const ytm = r.leftOut.find((x) => x.tail === 'A6-YTM')!;
+    expect(ytm.closesThisYear).toBe(ytm.decisionDeadline! <= r.windowEnd);
+    expect(ytm.closesThisYear).toBe(true);
     expect(r.trace).toContain('loses the option');
   });
 
-  it('flags a budget the forced removals alone exceed, and funds nothing else', () => {
+  it('flags a budget the forced removals alone exceed, and funds nothing else that costs cash', () => {
     const r = fitToBudget(plans, 1_000_000, data.asOf);
     expect(r.shortfall).toBeCloseTo(open.forcedSpend - 1_000_000, 3);
-    expect(r.funded.every((x) => x.forced)).toBe(true);
+    expect(r.funded.filter((x) => !x.forced).every((x) => x.spend === 0)).toBe(true);
   });
 });

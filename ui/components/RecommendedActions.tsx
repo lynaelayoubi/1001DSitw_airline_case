@@ -3,7 +3,7 @@ import type { FleetRecommendation } from '../../calc/recommend';
 import { date, money } from '../format';
 
 /** What happens once the date has passed, in one sentence: the tip on the date. */
-function afterTheDate(x: Closing): string {
+function afterTheDate(x: Closing & { decideBy: string }): string {
   if (x.after) return x.after.lever === 'pay' ? 'After this date it pays at handback.' : `After this date the best option left is ${x.after.label}, ${money(x.after.givesUp)} more.`;
   if (x.runsOut)
     return x.runsOut.date <= x.decideBy
@@ -14,7 +14,9 @@ function afterTheDate(x: Closing): string {
 
 /**
  * The screen's answer, at the top: every recommended action, soonest first (calc/deadlines.ts) —
- * tail, action, the date to decide by, and either "forced" or what it saves — with the avoidable
+ * tail, action, the date to decide by, and either "forced" or what it saves. An aircraft on the
+ * ground because nothing keeps it flying comes first, with its days and their cost; a route change
+ * says "start now" — with the avoidable
  * total beside it, split so the saves in the list add up to its chosen part. Everything else on
  * the screen justifies this, and sits under it.
  */
@@ -29,16 +31,28 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
           <table className="w-full text-sm">
             <tbody>
               {closing.items.map((x) => (
-                <tr key={x.tail} className="border-t border-slate-100 align-top first:border-t-0">
+                <tr key={x.tail} className={`border-t border-slate-100 align-top first:border-t-0 ${x.grounded ? 'text-amber-900' : ''}`}>
                   <td className="py-1.5 pr-3 font-medium whitespace-nowrap">{x.tail}</td>
                   <td className="py-1.5 pr-3">{x.label}</td>
                   <td className="py-1.5 pr-3 whitespace-nowrap">
-                    <span className="cursor-help" title={afterTheDate(x)}>
-                      decide by {date(x.decideBy)}
-                    </span>
+                    {x.grounded ? (
+                      <span className="font-medium">from {date(x.grounded.from)}</span>
+                    ) : x.startNow ? (
+                      <span className="cursor-help" title={`Each month of waiting gives up about ${money(x.startNow.perMonth)}.`}>
+                        start now
+                      </span>
+                    ) : (
+                      <span className="cursor-help" title={afterTheDate({ ...x, decideBy: x.decideBy! })}>
+                        decide by {date(x.decideBy!)}
+                      </span>
+                    )}
                   </td>
                   <td className="py-1.5 text-right whitespace-nowrap tabular-nums">
-                    {x.saving === null ? (
+                    {x.grounded ? (
+                      <span className="rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900">
+                        {x.grounded.days} days on the ground · {money(x.grounded.cost)}
+                      </span>
+                    ) : x.saving === null ? (
                       <span className="cursor-help rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900" title="A component runs out before handback, so doing nothing is not an option.">
                         forced
                       </span>

@@ -52,6 +52,21 @@ export interface Lessor {
   /** The clause in this lessor's lease template that defines a qualified maintenance event. */
   qmeClauseRef: string;
   qmeClauseText: string;
+  /**
+   * What a unit installed as a permanent replacement must match (LEASE-NOTES.md, clause 12.2).
+   * 'strict': no less life than the unit it replaces on every clock the clause names — to the next
+   * scheduled shop visit, check or overhaul, and in LLP life. Every current lessor carries it.
+   */
+  replacementTest: 'strict';
+  replacementClauseRef: string;
+  replacementClauseText: string;
+  /** Notice the lessor must have of a planned engine removal, in days (LEASE-NOTES.md, clause 12.3(b)). */
+  engineRemovalNoticeDays: number;
+  noticeClauseRef: string;
+  noticeClauseText: string;
+  /** Temporary installation of another engine while an Engine is away for maintenance (LEASE-NOTES.md, clause 12.3(c)). */
+  temporaryInstallClauseRef: string;
+  temporaryInstallClauseText: string;
 }
 
 export interface Component {

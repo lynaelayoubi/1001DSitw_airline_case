@@ -234,6 +234,19 @@ export const UTILISATION: Record<RouteProfile, UtilisationProfile> = {
 /** ±10% per-tail noise so no two aircraft are identical. ASSUMPTIONS §9. */
 export const UTILISATION_NOISE = 0.1;
 
+/**
+ * How often a component's last recorded shop visit is not evidenced the way the lease's QME clause
+ * requires, so the lease does not count its clock reset. The customer: it happens "sometimes"
+ * (discovery call, 04:45) — read as one or two tails in ten among those handing back, a per-tail
+ * chance of 10–20%. Per component, scaled together from the earlier ordering (an engine shop visit
+ * has the longest paper trail) to the low end of that band: a tail whose five components all carry
+ * a recorded visit has at least one unevidenced 1 − 0.97² × 0.98² × 0.99 ≈ 10.5% of the time.
+ * Drawn only for a component with a recorded visit. The band's middle (≈15%) drew five of the ten
+ * returning tails on this seed; the low end draws two. Replaces 12% / 8% / 4%, which had no source
+ * and drew six. ASSUMPTIONS, QME incidence.
+ */
+export const QME_INCIDENCE = { engine: 0.03, landingGear: 0.02, apu: 0.02, airframe: 0.01 } as const;
+
 /** Which profiles each type can fly. */
 export const PROFILES_BY_TYPE: Record<AircraftType, RouteProfile[]> = {
   'A320neo': ['short-dense', 'mixed'],

@@ -68,16 +68,15 @@ describe('computeRobustness', () => {
     for (const x of r.inputs) expect(r.changing.includes(x.input)).toBe(x.first !== null);
   });
 
-  it('on this fleet: four firm, three close, one with no recommendation, two with nothing to decide', () => {
-    // Close: A6-MXM flips at a percent more flying, A6-MVC at 8%, 9H-MMC at 11% — all inside the evidenced +20%.
+  it('on this fleet: four firm, two close, two with no recommendation, two with nothing to decide', () => {
+    // Close: A6-MXM flips at a percent more flying, A6-MVC at 8% — inside the evidenced +20%.
     expect(r.close.map((c) => [c.tail, c.flip.change])).toEqual([
       ['A6-MXM', '+1%'],
       ['A6-MVC', '+8%'],
-      ['9H-MMC', '+11%'],
     ]);
     expect([...r.firm].sort()).toEqual(['9H-KVJ', '9H-ZUU', 'A6-DLL', 'A6-GPZ']);
-    // No recommendation: A6-YTM's only alternative is a route change that comes to the same money.
-    expect(r.undecided.map((x) => x.tail)).toEqual(['A6-YTM']);
+    // No recommendation: for A6-YTM and 9H-MMC the only alternative is a route change that comes to the same money.
+    expect(r.undecided.map((x) => x.tail).sort()).toEqual(['9H-MMC', 'A6-YTM']);
     // No exposure: nothing to decide, so how firm is not asked.
     expect(r.byTail['9H-RYM']).toBe('nothing to decide');
     expect(r.byTail['9H-PJS']).toBe('nothing to decide');
@@ -114,7 +113,7 @@ describe('computeExtensionEffects — does the one control change anything?', ()
   it('finds the shortest extension of each lease that changes any recommendation, or none', () => {
     expect(e.any).toBe(true);
     expect(e.byTail['A6-MXM']!.months).toBe(1);
-    for (const t of ['A6-DLL', '9H-KVJ', '9H-ZUU', '9H-PJS']) expect(e.byTail[t]!.months, t).toBeNull();
+    for (const t of ['A6-DLL', '9H-KVJ', '9H-MMC', '9H-PJS']) expect(e.byTail[t]!.months, t).toBeNull();
   });
 
   it('is right about it: a month on A6-MXM changes an answer, a year on A6-DLL changes none', () => {
