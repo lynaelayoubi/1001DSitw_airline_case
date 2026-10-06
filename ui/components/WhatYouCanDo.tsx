@@ -60,12 +60,12 @@ function Budget({ budget, onBudget, plan }: { budget: number | null; onBudget: (
         </span>
       </div>
       <p className="mt-1 text-xs text-slate-500">
-        Every recommended action needs {money(plan.needed)} in this window, {money(plan.forcedSpend)} of it forced.
+        Every recommended action needs {money(plan.needed)} in this window, {money(plan.forcedSpend)} of it required.
       </p>
       {budget !== null && (
         <div className="mt-1 text-[13px]">
           {plan.shortfall > 0 && (
-            <p className="font-medium text-red-800">The forced removals alone are {money(plan.shortfall)} over this budget: nothing else can be funded.</p>
+            <p className="font-medium text-red-800">The required actions alone are {money(plan.shortfall)} over this budget: nothing else can be funded.</p>
           )}
           {plan.leftOut.length === 0 ? (
             plan.shortfall === 0 && <p className="text-slate-600">Every recommended action fits.</p>

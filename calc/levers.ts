@@ -226,12 +226,17 @@ function runout(p: UsageProjection, before: ComponentResult): { months: number; 
     .reduce((x, y) => (y.months < x.months ? y : x));
 }
 
-/** The component whose clock runs out soonest, if any runs out before handback. */
+/**
+ * The component whose clock runs out soonest, if any runs out before handback — by at least a day.
+ * One that runs out on its handback day reaches handback: the lease's compensation prices the
+ * shortfall, and there is no day on the ground to put right. (Counting it as forced offered "on the
+ * ground to handback" for no days at all.)
+ */
 export function firstTimeout(baseline: TailResult): { position: string; months: number; clock: string } | null {
   const p = baseline.projection;
   const hits = baseline.asRecorded.components
     .map((c) => ({ c, out: runout(p, c) }))
-    .filter(({ out }) => out.months < p.monthsToReturn - EPS)
+    .filter(({ out }) => out.months < p.monthsToReturn - 1 / DAYS_PER_MONTH)
     .sort((x, y) => x.out.months - y.out.months);
   const h = hits[0];
   return h ? { position: h.c.position, months: h.out.months, clock: clockWord(h.out.requirement) } : null;
@@ -289,7 +294,7 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
       `${usd(r.overDelivery)} of life goes back over the thresholds${ctx.a.countOverDeliveryAsLoss ? '' : ' (not counted in this scenario)'} → ${usd(r.exposure)}.` +
       (timedOut.length
         ? ` Caution: ${timedOut.join('; ')}, before handback at month ${num(p.monthsToReturn, 1)}. It will have to come off; this figure is the ` +
-          `lease's price for the shortfall, capped at the shop visit that would put it right, not the cost of the forced removal.`
+          `lease's price for the shortfall, capped at the shop visit that would put it right, not the cost of the required removal.`
         : ''),
   });
 }
@@ -710,7 +715,7 @@ function routeOption(ctx: LeverContext, r: RouteRun): LeverOption {
   const saving = base.exposure - r.exposure;
   return finish(ctx, {
     lever: 'L2',
-    label: `Fly it ${r.profile}, not ${ac.routeProfile} (flag to routing)`,
+    label: `Route change: fly it ${r.profile}, not ${ac.routeProfile} (flag to routing)`,
     cost: 0,
     downtimeDays,
     downtimeCost: downtimeDays * a.downtimeCostPerDay[ac.bodyClass],
@@ -812,7 +817,7 @@ function forcedNotice(ctx: LeverContext, outBy: ISODate, n: number, position: st
   return {
     decideBy: asOf,
     note:
-      `a removal forced by ${position} running out, not a planned one, so ${ctx.lessor.noticeClauseRef}'s ${n} days cannot be given in full: ` +
+      `a removal required by ${position} running out, not a planned one, so ${ctx.lessor.noticeClauseRef}'s ${n} days cannot be given in full: ` +
       `notice goes to the lessor now, ${days(left)} ahead, ${days(n - left)} short — a conversation with the lessor, not a refusal`,
   };
 }
@@ -1075,32 +1080,14 @@ function forcedVisit(ctx: LeverContext, i: number, month: number, flownTo: numbe
 }
 
 /**
- * Clause 12.3(c): the engine comes off when it runs out, a pool spare goes on temporarily, the
- * engine goes into the first slot the lead time allows, comes back after the turnaround and is
- * reinstalled before handback. It stays the permanent engine, so 12.2's replacement test does not
- * apply to the spare. Priced: the shop visit, two removals and installations, the downtime of two
- * overnight changes, and the spare's time away from the pool — the life it burns on this tail,
- * priced like any spare's life at a build-for-interval visit's rates.
+ * The pool spares that could cover this engine for `span` months under 12.3(c): each must fly that
+ * long on this tail without running out itself, and its time away from the pool is the life it
+ * burns, priced like any spare's life at a build-for-interval visit's rates. Cheapest first.
  */
-export function coverUntilRestored(ctx: LeverContext): LeverOption {
-  const label = 'Cover it with a spare while it goes to the shop';
-  if (ctx.focus === undefined) return unavailable(ctx, 'L1', label, 'Nothing runs out before handback, so no removal is forced.');
-  const { ac, a, baseline, conditions, lessor } = ctx;
+function coverSpares(ctx: LeverContext, i: number, span: number) {
+  const { ac, a, baseline, conditions } = ctx;
   const p = baseline.projection;
-  const i = ctx.focus;
   const c = ac.components[i]!;
-  if (c.kind !== 'engine') return unavailable(ctx, 'L1', label, `${c.position} is not an engine: ${lessor.temporaryInstallClauseRef} covers temporary engines only.`);
-  const { out, slot, outDate } = forcedSlot(ctx, i);
-  const back = slot + ENGINE_TAT_MONTHS;
-  if (back > p.monthsToReturn + EPS)
-    return unavailable(
-      ctx,
-      'L1',
-      label,
-      `the first slot after ${c.position} runs out is month ${slot}; a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back at month ${num(back, 1)}, after handback at month ${num(p.monthsToReturn, 1)}.`,
-    );
-  // A spare has to fly from the run-out to the engine's return without running out itself.
-  const span = back - out.months;
   const covers = ctx.pool
     .filter((u) => u.kind === 'engine' && u.model === ac.engineModel)
     .map((u) => {
@@ -1116,7 +1103,36 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
         });
       return { u, short, burn, cost: burn.reduce((s2, x) => s2 + x.amount, 0) };
     });
-  const usable = covers.filter((x) => !x.short).sort((x, y) => x.cost - y.cost);
+  return { covers, usable: covers.filter((x) => !x.short).sort((x, y) => x.cost - y.cost) };
+}
+
+/**
+ * Clause 12.3(c): the engine comes off when it runs out, a pool spare goes on temporarily, the
+ * engine goes into the first slot the lead time allows, comes back after the turnaround and is
+ * reinstalled before handback. It stays the permanent engine, so 12.2's replacement test does not
+ * apply to the spare. Priced: the shop visit, two removals and installations, the downtime of two
+ * overnight changes, and the spare's time away from the pool — the life it burns on this tail,
+ * priced like any spare's life at a build-for-interval visit's rates.
+ */
+export function coverUntilRestored(ctx: LeverContext): LeverOption {
+  const label = 'Cover it with a spare while it goes to the shop';
+  if (ctx.focus === undefined) return unavailable(ctx, 'L1', label, 'Nothing runs out before handback, so no removal is required.');
+  const { ac, a, baseline, conditions, lessor } = ctx;
+  const p = baseline.projection;
+  const i = ctx.focus;
+  const c = ac.components[i]!;
+  if (c.kind !== 'engine') return unavailable(ctx, 'L1', label, `${c.position} is not an engine: ${lessor.temporaryInstallClauseRef} covers temporary engines only.`);
+  const { out, slot, outDate } = forcedSlot(ctx, i);
+  const back = slot + ENGINE_TAT_MONTHS;
+  if (back > p.monthsToReturn + EPS)
+    return unavailable(
+      ctx,
+      'L1',
+      label,
+      `the first slot after ${c.position} runs out is month ${slot}; a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back at month ${num(back, 1)}, after handback at month ${num(p.monthsToReturn, 1)}.`,
+    );
+  const span = back - out.months;
+  const { covers, usable } = coverSpares(ctx, i, span);
   if (!usable.length)
     return unavailable(
       ctx,
@@ -1166,6 +1182,147 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
 }
 
 /**
+ * The baseline for a tail whose component runs out before handback: acting late. Nobody acts until
+ * it runs out; then the cheapest option still open that day is taken. Notice goes to the lessor
+ * then, short — 12.3(b) allows it for a removal forced by the component running out. A free pool
+ * spare can go on that day: permanently, where 12.2's replacement test passes, or under 12.3(c) as a
+ * temporary engine until the component is back from a slot booked that day, a lead time later.
+ * Otherwise the aircraft is on the ground for the lead time, then the shop visit. If the component
+ * cannot be back before handback and no spare goes on, the aircraft is on the ground to handback and
+ * pays the lease's compensation as it stands. Priced with
+ * the levers' own machinery and the downtime rate — the price of waiting, set against acting now.
+ * Not an option offered: what doing nothing turns into for a component that cannot fly on.
+ */
+export function actingLate(ctx: LeverContext): LeverOption {
+  const label = 'Acting late';
+  if (ctx.focus === undefined) return unavailable(ctx, 'ground', label, 'Nothing runs out before handback.');
+  const { ac, a, baseline, lessor } = ctx;
+  const p = baseline.projection;
+  const i = ctx.focus;
+  const c = ac.components[i]!;
+  const out = runout(p, baseline.asRecorded.components[i]!);
+  const outDate = addMonths(p.asOf, out.months);
+  const perDay = a.downtimeCostPerDay[ac.bodyClass];
+  const lead = a.shopSlotLeadTimeMonths;
+  // Booked the day it runs out: the first monthly slot a lead time on.
+  const slot = Math.ceil(out.months + lead - EPS);
+  const back = slot + (c.kind === 'engine' ? ENGINE_TAT_MONTHS : 0);
+  const notice =
+    c.kind === 'engine'
+      ? `Notice goes to the lessor on ${outDate}, the day it comes off — short, as ${lessor.noticeClauseRef} allows for a removal required by the engine running out. `
+      : '';
+  const at = `Nobody acts until ${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}. ${notice}`;
+  const options: LeverOption[] = [];
+
+  // A free pool spare put on for good the day it runs out, where the lease permits it as a replacement.
+  if (MOVABLE.includes(c.kind)) {
+    const model = c.kind === 'engine' ? ac.engineModel : ac.type;
+    const swap = ctx.pool
+      .filter((u) => u.kind === c.kind && u.model === model)
+      .map((u) => evaluateSwap(ctx, i, u))
+      .filter((x) => !x.blocked)
+      .sort((x, y) => x.total - y.total)[0];
+    if (swap)
+      options.push(
+        finish(ctx, {
+          lever: 'ground',
+          label: `Acting late: ${c.position} swapped for spare ${swap.unit.serial} on ${outDate}`,
+          cost: swap.cost,
+          downtimeDays: swap.downtimeDays,
+          downtimeCost: swap.downtimeCost,
+          newExposure: swap.newExposure,
+          newCompensation: swap.newCompensation,
+          spend: swap.detail.own.cost,
+          spendDate: outDate,
+          feasible: true,
+          deadline: null,
+          position: c.position,
+          actionKey: `late:${c.position}:swap`,
+          trace: `${at}Spare ${swap.unit.serial} is free that day and the lease permits it as a replacement (${lessor.replacementClauseRef}): ${swap.trace}`,
+        }),
+      );
+  }
+
+  if (MOVABLE.includes(c.kind) && back <= p.monthsToReturn + EPS) {
+    // A free pool spare covers it under 12.3(c) while it is at the shop, if one lasts that long.
+    if (c.kind === 'engine') {
+      const sp = coverSpares(ctx, i, back - out.months).usable[0];
+      if (sp) {
+        const v = forcedVisit(ctx, i, slot, out.months, true);
+        options.push(
+          finish(ctx, {
+            lever: 'ground',
+            label: `Acting late: spare ${sp.u.serial} covers ${c.position} from ${outDate} while it goes to the shop`,
+            cost: v.cost + sp.cost,
+            downtimeDays: v.downtimeDays,
+            downtimeCost: v.downtimeCost,
+            newExposure: v.newExposure,
+            newCompensation: v.newCompensation,
+            spend: v.cost,
+            spendDate: v.date,
+            feasible: true,
+            deadline: null,
+            position: c.position,
+            actionKey: `late:${c.position}:cover`,
+            trace:
+              `${at}Spare ${sp.u.serial} is free that day and covers it under ${lessor.temporaryInstallClauseRef}; the slot booked that day is month ` +
+              `${slot}, and ${c.position} is back at month ${num(back, 1)}. ${v.trace} The spare's time away from the pool, ${usd(sp.cost)}.`,
+          }),
+        );
+      }
+    }
+    // Otherwise the aircraft waits on the ground for the slot, then goes through the shop visit.
+    const v = forcedVisit(ctx, i, slot, out.months, false);
+    const waitDays = Math.round((slot - out.months) * DAYS_PER_MONTH);
+    options.push(
+      finish(ctx, {
+        lever: 'ground',
+        label: `Acting late: on the ground from ${outDate} for a slot, then the shop visit`,
+        cost: v.cost,
+        downtimeDays: waitDays + v.downtimeDays,
+        downtimeCost: waitDays * perDay + v.downtimeCost,
+        newExposure: v.newExposure,
+        newCompensation: v.newCompensation,
+        spend: v.cost,
+        spendDate: v.date,
+        feasible: true,
+        deadline: null,
+        position: c.position,
+        actionKey: `late:${c.position}:ground`,
+        grounded: { from: outDate, days: waitDays, cost: waitDays * perDay },
+        trace:
+          `${at}No spare covers it, so the aircraft is on the ground until the slot booked that day, month ${slot}: ${days(waitDays)} × ` +
+          `${usd(perDay)} = ${usd(waitDays * perDay)}. Then the shop visit: ${v.trace}`,
+      }),
+    );
+  } else if (!options.length) {
+    const groundDays = Math.round((p.monthsToReturn - out.months) * DAYS_PER_MONTH);
+    options.push(
+      finish(ctx, {
+        lever: 'ground',
+        label: `Acting late: on the ground from ${outDate} to handback`,
+        cost: 0,
+        downtimeDays: groundDays,
+        downtimeCost: groundDays * perDay,
+        newExposure: baseline.asRecorded.exposure,
+        newCompensation: baseline.asRecorded.compensation,
+        spend: 0,
+        spendDate: null,
+        feasible: true,
+        deadline: null,
+        position: c.position,
+        actionKey: `late:${c.position}:handback`,
+        grounded: { from: outDate, days: groundDays, cost: groundDays * perDay },
+        trace:
+          `${at}A slot booked that day would not bring ${c.position} back before handback, and no spare goes on, so the aircraft is on the ground to handback: ` +
+          `${days(groundDays)} × ${usd(perDay)} = ${usd(groundDays * perDay)}, and the lease's compensation as it stands, ${usd(baseline.asRecorded.exposure)}.`,
+      }),
+    );
+  }
+  return options.reduce((x, y) => (y.total < x.total ? y : x));
+}
+
+/**
  * When nothing keeps the tail flying: the aircraft on the ground from the run-out — until the
  * component is back from the first slot the lead time allows, or until handback if that comes
  * first — priced in days at the downtime rate. A forced tail never resolves to paying at handback.
@@ -1181,12 +1338,18 @@ export function onTheGround(ctx: LeverContext): LeverOption {
   const perDay = a.downtimeCostPerDay[ac.bodyClass];
   const back = slot + (c.kind === 'engine' ? ENGINE_TAT_MONTHS : 0);
   if (MOVABLE.includes(c.kind) && back <= p.monthsToReturn + EPS) {
+    // On the ground from the run-out until the slot, then the shop visit at its own downtime (§13:
+    // with no spare the aircraft waits 14 days for an engine; the turnaround sits behind a spare).
+    const waitDays = Math.round((slot - out.months) * DAYS_PER_MONTH);
+    // No wait: it reaches a slot before it runs out, so this is the shop visit itself (lever 1), not time on the ground.
+    if (waitDays <= 0)
+      return unavailable(ctx, 'ground', label, `${c.position} reaches the first slot (month ${slot}) before it runs out: that is a shop visit, not time on the ground.`);
     const v = forcedVisit(ctx, i, slot, out.months, false);
-    const groundDays = Math.round((back - out.months) * DAYS_PER_MONTH);
-    const downtimeCost = groundDays * perDay;
+    const groundDays = waitDays + v.downtimeDays;
+    const downtimeCost = waitDays * perDay + v.downtimeCost;
     return finish(ctx, {
       lever: 'ground',
-      label: `On the ground from ${outDate} until ${c.position} is back from the shop`,
+      label: `On the ground from ${outDate} until the slot, then the shop visit`,
       cost: v.cost,
       downtimeDays: groundDays,
       downtimeCost,
@@ -1211,8 +1374,8 @@ export function onTheGround(ctx: LeverContext): LeverOption {
           : undefined,
       trace:
         `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}, and nothing keeps the aircraft flying: it stays on the ground until ` +
-        `${c.position} is back from the first slot the lead time allows (month ${slot}) and a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround — ` +
-        `${days(groundDays)} × ${usd(perDay)} = ${usd(downtimeCost)} on the ground. ${v.trace}`,
+        `the first slot the lead time allows (month ${slot}), ${days(waitDays)} × ${usd(perDay)} = ${usd(waitDays * perDay)}, then goes through the ` +
+        `shop visit. ${v.trace}`,
     });
   }
   const groundDays = Math.round((p.monthsToReturn - out.months) * DAYS_PER_MONTH);
@@ -1253,7 +1416,7 @@ export function describeProposal(p: Proposal, serial?: string): string {
     case 'visit':
       return `Send ${p.position} to the shop, month ${p.month}${p.position.startsWith('ENG') ? `, ${p.workscope}` : ''}`;
     case 'route':
-      return p.profile ? `Fly it ${p.profile}` : 'Change its route';
+      return p.profile ? `Route change: fly it ${p.profile}` : 'Change its route';
     case 'return':
       return `Hand it back ${p.months} ${p.months === 1 ? 'month' : 'months'} later`;
   }
@@ -1273,7 +1436,7 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
   const runsOut = out ? `${out.c.position} runs out of ${clockWord(out.r.requirement)} at month ${num(out.r.months, 1)}, before handback` : '';
 
   if (proposal.kind === 'route') {
-    const label = proposal.profile ? `Fly it ${proposal.profile}` : 'Change its route';
+    const label = proposal.profile ? `Route change: fly it ${proposal.profile}` : 'Change its route';
     const flown = PROFILES_BY_TYPE[ac.type];
     if (!proposal.profile || proposal.profile === ac.routeProfile || !flown.includes(proposal.profile))
       return unavailable(

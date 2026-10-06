@@ -108,6 +108,23 @@ describe('computeRobustness', () => {
   });
 });
 
+describe('check before acting', () => {
+  it('lists the close calls an assumption flips within the first half of its evidenced range, with the way it has to move', () => {
+    expect(r.checks.map((c) => [c.tail, c.input.id, c.direction])).toEqual([
+      ['A6-MXM', 'utilisation', 'up'],
+      ['A6-MVC', 'reservesReclaim', 'down'],
+    ]);
+    for (const c of r.checks) expect(c.flip.reach).toBeLessThan(0.5);
+    for (const c of r.close.filter((x) => !r.checks.includes(x))) expect(c.flip.reach).toBeGreaterThanOrEqual(0.5);
+  });
+
+  it("flips A6-MXM to a shop visit at 2% more flying — not to a day-less 'on the ground'", () => {
+    const mxm = r.close.find((c) => c.tail === 'A6-MXM')!;
+    expect(mxm.flip.change).toBe('+2%');
+    expect(mxm.flip.to).toBe('Do the work: ENG1 build-for-cash visit');
+  });
+});
+
 describe('computeExtensionEffects — does the one control change anything?', () => {
   const e = computeExtensionEffects(data, a);
   const ext = (tail: string, n: number) => plan({ ...a, leaseExtensionMonths: { [tail]: n } });

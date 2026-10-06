@@ -38,7 +38,7 @@ describe('closingDecisions — the decisions that are running out of time', () =
     for (const x of c.items.filter((x) => x.forced)) expect(x.saving).toBeNull();
   });
 
-  it('on this fleet: two route changes to start now, then three forced removals, the soonest decided today', () => {
+  it('on this fleet: two route changes with no deadline, then three required removals, the soonest decided today', () => {
     expect(c.items.map((x) => [x.tail, x.decideBy, x.forced])).toEqual([
       ['A6-GPZ', null, false],
       ['9H-KVJ', null, true],
@@ -46,11 +46,11 @@ describe('closingDecisions — the decisions that are running out of time', () =
       ['A6-YTM', '2027-05-04', true],
       ['A6-MVC', '2027-06-04', true],
     ]);
-    // A6-GPZ's route change has no date: start now, and each month of waiting gives up part of what it saves.
+    // A6-GPZ's route change has no deadline, and each month of waiting loses part of what it saves.
     const gpz = c.items[0]!;
     expect(gpz.startNow!.perMonth).toBeGreaterThan(0);
     expect(gpz.startNow!.perMonth).toBeLessThan(gpz.saving!);
-    // 9H-KVJ's keeps its APU flying: forced, and still start now.
+    // 9H-KVJ's keeps its APU flying: required, and still no deadline.
     expect(c.items[1]!.startNow!.perMonth).toBeGreaterThan(0);
     // 9H-ZUU's engine runs out in 35 days: notice goes now, and after today nothing else keeps it flying.
     expect(c.items[2]!.runsOut).toMatchObject({ position: 'ENG2', date: '2026-11-07' });
@@ -64,8 +64,8 @@ describe('closingDecisions — the decisions that are running out of time', () =
     const saves = c.items.reduce((s, x) => s + (x.saving ?? 0), 0);
     expect(saves).toBeCloseTo(plans.totals.avoidableChosen, 2);
     expect(plans.totals.avoidableChosen + plans.totals.avoidableForced).toBeCloseTo(plans.totals.avoidable, 6);
-    // On this fleet: $1.18M chosen (A6-GPZ's route change), $13.71M on the four forced tails.
+    // On this fleet: $1.18M chosen (A6-GPZ's route change), $11.30M on the four forced tails against acting late.
     expect(plans.totals.avoidableChosen).toBeCloseTo(1_176_311, 0);
-    expect(plans.totals.avoidableForced).toBeCloseTo(13_706_909, 0);
+    expect(plans.totals.avoidableForced).toBeCloseTo(11_299_845, 0);
   });
 });

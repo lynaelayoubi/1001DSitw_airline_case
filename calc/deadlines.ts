@@ -70,7 +70,7 @@ export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): Clo
           startNow: o.startNow,
           after: null,
           runsOut: null,
-          trace: `${p.tail}: ${p.label} — start now; each month of waiting gives up about ${usd(o.startNow.perMonth)}.`,
+          trace: `${p.tail}: ${p.label} — no deadline; each month of waiting loses about ${usd(o.startNow.perMonth)}.`,
         };
       const decideBy = p.decisionDeadline!;
       // A route change loses value each month it waits, so it is not an option still open at full value later.

@@ -284,6 +284,13 @@ export const READINESS_TEMPLATE = [
  */
 export const READINESS_WINDOW_DAYS = 90;
 
+/**
+ * "Check before acting": a recommendation is listed when an assumption would flip it within the
+ * first half of the range its evidence supports (reach under this share). Beyond it, the move needed
+ * is as large as the evidence allows at all, and the answer is not one to check first.
+ */
+export const CHECK_BEFORE_ACTING_REACH = 0.5;
+
 /** Which profiles each type can fly. */
 export const PROFILES_BY_TYPE: Record<AircraftType, RouteProfile[]> = {
   'A320neo': ['short-dense', 'mixed'],

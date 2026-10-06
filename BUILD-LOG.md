@@ -940,3 +940,73 @@ be in these answers" (solid / fragile), "Assumptions behind these numbers — on
 "standard for every return", "Close". Every button now says what clicking it does — "Add to the
 scenario", "reset to × 1.00", "show ENG1's row", "show 9H-ZUU" — and the lessor and clause links say
 they open the lease. Text only: no logic or layout changed.
+
+## Step 18 · a forced tail measured against acting late — Tuesday 6 October
+
+**On a tail whose part runs out before handback, "if nothing changes" is acting late: nobody acts
+until it runs out, then the cheapest option still open that day — short notice (12.3(b)), a free
+pool spare for good where 12.2 permits or under 12.3(c) while the part is at a slot booked that day,
+else the aircraft on the ground for the lead time and then the shop visit.** · Rejected: the handback
+cheque, which priced the part as if it could fly to the return date. · Because that cannot happen,
+and most of the headline saving rested on it. One baseline everywhere a forced tail's do-nothing
+appears: the tile and its bar, the table (ranked by it), the saving split. Non-forced tails keep the
+cheque.
+
+**A permanent swap with a free pool spare counts as an option still open on the run-out day.** ·
+Rejected: only a 12.3(c) cover, else the ground. · Because where a slot booked that day cannot bring
+the engine back before handback, 12.3(c) cannot apply (the engine must be reinstalled), and without
+the swap acting late would ground A6-MVC and A6-YTM to handback — $58M and $16M — a baseline no
+operator would choose, inflating the saving. With it, the swap the lease permits is taken.
+
+**The "on the ground" option follows §13: on the ground until the slot, then the shop visit's own
+downtime; not offered when there is no wait.** · Rejected: on the ground through the whole 200-day
+turnaround. · Because §13 holds the turnaround behind a spare and puts a no-spare shop visit at 14
+days; acting late uses the same rule, and the two must agree or waiting could look cheaper than
+acting now. With no wait the option is the shop visit itself, and offering both made them
+indistinguishable. No tail on this fleet is recommended it.
+
+On this fleet, acting late vs acting now: A6-MVC $18.13M (ENG2 swapped for ESN-6527 on 16 Oct 2027)
+vs $13.47M, saves $4.65M; A6-YTM $8.98M vs $4.11M, saves $4.87M; 9H-ZUU $6.22M vs $6.22M — the same
+swap, priced as fitted today either way — saves nothing; 9H-KVJ $2.05M (APU swapped for APU-6557) vs
+$0.27M, saves $1.78M. If nothing changes $66.83M → $64.43M; after recommendations $51.95M, unchanged;
+saved by choice $1.18M, unchanged; saved on forced tails $13.71M → $11.30M.
+
+**Rows that read as "nothing" now say what the model knows: a tail paying at handback says by how
+much paying beats the next best option, a tail with nothing to decide reads "cleared", and one line
+under the headline counts them — "3 tails cleared · 2 where paying beats fixing".** · Rejected: a
+bare "Pay at handback" and a bare $0. · Because both are findings — paying is the cheaper choice by a
+known margin; a cleared tail meets every return condition — and a blank reads as missing. The margin
+is the runner-up's all-in less the recommendation's, worded from what the runner-up is (on A6-DLL an
+APU overhaul, not a shop visit). Nothing is added to what acting now saves; no logic or total moved.
+
+**"Check before acting" in place of grading the model: each recommendation an assumption could flip
+within the first half of its evidenced range, as an instruction naming the assumption and where its
+real number lives — also noted on that tail's row in the recommended actions.** · Rejected: "2 solid
+· 5 fragile". · Because a customer reads a count of fragile answers as most answers being shaky,
+when the useful thing is what to check first. The full sweep stays, collapsed, with "close to the
+line" and "holds across its range". The 50% line is declared (`CHECK_BEFORE_ACTING_REACH`).
+
+**A component runs out "before handback" only by at least a day.** · Rejected: any run-out before
+the return date, however close. · Because at 1% more flying A6-MXM's ENG1 ran out hours before its
+handback date, which made the tail forced and offered "on the ground from 2028-04-19 to handback" —
+its handback date, zero days. A part that runs out on its handback day reaches handback, and the
+lease's compensation prices it. A6-MXM now flips at 2% more flying, to an ENG1 shop visit; no figure
+on the fleet as it stands moved.
+
+**The full robustness check is off the screen — the panel's disclosure, its hold / close-to-the-line
+count and the one-at-a-time caveat, and each tail's own version; the sweep stays.** · Rejected:
+keeping it collapsed under "Check before acting". · Because a head of fleet acts on what to check,
+not on how the model rates itself; the sweep still drives "Check before acting" and the assumptions'
+"Changes an answer" column, and its full method stays in ASSUMPTIONS §14. With nothing close to the
+line, "Check before acting" says every recommendation holds across the believable range of every
+assumption. The assumptions line reads "4 of 7 move an answer": four of seven is not "only".
+
+**On screen, "forced" reads "required" (badge tip: "A part runs out before the aircraft goes back, so
+it has to be dealt with"), the saving splits "optional · required", a route change reads "Route
+change: fly it …" with "no deadline · loses $X a month" inline, the bar's light segment is "life
+given away", and after recommendations is a second line in the "if nothing changes" tile.** ·
+Rejected: "forced", "by choice", "start now", "already spent", and after recommendations as a tile
+of its own. · Because they are the builder's words or blur the one big number: "forced" reads as an
+accusation, "start now" hides the cost of waiting behind a hover, and "already spent" said nothing
+about where that life goes. Text and layout only; internal names (forced, avoidableForced, startNow)
+stay, and calc strings that reach the screen — the calculation, labels, refusals — say the same.

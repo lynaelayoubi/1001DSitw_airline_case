@@ -36,11 +36,7 @@ export function WhatThisAssumes({
         Assumptions behind these numbers —{' '}
         {robustness ? (
           <span className={pending ? 'opacity-60' : ''}>
-            {moving === 0
-              ? 'none moves any answer'
-              : moving === ASSUMPTION_INPUTS.length
-                ? `all ${moving} move an answer`
-                : `only ${moving} ${moving === 1 ? 'moves' : 'move'} any answer`}
+            {moving} of {ASSUMPTION_INPUTS.length} {moving === 1 ? 'moves' : 'move'} an answer
           </span>
         ) : (
           <span className="text-slate-500">checking which move an answer…</span>

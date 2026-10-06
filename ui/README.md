@@ -8,13 +8,13 @@ object from `calc/`; the UI formats, it never calculates.
 
 **Recommended actions** (`components/RecommendedActions.tsx`), at the top, above everything: the
 screen's answer. Every recommended action, soonest first — tail, action, the date to decide by,
-and either "forced" or what it saves; the tip on the date says what passing it costs. An aircraft
+and either "required" or what it saves; the tip on the date says what passing it costs. An aircraft
 on the ground because nothing keeps it flying comes first, with its days and their cost at the
-downtime rate; a route change has no date and says "start now", its tip what each month of waiting
-gives up. Beside it,
-the avoidable total, split so the savings in the list add up to its chosen part ("by choice") and
-the rest is shown as what it is ("forced": the difference on forced tails, against a do-nothing
-that cannot happen).
+downtime rate; a route change ("Route change: fly it mixed…") reads "no deadline · loses $X a
+month", inline. Beside it, what acting now saves, split so the savings in the list add up to its
+"optional" part and the rest is shown as what it is ("required": the difference where a part runs
+out first, against acting late — nobody acting until it does). The "required" badge's tip: "A part
+runs out before the aircraft goes back, so it has to be dealt with."
 Everything below justifies the list, and sits under it.
 
 **Fleet — exposure by tail** (`screens/FleetScreen.tsx`, SPEC §3.1) under the **headline**
@@ -31,39 +31,51 @@ Everything below justifies the list, and sits under it.
   costs — on the row ("not counted: ENG1 · $19.2M more at handback"), in one plain line above the
   table that sums the column, and on the component card, which shows the figure if the reset counts beside the figure under the
   lease.
-- **Amber** means a forced removal (or a deadline passed), and nothing else: not the clock-reset
+- **Amber** means a required removal (or a deadline passed), and nothing else: not the clock-reset
   finding, which is not an error.
-- A tail with **no exposure**, as recorded or under the lease, has nothing to decide: the row says
-  so and stops — no recommendation, no routing suggestion, no note.
+- A tail with **no exposure**, as recorded or under the lease, has nothing to decide: the row reads
+  "cleared: meets every return condition, as recorded and under the lease", and stops.
+- A row whose recommendation is to **pay at handback** says by how much paying beats the next best
+  option — "paying beats a shop visit by $0.97M" — the runner-up's all-in less the recommendation's.
+- A line under the headline counts both: "3 tails cleared · 2 where paying beats fixing". Neither is
+  added to what acting now saves.
 - "After recommendation" is the tail's all-in figure under its recommended option (SPEC §2.7):
   the work, its downtime, and what is still owed at handback, with what it saves against doing
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
   could fly to handback. The option's name sits underneath; the tail's detail ranks all five.
 - The headline says what kind of money each number is, in six words or fewer. "If nothing changes"
-  carries a stacked bar — cash out at handback against life already spent at past shop visits.
-  "After recommendations" adds the rows up (SPEC §2.8): work, downtime and what's still owed.
+  carries a stacked bar — cash out against life given away (engine life paid for at past shop
+  visits, beyond what the lease asks, which goes back to the lessor with the aircraft; that is the
+  segment's tip) — and, as a second line, "→ $X after the actions above" (SPEC §2.8: work, downtime
+  and what's still owed). After recommendations is not a tile of its own.
   Under them, a single line of plain text sums the clock-reset column of the table below it — not a
   fourth total, so no box, fill or badge. Anything longer — the avoidable total in cash and life, how the tails split, what
-  "already spent" means — is in one disclosure under the tiles.
-- A row marked **forced** has a component that runs out before handback: doing nothing is not an
-  option, so the row shows no saving — the do-nothing it would be measured against cannot happen.
-  Why it is forced is the badge's tip.
+  "life given away" means — is in one disclosure under the tiles.
+- A row marked **required** has a component that runs out before handback, so doing nothing is not
+  a cheque at handback: it is **acting late** — nobody acts until the part runs out, then the
+  cheapest option still open that day. That is the row's "if nothing changes", and its saving reads
+  "vs acting late".
 - A row with **no recommendation** has a best option whose advantage over the next is inside the
   cost estimates' ±10.1% (ASSUMPTIONS §0): the row says the options cannot be told apart, and why.
 - "Decide by" is the recommended action's deadline: book the slot by, swap by, or tell routing
   now. "Nothing to book" where the recommendation is to pay.
-- Click a tail for its detail: the recommendation and the next best option, how confident to be in the answer
-  is (one line, collapsed), and the components — every clause, today's position, what will be
+- Click a tail for its detail: the recommendation and the next best option, its readiness
+  checklist, and the components — every clause, today's position, what will be
   flown, the position at return, the gap and its price, the clock that costs most or runs out first marked.
 
-**Assumptions behind these numbers** and **How confident to be in these answers** (`components/WhatThisAssumes.tsx`,
-`components/HowFirm.tsx`, `robustness.worker.ts`), last and collapsed: each one line carrying
-its finding — "only 4 move any answer", "2 solid · 5 fragile". Open, the first is the one place the seven assumptions live — value used,
-evidenced range, the system the real number should come from, whether it changes any answer, and
-an override that recomputes everything downstream, the sweep included, held inside the evidenced
-range. The second is the model assessing itself: the close calls by name, the tails with no
-recommendation, and the sweep's one limit. Neither is what a head of fleet acts on, so neither is
-open on the main screen.
+**Assumptions behind these numbers** (`components/WhatThisAssumes.tsx`), last and collapsed, its one
+line carrying the finding — "4 of 7 move an answer". Open, it is the one place the seven
+assumptions live: value used, evidenced range, the system the real number should come from, whether
+it changes any answer, and an override that recomputes everything downstream, the sweep included,
+held inside the evidenced range.
+
+**Check before acting** (`components/HowFirm.tsx`, `robustness.worker.ts`) beside it — not a grade of
+the model but what to check first: each recommendation an assumption could flip within the first half
+of its evidenced range, as an instruction — "A6-MXM: holds unless it flies 2% or more above plan.
+Check the published schedule and flying-hour plan, from network planning." The same note sits on that
+tail's row in the recommended actions. If nothing is close to the line it says every recommendation
+holds across the believable range of every assumption. The full sweep runs behind it and behind
+"Changes an answer"; its method is in ASSUMPTIONS §14, not on the screen.
 
 **Scenario planning** (`components/WhatYouCanDo.tsx`, `components/WhatIf.tsx`), under the table:
 the head of fleet's own decisions. A what-if — swap a component, send one to the shop, change a tail's route,

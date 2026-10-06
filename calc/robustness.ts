@@ -21,7 +21,7 @@
 // shop demand at once — so this is a lower bound on fragility: correlated moves would flip answers
 // sooner than any single-input breakeven here suggests.
 
-import { ASSUMPTION_INPUTS, LEASE_EXTENSION_CONTROL, type AssumptionInput, type AssumptionInputId } from './constants';
+import { ASSUMPTION_INPUTS, CHECK_BEFORE_ACTING_REACH, LEASE_EXTENSION_CONTROL, type AssumptionInput, type AssumptionInputId } from './constants';
 import { assessTail, totalsOf, type FleetExposure } from './exposure';
 import { num, withoutTraces } from './format';
 import { actionOf, recommendFleet, type FleetRecommendation } from './recommend';
@@ -111,6 +111,8 @@ export interface CloseCall {
   label: string;
   input: AssumptionInput;
   flip: Flip;
+  /** Which way the assumption has to move to flip the answer. */
+  direction: 'down' | 'up';
 }
 
 export type Firmness = 'close' | 'firm' | 'no recommendation' | 'nothing to decide';
@@ -127,6 +129,8 @@ export interface Robustness {
   close: CloseCall[];
   /** Tails with no recommendation: the options cannot be told apart (tellApart), so how firm is not asked. */
   undecided: { tail: string; why: string }[];
+  /** What to check before acting: the close calls an assumption flips within the first half of its evidenced range. */
+  checks: CloseCall[];
   byTail: Record<string, Firmness>;
   /** Fleet re-recommendations the sweep ran. */
   steps: number;
@@ -214,8 +218,9 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
     }
     let nearest: CloseCall | null = null;
     for (const x of inputs)
-      for (const f of [x.byTail[p.tail]!.down, x.byTail[p.tail]!.up]) {
-        if (f && (!nearest || f.reach < nearest.flip.reach)) nearest = { tail: p.tail, label: p.label, input: x.input, flip: f };
+      for (const direction of ['down', 'up'] as const) {
+        const f = x.byTail[p.tail]![direction];
+        if (f && (!nearest || f.reach < nearest.flip.reach)) nearest = { tail: p.tail, label: p.label, input: x.input, flip: f, direction };
       }
     if (nearest) close.push(nearest);
     else firm.push(p.tail);
@@ -241,7 +246,8 @@ export function computeRobustness(data: Data, a: Assumptions): Robustness {
     `\n\nThe inputs move one at a time. Real assumptions move together, so this is a lower bound on fragility: correlated moves would ` +
     `flip answers sooner than any single breakeven here.`;
 
-  return { inputs, changing, holding, tails, firm, close, undecided, byTail: byTailState, steps: swept.steps, trace };
+  const checks = close.filter((c) => c.flip.reach < CHECK_BEFORE_ACTING_REACH);
+  return { inputs, changing, holding, tails, firm, close, undecided, checks, byTail: byTailState, steps: swept.steps, trace };
 }
 
 /** Which inputs change any answer anywhere inside their evidence, and which change none — one line, from the sweep. */

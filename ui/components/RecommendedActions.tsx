@@ -1,5 +1,7 @@
 import type { ClosingDecisions, Closing } from '../../calc/deadlines';
 import type { FleetRecommendation } from '../../calc/recommend';
+import type { CloseCall } from '../../calc/robustness';
+import { checkNote } from './HowFirm';
 import { date, money } from '../format';
 
 /** What happens once the date has passed, in one sentence: the tip on the date. */
@@ -14,13 +16,13 @@ function afterTheDate(x: Closing & { decideBy: string }): string {
 
 /**
  * The screen's answer, at the top: every recommended action, soonest first (calc/deadlines.ts) —
- * tail, action, the date to decide by, and either "forced" or what it saves. An aircraft on the
+ * tail, action, the date to decide by, and either "required" or what it saves. An aircraft on the
  * ground because nothing keeps it flying comes first, with its days and their cost; a route change
- * says "start now" — with the avoidable
+ * has no deadline, and says what each month of waiting loses — with the avoidable
  * total beside it, split so the saves in the list add up to its chosen part. Everything else on
  * the screen justifies this, and sits under it.
  */
-export function RecommendedActions({ closing, totals: r }: { closing: ClosingDecisions; totals: FleetRecommendation['totals'] }) {
+export function RecommendedActions({ closing, totals: r, checks }: { closing: ClosingDecisions; totals: FleetRecommendation['totals']; checks: CloseCall[] }) {
   return (
     <section className="mb-4 grid gap-3 lg:grid-cols-[3fr_1fr]">
       <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
@@ -33,14 +35,17 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
               {closing.items.map((x) => (
                 <tr key={x.tail} className={`border-t border-slate-100 align-top first:border-t-0 ${x.grounded ? 'text-amber-900' : ''}`}>
                   <td className="py-1.5 pr-3 font-medium whitespace-nowrap">{x.tail}</td>
-                  <td className="py-1.5 pr-3">{x.label}</td>
+                  <td className="py-1.5 pr-3">
+                    {x.label}
+                    {checks.some((c) => c.tail === x.tail) && (
+                      <div className="text-xs text-slate-600">Check before acting: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
+                    )}
+                  </td>
                   <td className="py-1.5 pr-3 whitespace-nowrap">
                     {x.grounded ? (
                       <span className="font-medium">from {date(x.grounded.from)}</span>
                     ) : x.startNow ? (
-                      <span className="cursor-help" title={`Each month of waiting gives up about ${money(x.startNow.perMonth)}.`}>
-                        start now
-                      </span>
+                      <span>no deadline · loses {money(x.startNow.perMonth)} a month</span>
                     ) : (
                       <span className="cursor-help" title={afterTheDate({ ...x, decideBy: x.decideBy! })}>
                         decide by {date(x.decideBy!)}
@@ -53,8 +58,8 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
                         {x.grounded.days} days on the ground · {money(x.grounded.cost)}
                       </span>
                     ) : x.saving === null ? (
-                      <span className="cursor-help rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900" title="A component runs out before handback, so doing nothing is not an option.">
-                        forced
+                      <span className="cursor-help rounded bg-amber-100 px-1.5 py-px text-[11px] font-medium text-amber-900" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
+                        required
                       </span>
                     ) : (
                       <span className="font-medium text-emerald-800">saves {money(x.saving)}</span>
@@ -72,7 +77,7 @@ export function RecommendedActions({ closing, totals: r }: { closing: ClosingDec
         </div>
         <div className={`mt-1 text-2xl font-semibold tabular-nums ${r.avoidable > 0 ? 'text-emerald-800' : 'text-slate-900'}`}>{money(r.avoidable)}</div>
         <div className="mt-1 text-xs text-slate-600">
-          {money(r.avoidableChosen)} by choice · {money(r.avoidableForced)} forced
+          {money(r.avoidableChosen)} optional · {money(r.avoidableForced)} required
         </div>
       </div>
     </section>

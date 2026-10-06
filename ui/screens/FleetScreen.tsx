@@ -2,12 +2,13 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
 import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
+import type { LeverOption } from '../../calc/levers';
 import { actionOf, type FleetRecommendation, type TailPlan } from '../../calc/recommend';
 import type { BudgetPlan } from '../../calc/budget';
 import type { ClosingDecisions } from '../../calc/deadlines';
 import { conditionAnchor, type Lease } from '../../calc/lease';
 import type { Readiness, ReadinessItem } from '../../calc/readiness';
-import { describeInput, type ExtensionEffects, type Robustness } from '../../calc/robustness';
+import type { ExtensionEffects, Robustness } from '../../calc/robustness';
 import type { Assumptions, Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { Headline } from '../components/Headline';
@@ -87,10 +88,13 @@ export default function FleetScreen({
   }, [flash]);
 
   const rows = useMemo(() => {
-    if (!showAll) return fleet.returning;
+    // Ranked by the figure each row shows if nothing changes: on a forced tail, acting late.
+    const doNothing = (t: TailResult) => plans.byTail[t.tail]?.doNothing ?? t.asRecorded.exposure;
+    const returning = [...fleet.returning].sort((a, b) => doNothing(b) - doNothing(a));
+    if (!showAll) return returning;
     const rest = fleet.tails.filter((t) => t.status !== 'returning').sort((a, b) => a.projection.monthsToReturn - b.projection.monthsToReturn);
-    return [...fleet.returning, ...rest];
-  }, [fleet, showAll]);
+    return [...returning, ...rest];
+  }, [fleet, plans, showAll]);
 
   return (
     <LeaseLinksContext.Provider value={links}>
@@ -98,8 +102,9 @@ export default function FleetScreen({
         <header className="mb-5 flex flex-wrap items-end justify-between gap-3">
           <div>
             <h1 className="text-xl font-semibold">Handback</h1>
+            <p className="text-sm text-slate-500">A live model of every lease obligation on the fleet: what it costs, what to do, and the date after which you cannot.</p>
             <p className="text-sm text-slate-500">
-              End-of-lease exposure by tail · as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
+              as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
             </p>
           </div>
           <div className="flex overflow-hidden rounded-md border border-slate-300 text-sm">
@@ -112,7 +117,7 @@ export default function FleetScreen({
           </div>
         </header>
 
-        <RecommendedActions closing={closing} totals={plans.totals} />
+        <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} />
         <Headline fleet={fleet} plans={plans} />
 
         <div className="mt-6 overflow-x-auto rounded-lg border border-slate-200 bg-white">
@@ -124,7 +129,7 @@ export default function FleetScreen({
                 <Th>Lessor</Th>
                 <Th>Return</Th>
                 <Th right>Months left</Th>
-                <Th right tip="Compensation and life handed over at handback if this tail does nothing.">
+                <Th right tip="Compensation and life handed over at handback if this tail does nothing — or, where a part runs out first, the cost of acting only when it does.">
                   If nothing changes
                 </Th>
                 <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
@@ -148,7 +153,7 @@ export default function FleetScreen({
                     open={open === t.tail}
                     onToggle={() => setOpen(open === t.tail ? null : t.tail)}
                   />
-                  {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} robustness={robustness} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
+                  {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
                 </Fragment>
               ))}
             </tbody>
@@ -234,17 +239,25 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           <td className="px-2 py-2 text-slate-300">—</td>
         </>
       ) : nothing ? (
-        <>
-          <td className="px-2 py-2 text-right font-semibold tabular-nums">{money(r.exposure)}</td>
-          <td className="px-2 py-2 text-slate-500" colSpan={4}>
-            Nothing to decide: no exposure at handback, as recorded or under the lease.
-          </td>
-        </>
+        <td className="px-2 py-2 text-emerald-800" colSpan={5}>
+          cleared: meets every return condition, as recorded and under the lease
+        </td>
       ) : (
         <>
           <td className="px-2 py-2 text-right">
-            <span className="font-semibold tabular-nums">{money(r.exposure)}</span>
-            <Breakdown t={t} />
+            {plan?.recommendation.late ? (
+              <>
+                <span className="font-semibold tabular-nums">{money(plan.doNothing)}</span>
+                <div className="mt-0.5 text-[11px] text-slate-500" title={plan.recommendation.late.label}>
+                  acting late, when {plan.recommendation.forced?.position} runs out
+                </div>
+              </>
+            ) : (
+              <>
+                <span className="font-semibold tabular-nums">{money(r.exposure)}</span>
+                <Breakdown t={t} />
+              </>
+            )}
           </td>
           <td className="px-2 py-2 text-right">
             {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
@@ -274,7 +287,7 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
           ) : plan?.recommendation.recommended.grounded ? (
             <span className="text-xs font-medium text-amber-900">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
           ) : plan?.recommendation.recommended.startNow ? (
-            <span className="text-xs">start now</span>
+            <span className="text-xs">no deadline · loses {money(plan.recommendation.recommended.startNow.perMonth)} a month</span>
           ) : (
             <span className="text-xs text-slate-400">{plan ? 'nothing to book' : '—'}</span>
           )}
@@ -284,23 +297,45 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
   );
 }
 
+/** What the next best option is, in a word or two: a shop visit, an overhaul, a swap, a route change. */
+function optionNoun(o: LeverOption): string {
+  if (o.lever === 'L2') return 'a route change';
+  if (o.lever === 'L3') return 'a swap';
+  return o.position === 'APU' ? 'an APU overhaul' : o.position === 'MLG' ? 'a gear overhaul' : 'a shop visit';
+}
+
 /** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
 function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before?: TailPlan; leftOut: boolean }) {
   const changed = before && actionOf(before) !== actionOf(plan);
   return (
     <div className="ml-auto max-w-[13rem]">
       <span className="font-semibold tabular-nums">{money(plan.after)}</span>
-      {/* A forced tail shows no saving: the do-nothing it would be measured against cannot happen. */}
-      {!plan.forced && plan.avoidable > 0 && <div className="text-[11px] text-emerald-700 tabular-nums">−{money(plan.avoidable)}</div>}
-      {!plan.forced && plan.avoidable < 0 && <div className="text-[11px] text-red-700 tabular-nums">+{money(-plan.avoidable)}</div>}
+      {/* A forced tail's saving is against acting late, when its part runs out. */}
+      {plan.avoidable > 0.5 && (
+        <div className="text-[11px] text-emerald-700 tabular-nums">
+          −{money(plan.avoidable)}
+          {plan.forced && ' vs acting late'}
+        </div>
+      )}
+      {plan.avoidable < -0.5 && (
+        <div className="text-[11px] text-red-700 tabular-nums">
+          +{money(-plan.avoidable)}
+          {plan.forced && ' vs acting late'}
+        </div>
+      )}
       <div className={`text-[11px] leading-tight ${changed ? 'font-medium text-violet-800' : 'text-slate-500'}`}>
         {plan.forced && (
-          <span className="mr-1 cursor-help rounded bg-amber-100 px-1 py-px text-[10px] font-medium text-amber-900" title={plan.forced}>
-            forced
+          <span className="mr-1 cursor-help rounded bg-amber-100 px-1 py-px text-[10px] font-medium text-amber-900" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
+            required
           </span>
         )}
         {plan.label}
       </div>
+      {plan.role === 'own' && plan.recommendation.recommended.lever === 'pay' && plan.recommendation.call.stands && plan.recommendation.runnerUp && (
+        <div className="text-[11px] leading-tight text-slate-500">
+          paying beats {optionNoun(plan.recommendation.runnerUp)} by {money(plan.recommendation.delta)}
+        </div>
+      )}
       {plan.role === 'own' && !plan.recommendation.call.stands && (
         <div className="text-[11px] leading-tight text-slate-500">{plan.recommendation.call.why}</div>
       )}
@@ -347,13 +382,11 @@ function LessorLink({ tail, name }: { tail: string; name: string }) {
 function TailDetail({
   t,
   plan,
-  robustness,
   flash,
   ready,
 }: {
   t: TailResult;
   plan?: TailPlan;
-  robustness: Robustness | null;
   flash: string | null;
   ready: ReadinessItem[];
 }) {
@@ -377,7 +410,6 @@ function TailDetail({
               <Working tail={t.tail} text={`${t.projection.trace}\n\n${plan.trace}`} />
             </div>
           )}
-          {!nothing && <TailRobustness tail={t.tail} robustness={robustness} />}
           <TailReadiness items={ready} />
           {t.asRecorded.components.map((c, i) => (
             <ComponentCard key={c.componentId} tail={t.tail} c={c} lease={t.asLeaseAllows.components[i]!} flash={flash} />
@@ -385,57 +417,6 @@ function TailDetail({
         </div>
       </td>
     </tr>
-  );
-}
-
-/** How far each input would have to move, down and up, before this tail's answer changes. */
-export function TailRobustness({ tail, robustness }: { tail: string; robustness: Robustness | null }) {
-  if (!robustness) return <div className="rounded-md border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">Checking how far each input would have to move…</div>;
-  const side = (input: Robustness['inputs'][number], dir: 'down' | 'up') => {
-    const f = input.byTail[tail]?.[dir];
-    const edge = dir === 'down' ? input.input.range.min : input.input.range.max;
-    if (Math.abs(edge - input.current) < 1e-12) return <span className="text-slate-300">—</span>;
-    return f ? (
-      <span>
-        <span className="font-medium text-violet-800">{f.change}</span> → {f.to} <span className="text-slate-400">(reach {Math.round(f.reach * 100)}%)</span>
-      </span>
-    ) : (
-      <span className="text-slate-400">holds to {describeInput(input.input, edge, input.current)}</span>
-    );
-  };
-  const state = ({ firm: 'solid', close: 'fragile' } as Record<string, string>)[robustness.byTail[tail] ?? 'firm'] ?? robustness.byTail[tail];
-  const near = robustness.close.find((c) => c.tail === tail);
-  return (
-    <details className="rounded-md border border-slate-200 bg-white">
-      <summary className="cursor-pointer px-3 py-2 text-sm">
-        How confident to be in this answer — <span className="font-medium">{state}</span>
-        {near && (
-          <span className="text-slate-500">
-            : {near.input.label.toLowerCase()} {near.flip.change} would change it
-          </span>
-        )}
-      </summary>
-      <table className="w-full text-xs">
-        <thead className="text-[10px] tracking-wide text-slate-400 uppercase">
-          <tr>
-            <Th>Assumption</Th>
-            <Th>Lower</Th>
-            <Th>Higher</Th>
-            <Th>Real number from</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {robustness.inputs.map((x) => (
-            <tr key={x.input.id} className="border-t border-slate-100">
-              <td className="px-3 py-1.5 whitespace-nowrap">{x.input.label}</td>
-              <td className="px-3 py-1.5">{side(x, 'down')}</td>
-              <td className="px-3 py-1.5">{side(x, 'up')}</td>
-              <td className="px-3 py-1.5 text-slate-500">{x.input.source}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </details>
   );
 }
 

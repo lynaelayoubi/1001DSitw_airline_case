@@ -599,9 +599,10 @@ Every number here is a rule applied to figures already in §§0–13, or a decla
 | Lever 3 feasibility | ruled out if either unit would run out before its tail's handback; if the incoming unit has less life than the one it replaces on any clock the lease names — to the next shop visit or overhaul, or LLP life — on either tail of a swap between two (LEASE-NOTES.md, clause 12.2: every lessor carries the strict form); or, for a planned engine removal, if its 90 days' notice can no longer be given (clause 12.3(b)); a removal forced by the engine running out is never refused for want of notice — it goes now, short | a swap that moves the problem forward is not a saving, and a swap the lease does not permit cannot be made |
 | Lever 3 cost | removal and installation on each tail touched + swap downtime (engine 1 day, gear 10, APU 1, per tail) + the exposure created on the other tail | SPEC §2.6 |
 | A spare's surplus life | all of a pool spare's surplus above the thresholds (binding clock and LLP), priced at a build-for-interval visit's rates (engine: restoration ÷ time on wing, LLP ÷ bucket; gear and APU: overhaul ÷ interval) | it would otherwise stay with the airline, so all of it leaves because of the swap; this is what makes tightness of fit cost money. A unit swapped between two returning tails is handed to a lessor either way and stays on the over-delivery rule |
-| A component that runs out before handback | never resolves to paying at handback: an engine out of its clock cannot fly. Its options are the levers applied to it, plus two: **cover it with a pool spare while it goes to the shop** (clause 12.3(c), engines) and **the aircraft on the ground** | LEASE-NOTES.md |
+| A component that runs out before handback — by at least a day | never resolves to paying at handback: an engine out of its clock cannot fly. Its options are the levers applied to it, plus two: **cover it with a pool spare while it goes to the shop** (clause 12.3(c), engines) and **the aircraft on the ground** | LEASE-NOTES.md |
 | Cover until restored (12.3(c)) | the spare goes on at run-out; the engine goes into the first slot the lead time allows and is reinstalled after the turnaround, before handback; the spare must last from run-out to the engine's return. Priced: the shop visit (LLP read as at run-out — the engine stops flying then), two removals and installations, two overnight changes, and the spare's time away from the pool — the life it burns on the tail, at a build-for-interval visit's rates, as any spare's life is priced. No spare-engine lease rate is in the evidence, so time away is life burned, not rent | the engine stays the permanent engine, so 12.2's replacement test does not apply to the spare |
-| On the ground | from run-out until the component is back from the first slot the lead time allows (with the shop visit), or until handback if that comes first; days × the downtime rate. Always open for a forced tail, so it never falls back to paying; when it is the answer it leads the recommended actions | never hidden |
+| On the ground | from run-out until the first slot today's lead time allows, then the shop visit at its own downtime (§13: with no spare, the aircraft waits 14 days; the turnaround sits behind a spare); or, if the component cannot be back before handback, on the ground to handback. Not offered when the component reaches a slot before it runs out — that is the shop visit itself. When it is the answer it leads the recommended actions | never hidden |
+| **If nothing changes, on a forced tail: acting late** | nobody acts until the component runs out; then the cheapest option still open that day. Notice goes to the lessor that day, short — 12.3(b) allows it for a forced removal. A free pool spare goes on: for good where 12.2's replacement test passes, or under 12.3(c) as a temporary engine until the component is back from a slot booked that day, a lead time later. Otherwise the aircraft is on the ground for that lead time, then the shop visit (§13); if the component cannot be back before handback, on the ground to handback with the lease's compensation as it stands. Priced with the levers' own machinery and the downtime rate. This baseline is the forced tail's "if nothing changes" everywhere — the tile and its bar, the table, the saving split; non-forced tails keep the handback cheque | the handback cheque assumed a part out of its clock could fly to the return date, which cannot happen — and most of the forced saving rested on it |
 | Airframe | not timed, not swapped | it is the aircraft; no heavy-check aircraft downtime in §13 |
 | A component that runs out before handback | only levers applied to it are offered; paying is off the table unless no lever can keep it flying | the exposure prices a clock past its limit as a capped shortfall; it does not force the removal |
 | Fleet allocation | tails with such a component first, soonest first; then by what each could save; each spare and each donor tail used once | they have to act; the rest are choosing |
@@ -641,7 +642,20 @@ the customer's own decision, and lives in the what-if (§16).
 | Shop-slot lead time | 4 months (§1) | **3–6 months** | As the customer gave it. | MRO slot availability, from engineering planning |
 | Lease extension (the one control) | none | **0–12 months** | Twice the customer's own six-month example; beyond it a projection runs past three years with no shop visit modelled. Rent for the extra months is not modelled. | the customer's own decision |
 
-### How firm the answers are (`calc/robustness.ts`; on screen "How confident to be in these answers": firm reads *solid*, close reads *fragile*)
+### Check before acting
+
+A recommendation is listed under **Check before acting** — and noted on its row in the recommended
+actions — when an assumption would flip it within the **first half** of the range its evidence
+supports (reach under 50%, `CHECK_BEFORE_ACTING_REACH`). Beyond that, the move needed is as large as
+the evidence allows at all. Each is an instruction: the condition the answer holds under, and the
+system the real number lives in (the assumption's source). On this fleet: A6-MXM (2% more flying) and
+A6-MVC (65% or less of its reserves reclaimable).
+
+### How firm the answers are (`calc/robustness.ts`)
+
+The full method, kept here though the screen no longer shows the full check: it runs behind **Check
+before acting** and behind the assumptions' **Changes an answer** column. (Earlier on screen, firm
+read *holds across its range* and close *close to the line*.)
 
 Each assumption is stepped outward from its current value, one at a time, across its plausible
 range, at the steps below, and the returning tails are re-recommended at every step — the same

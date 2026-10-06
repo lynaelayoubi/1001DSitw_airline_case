@@ -10,7 +10,19 @@ import { describe, expect, it } from 'vitest';
 import { LABOUR_RATE_PER_MH } from './constants';
 import { assessTail } from './exposure';
 import { AS_OF, aircraft, assumptions, component, condition, conditions, lessor, spare } from './fixtures.test-helpers';
-import { coverUntilRestored, doTheWork, flyItDifferently, moveAComponent, onTheGround, payAtHandback, timeTheShopVisit, type Donor, type LeverContext } from './levers';
+import {
+  actingLate,
+  coverUntilRestored,
+  firstTimeout,
+  doTheWork,
+  flyItDifferently,
+  moveAComponent,
+  onTheGround,
+  payAtHandback,
+  timeTheShopVisit,
+  type Donor,
+  type LeverContext,
+} from './levers';
 import { addMonths } from './projection';
 import type { Aircraft, Assumptions, Component, Lessor, ReturnCondition } from './types';
 
@@ -171,7 +183,7 @@ describe('L2 · fly it differently', () => {
     // flown, 1,412 short = $2,541,600. The sunk over-delivery is the same 12,000 FC × $330 on both
     // profiles, so it cancels: the saving is the compensation alone.
     const o = flyItDifferently(context(shortDense));
-    expect(o.label).toBe('Fly it mixed, not short-dense (flag to routing)');
+    expect(o.label).toBe('Route change: fly it mixed, not short-dense (flag to routing)');
     expect(o.newExposure).toBeCloseTo(2_541_600 + SUNK_OD, 3);
     expect(o.saving).toBeCloseTo(3_808_800 - 2_541_600, 3);
     // No date to decide by: worth most started now, and each of the 16 months it waits gives up a sixteenth.
@@ -243,7 +255,7 @@ describe('L3 · move a component', () => {
     const o = moveAComponent(context(full, { pool: [snug], lessor: lessor({ engineRemovalNoticeDays: 180 }) }));
     expect(o.feasible).toBe(true);
     expect(o.deadline).toBe(AS_OF);
-    expect(o.trace).toContain('a removal forced by ENG2 running out, not a planned one');
+    expect(o.trace).toContain('a removal required by ENG2 running out, not a planned one');
     expect(o.trace).toContain('a conversation with the lessor, not a refusal');
   });
 
@@ -307,6 +319,16 @@ describe('L3 · move a component', () => {
   });
 });
 
+describe('firstTimeout', () => {
+  it('counts a component as running out before handback only by at least a day', () => {
+    // ENG2 runs out at month 5. Handing back that day, it reaches handback; a month later, it does not.
+    const on = assessTail(aircraft({ leaseEnd: addMonths(AS_OF, 5) }, [eng2]), conditions('T-TEST'), AS_OF, assumptions());
+    const after = assessTail(aircraft({ leaseEnd: addMonths(AS_OF, 6) }, [eng2]), conditions('T-TEST'), AS_OF, assumptions());
+    expect(firstTimeout(on)).toBeNull();
+    expect(firstTimeout(after)?.position).toBe('ENG2');
+  });
+});
+
 describe('a component that runs out before handback', () => {
   // ENG2 runs out at month 5, after the 4-month lead time: its first slot is month 5, and a 200-day
   // turnaround brings it back at month 11.6, before handback at month 16.
@@ -334,13 +356,34 @@ describe('a component that runs out before handback', () => {
     expect(o.trace).toContain('the pool has no');
   });
 
-  it('prices the aircraft on the ground until the engine is back, at the downtime rate', () => {
-    const o = onTheGround(out);
+  it('prices the aircraft on the ground until the first slot, then the shop visit at its §13 downtime', () => {
+    // 300 FC left: out at month 3, a month before the first slot. 30 days waiting, then 14 with no spare.
+    const early = { ...context(aircraft({}, [component('engine', 'ENG2', { ...eng2, cso: 9_700 })])), focus: 0 };
+    const o = onTheGround(early);
     expect(o.feasible).toBe(true);
     expect(o.lever).toBe('ground');
-    expect(o.grounded!.days).toBe(200);
-    expect(o.grounded!.cost).toBe(200 * 45_000);
+    expect(o.grounded!.days).toBe(44);
+    expect(o.grounded!.cost).toBe(44 * 45_000);
     expect(o.downtimeCost).toBe(o.grounded!.cost);
+  });
+
+  it('is not on offer when the part reaches a slot before it runs out: that is the shop visit itself', () => {
+    // ENG2 runs out at month 5, which is a slot month: no time on the ground.
+    expect(onTheGround(out).feasible).toBe(false);
+  });
+
+  it('prices acting late: nobody acts until it runs out, then the cheapest option still open that day', () => {
+    // A free spare the lease permits: swapped in the day ENG2 runs out.
+    expect(actingLate(out).label).toMatch(/^Acting late: ENG2 swapped for spare ESN-SNUG on /);
+    // No spare: on the ground from month 5 until the slot booked that day (month 9), then the shop visit.
+    const none = actingLate({ ...context(full), focus: 1 });
+    expect(none.label).toMatch(/on the ground from .* for a slot, then the shop visit/);
+    expect(none.grounded!.days).toBe(122);
+    expect(none.downtimeDays).toBe(122 + 14);
+    // Handing back at month 12: a slot booked at month 5 brings ENG2 back after handback, so on the ground to handback.
+    const short = actingLate({ ...context(aircraft({ leaseEnd: addMonths(AS_OF, 12) })), focus: 1 });
+    expect(short.label).toMatch(/to handback$/);
+    expect(short.grounded!.days).toBe(213);
   });
 });
 

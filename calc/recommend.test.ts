@@ -38,13 +38,15 @@ describe('recommendTail', () => {
     expect(r.trace).toContain('ENG2 runs out of cycles at month 5.0');
   });
 
-  it('splits avoidable from unavoidable', () => {
+  it('splits avoidable from unavoidable, against acting late on a forced tail', () => {
     const r = recommendTail(context(full, [snug]));
     expect(r.unavoidable).toBeCloseTo(r.recommended.total, 3);
     expect(r.avoidable).toBeCloseTo(r.doNothing - r.unavoidable, 3);
-    // ENG2's compensation and sunk over-delivery ($2,340,000 + $3,960,000) go to the pool with it;
-    // the spare's $5,850,000 of life comes in, plus removal and a night's downtime.
-    expect(r.avoidable).toBeCloseTo(2_340_000 + 3_960_000 - 5_850_000 - 28_500 - 45_000, 0);
+    // ENG2 runs out at month 5, so doing nothing is acting late: the same swap, the day it runs out.
+    // The model prices a swap as fitted today either way, so acting now saves nothing here.
+    expect(r.late!.label).toMatch(/^Acting late: ENG2 swapped for spare ESN-SNUG/);
+    expect(r.doNothing).toBeCloseTo(r.late!.total, 3);
+    expect(r.avoidable).toBeCloseTo(0, 3);
   });
 
   it('carries sunk over-delivery through the avoidable figure unchanged, unless a swap keeps the unit', () => {
@@ -93,9 +95,13 @@ describe('recommendTail', () => {
     const early = component('engine', 'ENG2', { ...eng2, cso: 9_700 });
     const r = recommendTail(context(aircraft({}, [early])));
     expect(r.forced).not.toBeNull();
+    // Out at month 3, the first slot at month 4: 30 days waiting, then the shop visit's 14 (§13).
     expect(r.recommended.lever).toBe('ground');
-    expect(r.recommended.grounded!.days).toBe(230);
-    expect(r.recommended.grounded!.cost).toBe(230 * 45_000);
+    expect(r.recommended.grounded!.days).toBe(44);
+    expect(r.recommended.grounded!.cost).toBe(44 * 45_000);
+    // Acting late books the slot only when it runs out (month 7): 122 days waiting — dearer.
+    expect(r.late!.grounded!.days).toBe(122);
+    expect(r.avoidable).toBeGreaterThan(0);
     expect(r.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
     expect(r.trace).toContain('On the ground from');
   });
@@ -209,7 +215,8 @@ describe('the money in play and the forced cases', () => {
   });
 
   it('moves no life where the units stay where they are: sunk over-delivery cancels', () => {
-    for (const p of r.plans) if (!p.recommendation.recommended.move) expect(p.avoidableLife).toBeCloseTo(0, 3);
+    // A forced tail is measured against acting late, which may put a spare on: there, life moves.
+    for (const p of r.plans) if (!p.recommendation.recommended.move && !p.forced) expect(p.avoidableLife).toBeCloseTo(0, 3);
   });
 
   it('takes a removal forced by an engine running out with short notice — a conversation with the lessor, not a refusal', () => {
@@ -224,8 +231,9 @@ describe('the money in play and the forced cases', () => {
     const cover = zuu.recommendation.options.find((o) => o.covers)!;
     expect(cover.feasible).toBe(true);
     expect(cover.label).toBe('Cover ENG2 with spare ESN-6508 while it goes to the shop');
+    // On the ground until the first slot (month 4, 87 days), then the shop visit's 14.
     const ground = zuu.recommendation.options.find((o) => o.lever === 'ground')!;
-    expect(ground.grounded!.days).toBeGreaterThan(200);
+    expect(ground.grounded!.days).toBe(101);
   });
 
   it('labels the tails that cannot reach handback as forced, not recommended', () => {
@@ -235,9 +243,14 @@ describe('the money in play and the forced cases', () => {
       expect(p.forced).toContain('doing nothing is not an option');
       expect(p.recommendation.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
     }
-    // Measured against a do-nothing that assumed the engine could fly to handback: never a saving the tool chose.
-    for (const t of ['9H-KVJ', 'A6-MVC', 'A6-YTM']) expect(r.byTail[t]!.trace, t).toContain('is not a saving the tool chose');
-    expect(r.byTail['9H-ZUU']!.trace).toContain('not choosing the dearer option');
+    // Each is measured against acting late — nobody acts until the part runs out — not against a
+    // handback cheque that assumed it could fly on.
+    for (const p of r.plans.filter((x) => x.forced)) {
+      expect(p.recommendation.late, p.tail).not.toBeNull();
+      expect(p.doNothing).toBeCloseTo(p.recommendation.late!.total, 3);
+      expect(p.trace).toContain('which for this tail is acting late');
+    }
+    for (const t of ['9H-KVJ', 'A6-MVC', 'A6-YTM']) expect(r.byTail[t]!.trace, t).toContain('Acting now saves');
   });
 });
 

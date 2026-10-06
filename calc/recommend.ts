@@ -13,6 +13,7 @@ import { COST_ESTIMATE_UNCERTAINTY, DEFAULT_ASSUMPTIONS } from './constants';
 import type { FleetExposure, TailResult } from './exposure';
 import { num, usd } from './format';
 import {
+  actingLate,
   coverUntilRestored,
   describeProposal,
   doTheWork,
@@ -54,6 +55,14 @@ export interface TailRecommendation {
   call: Call;
   /** No exposure at handback, as recorded or under the lease: nothing to decide, so no options are weighed. */
   nothingToDecide: boolean;
+  /**
+   * For a tail whose component runs out before handback, what doing nothing turns into: acting late
+   * (actingLate) — and the figure doNothing is. null for every other tail, whose doNothing is the
+   * handback cheque.
+   */
+  late: LeverOption | null;
+  /** The cash part of doNothing: compensation at handback, or acting late's shop spend, downtime and compensation. */
+  doNothingCash: number;
   trace: string;
 }
 
@@ -131,6 +140,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       forced: null,
       call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: 'there is no exposure at handback' },
       nothingToDecide: true,
+      late: null,
+      doNothingCash: ctx.baseline.asRecorded.compensation,
       trace: `${ctx.ac.tail}: no exposure at handback, as recorded or under the lease — every clock clears its return condition. Nothing to decide.`,
     };
   }
@@ -141,10 +152,14 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   let offered = all(ctx);
   let preamble = '';
   let forced: TailRecommendation['forced'] = null;
+  let late: LeverOption | null = null;
   if (timeout) {
-    offered = all({ ...ctx, focus: ctx.ac.components.findIndex((c) => c.position === timeout.position) });
+    const focus = ctx.ac.components.findIndex((c) => c.position === timeout.position);
+    offered = all({ ...ctx, focus });
+    // What doing nothing turns into for a part that cannot fly on: acting late, on the day it runs out.
+    late = actingLate({ ...ctx, focus });
     const at = `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
-    preamble = `Forced: ${at}, so the options are the ones that deal with it; paying at handback is not one of them. `;
+    preamble = `Required: ${at}, so the options are the ones that deal with it; paying at handback is not one of them. `;
     forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
   }
   const options = offered.sort(
@@ -165,7 +180,8 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
   // would put today on every tail.
   const decisionDeadline = recommended.deadline;
   const unavoidable = recommended.total;
-  const avoidable = doNothing - unavoidable;
+  const baseline = late ? late.total : doNothing;
+  const avoidable = baseline - unavoidable;
 
   const line = (o: LeverOption) =>
     o.feasible
@@ -173,11 +189,11 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       : `${o.label}: not available — ${o.trace}`;
   const trace =
     (call.stands ? '' : `No recommendation: ${call.why}. `) +
-    `${ctx.ac.tail}: ${preamble}${recommended.label}, ${usd(unavoidable)} all-in against ${usd(doNothing)} if nothing changes` +
-    (forced
+    `${ctx.ac.tail}: ${preamble}${recommended.label}, ${usd(unavoidable)} all-in against ${usd(baseline)} if nothing changes` +
+    (late
       ? avoidable >= 0
-        ? ` — a figure that assumed it could fly to handback, so the ${usd(avoidable)} difference is not a saving the tool chose. `
-        : ` — ${usd(-avoidable)} more, because the do-nothing figure assumed it could fly to handback. The tool is not choosing the dearer option; it is the cheapest way to keep flying. `
+        ? ` — which for this tail is acting late: ${late.label}. Acting now saves ${usd(avoidable)}. `
+        : ` — which for this tail is acting late: ${late.label}. Acting now costs ${usd(-avoidable)} more than waiting; it is still the cheapest of the options open today. `
       : avoidable > 0
         ? `, so ${usd(avoidable)} is avoidable. `
         : ': nothing is avoidable. ') +
@@ -187,12 +203,28 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
       : recommended.grounded
         ? `On the ground from ${recommended.grounded.from}: ${num(recommended.grounded.days)} days, ${usd(recommended.grounded.cost)} at the downtime rate.`
         : recommended.startNow
-          ? `Start now: each month of waiting gives up about ${usd(recommended.startNow.perMonth)}.`
+          ? `No deadline: each month of waiting loses about ${usd(recommended.startNow.perMonth)}.`
           : 'Nothing to book.') +
     (call.stands && runnerUp ? ` It stands: ${call.why}.` : '') +
     `\n\n${options.map((o, k) => `${o.feasible ? `${k + 1}.` : '–'} ${line(o)}`).join('\n')}` +
     `\n\n${recommended.trace}`;
-  return { tail: ctx.ac.tail, doNothing, options, recommended, runnerUp, delta, decisionDeadline, unavoidable, avoidable, forced, call, nothingToDecide: false, trace };
+  return {
+    tail: ctx.ac.tail,
+    doNothing: baseline,
+    options,
+    recommended,
+    runnerUp,
+    delta,
+    decisionDeadline,
+    unavoidable,
+    avoidable,
+    forced,
+    call,
+    nothingToDecide: false,
+    late,
+    doNothingCash: late ? late.spend + late.downtimeCost + late.newCompensation : ctx.baseline.asRecorded.compensation,
+    trace: trace + (late ? `\n\nActing late: ${late.trace}` : ''),
+  };
 }
 
 export interface TailPlan {
@@ -273,6 +305,8 @@ export interface FleetRecommendation {
     avoidableLife: number;
     /** avoidableCash ÷ doNothingCash: the saving as a share of the money actually in play. */
     avoidableCashShare: number;
+    /** doNothingCash ÷ doNothing: the share of doing nothing that is cash out — the headline bar. */
+    doNothingCashShare: number;
     /**
      * Tails acting by choice, forced to act, paying, with no recommendation (the options cannot be
      * told apart), with nothing to decide (no exposure), giving a unit to a swap.
@@ -330,7 +364,8 @@ export function compareRecommendations(atRest: FleetRecommendation, scenario: Fl
 
 /** The customer's own action on a tail, standing in for the model's ranking. */
 function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: ReturnType<typeof firstTimeout>): TailRecommendation {
-  const doNothing = ctx.baseline.asRecorded.exposure;
+  const late = timeout && ctx.focus !== undefined ? actingLate(ctx) : null;
+  const doNothing = late ? late.total : ctx.baseline.asRecorded.exposure;
   const at = timeout && `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
   return {
     tail: ctx.ac.tail,
@@ -345,6 +380,8 @@ function imposedRecommendation(ctx: LeverContext, o: LeverOption, timeout: Retur
     forced: timeout ? { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` } : null,
     call: { stands: true, advantage: 0, differing: 0, uncertainty: 0, between: null, why: "it is your change, not the model's choice" },
     nothingToDecide: false,
+    late,
+    doNothingCash: late ? late.spend + late.downtimeCost + late.newCompensation : ctx.baseline.asRecorded.compensation,
     trace: `${ctx.ac.tail}: your change — ${o.label}, ${usd(o.total)} all-in against ${usd(doNothing)} if nothing changes. Decided by you, not ranked by the model.\n\n${o.trace}`,
   };
 }
@@ -438,8 +475,10 @@ export function recommendFleet(
   }
 
   const plans = tails.map((t): TailPlan => {
-    const doNothing = t.asRecorded.exposure;
     const rec = settled.get(t.tail) ?? independent.get(t.tail)!;
+    // A donor is never forced (it gives a unit away); an own plan carries its recommendation's baseline.
+    const doNothing = gives.has(t.tail) ? t.asRecorded.exposure : rec.doNothing;
+    const doNothingCash = gives.has(t.tail) ? t.asRecorded.compensation : rec.doNothingCash;
     const gift = gives.get(t.tail);
     if (gift) {
       const d = gift.option.move!.donor!;
@@ -454,10 +493,10 @@ export function recommendFleet(
         doNothing,
         after,
         avoidable: doNothing - after,
-        doNothingCash: t.asRecorded.compensation,
+        doNothingCash,
         afterCash,
-        avoidableCash: t.asRecorded.compensation - afterCash,
-        avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
+        avoidableCash: doNothingCash - afterCash,
+        avoidableLife: doNothing - after - (doNothingCash - afterCash),
         forced: null,
         owed: d.exposureAfter,
         spend: 0,
@@ -490,10 +529,10 @@ export function recommendFleet(
       doNothing,
       after,
       avoidable: doNothing - after,
-      doNothingCash: t.asRecorded.compensation,
+      doNothingCash,
       afterCash,
-      avoidableCash: t.asRecorded.compensation - afterCash,
-      avoidableLife: doNothing - after - (t.asRecorded.compensation - afterCash),
+      avoidableCash: doNothingCash - afterCash,
+      avoidableLife: doNothing - after - (doNothingCash - afterCash),
       forced: rec.forced?.why ?? null,
       owed: own ? own.newExposure : o.newExposure,
       spend: o.spend,
@@ -528,6 +567,7 @@ export function recommendFleet(
     avoidableCash,
     avoidableLife,
     avoidableCashShare: doNothingCash > 0 ? avoidableCash / doNothingCash : 0,
+    doNothingCashShare: doNothing > 0 ? doNothingCash / doNothing : 0,
     acting: own.filter((p) => p.recommendation.call.stands && !p.forced && p.recommendation.recommended.lever !== 'pay').length,
     forced: own.filter((p) => p.recommendation.call.stands && p.forced).length,
     paying: own.filter((p) => p.recommendation.call.stands && !p.recommendation.nothingToDecide && p.recommendation.recommended.lever === 'pay').length,

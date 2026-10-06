@@ -3,8 +3,9 @@ import type { FleetRecommendation } from '../../calc/recommend';
 import { money } from '../format';
 
 /**
- * SPEC §3.2, by kind of money. If nothing changes, split in a bar into cash out at handback and
- * life already spent at past shop visits; after recommendations. The avoidable total sits at the
+ * SPEC §3.2, by kind of money. If nothing changes — where a part runs out first, acting late — split in
+ * a bar into cash out and life given away, with what it comes to after the actions above as a second
+ * line. What acting now saves sits at the
  * top beside the actions. No tile carries more than six words; the rest is in the disclosure under
  * them. Last, a plain line summarising the clock-reset column of the table below it.
  */
@@ -14,37 +15,43 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
   return (
     <section>
       <div className="grid gap-3 sm:grid-cols-2">
-        <Tile label="If nothing changes" value={money(t.doNothing)}>
+        <Tile label="If nothing changes" value={money(r.doNothing)}>
           <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-slate-200">
-            <div className="bg-slate-700" style={{ width: `${t.cashShare * 100}%` }} />
+            <div className="bg-slate-700" style={{ width: `${r.doNothingCashShare * 100}%` }} />
           </div>
           <div className="mt-1 flex justify-between text-xs text-slate-600">
             <span>
               <span className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-700" />
-              cash out <span className="font-medium tabular-nums">{money(t.compensation)}</span>
+              cash out <span className="font-medium tabular-nums">{money(r.doNothingCash)}</span>
             </span>
-            <span>
+            <span className="cursor-help" title="Engine life you paid for at past shop visits, beyond what the lease asks. It goes back to the lessor with the aircraft.">
               <span className="mr-1 inline-block h-2 w-2 rounded-full bg-slate-200" />
-              already spent <span className="font-medium tabular-nums">{money(t.overDelivery)}</span>
+              life given away <span className="font-medium tabular-nums">{money(r.doNothingLife)}</span>
             </span>
           </div>
-        </Tile>
-        <Tile label="After recommendations" value={money(r.after)}>
-          <div className="mt-1 text-xs text-slate-500">work, downtime and what's still owed</div>
+          <div className="mt-2 text-sm text-slate-700 tabular-nums">→ {money(r.after)} after the actions above</div>
         </Tile>
       </div>
+
+      {/* Not added to what acting now saves: these tails need nothing, or are better off paying. */}
+      <p className="mt-2 text-sm text-slate-600">
+        {r.nothingToDecide} {r.nothingToDecide === 1 ? 'tail' : 'tails'} cleared · {r.paying} where paying beats fixing
+      </p>
 
       <details className="mt-2 text-xs text-slate-600">
         <summary className="cursor-pointer text-slate-500">What these totals are made of</summary>
         <ul className="mt-1 space-y-1 pl-4">
-          <li>Already spent: life paid for at past shop visits, sunk unless a swap keeps the unit in the pool.</li>
+          <li>Life given away: engine life you paid for at past shop visits, beyond what the lease asks, which goes back to the lessor with the aircraft — and, where a spare goes on, the spare's. Kept only if a swap sends the unit to the pool.</li>
           <li>
-            What acting now saves, {money(r.avoidable)}: {money(r.avoidableChosen)} saved by the actions chosen, {money(r.avoidableForced)} on forced tails, against a do-nothing
-            that cannot happen. In cash, {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable ({Math.round(r.avoidableCashShare * 100)}%); in life,{' '}
+            If nothing changes, on a tail whose part runs out before handback: acting late — nobody acts until it runs out, then the cheapest option
+            still open that day.
+          </li>
+          <li>
+            What acting now saves, {money(r.avoidable)}: {money(r.avoidableChosen)} saved by the actions chosen, {money(r.avoidableForced)} on required actions, against acting late. In cash, {money(r.avoidableCash)} of the {money(r.doNothingCash)} payable ({Math.round(r.avoidableCashShare * 100)}%); in life,{' '}
             {money(r.avoidableLife)}, spares handed over net of units kept in the pool.
           </li>
           <li>
-            The {plans.plans.length} tails: {r.acting} act, {r.forced} forced, {r.paying} pay at handback
+            The {plans.plans.length} tails: {r.acting} act by choice, {r.forced} required, {r.paying} pay at handback
             {r.undecided ? `, ${r.undecided} no recommendation` : ''}
             {r.nothingToDecide ? `, ${r.nothingToDecide} nothing to decide` : ''}
             {r.donors ? `, ${r.donors} lend a unit` : ''}.
