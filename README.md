@@ -28,6 +28,13 @@ npm run build        # static bundle in dist/
 No backend, no database, no network calls. The dataset is a committed JSON file, so the
 prototype runs offline.
 
+## The demo on Replit
+
+`dist/` is committed: it is the built app, and `.replit` serves it as a static site, so nothing is
+built or run on Replit and nothing can fail live. To deploy: on replit.com, import this repository
+from GitHub, then Deploy → Static. The public directory is `dist` and there is no build command.
+After any change to the app, run `npm run build` and commit `dist/` before deploying again.
+
 ## Layout
 
 Three folders, each answering one question.

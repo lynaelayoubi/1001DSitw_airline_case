@@ -1092,3 +1092,18 @@ done: $21.18M (was $33.00M; A6-MVC's and A6-YTM's ENG2 are now in the totals). C
 acting adds A6-MVC: it turns if 90% or less of its reserves could be reclaimed. The labels say
 "engine life" where they said "spare engines": the life split now carries the aircraft's own
 engines too.
+
+**No "What these totals are made of" disclosure under the headline.** · Rejected: keeping it
+collapsed. · Because a Head of Fleet should not have to open a footnote to trust a headline, and
+every line in it is now on screen — the saving's two splits under the figure, engine life on the
+bar's tip, the tails in "3 tails cleared · 2 where paying beats fixing", over-delivery and the clock
+reset on their own lines. The two definitions that were not — acting late, and a clock reset the
+lease does not count — are now the tips on "If nothing changes" and on the clock-reset line. A
+click on a disclosure no longer leaves a focus ring; the keyboard still shows one.
+
+**The demo deploys as a static site from the committed build: `dist/` is in the repository and
+Replit serves it as it is.** · Rejected: building on Replit. · Because Vite 8 needs Node 20.19 or
+newer and the builder's version cannot be checked from here; with nothing built or run at deploy
+time, nothing can fail live. The cost is one step: rebuild and commit `dist/` after any change.
+The page gains a favicon and a description for link previews, which says it is a prototype on
+synthetic data.

@@ -1,0 +1,9 @@
+# Handback on Replit — a static demo. dist/ is the built app, committed, so nothing is built or run
+# on Replit: the deployment serves those files as they are, and nothing can fail live.
+# Rebuild with `npm run build` and commit dist/ whenever the app changes.
+modules = ["web"]
+entrypoint = "dist/index.html"
+
+[deployment]
+deploymentTarget = "static"
+publicDir = "dist"

@@ -67,8 +67,10 @@ Everything below justifies the list, and sits under it.
   After recommendations is not a tile of its own.
   Under them, two lines of plain text, not totals, so no box, fill or badge: life already
   over-delivered at past shop visits on engines that stay on the aircraft whatever is done — "Sunk on
-  these ten; preventable on the next ten" — which is in none of the figures, and the sum of the clock-reset column of the table below. Anything longer —
-  the saving in cash and spare engines, how the tails split — is in one disclosure under the tiles.
+  these ten; preventable on the next ten" — which is in none of the figures, and the sum of the clock-reset column of the table below. No disclosure under
+  the tiles: what each figure is made of is on screen, and the two definitions that are not — acting
+  late, and a clock reset the lease does not count — are the tips on "If nothing changes" and on the
+  clock-reset line.
 - **Sets the bill** names the clock that decides what the tail pays at handback (its tip says so).
   The figure after the recommendation is labelled **all-in**; a tail that pays says what the cheque
   is — "Pay at handback: $677K cheque" — and what paying beats is the best option on the part that

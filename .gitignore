@@ -1,4 +1,4 @@
 node_modules/
-dist/
+# dist/ is committed on purpose: it is the built app Replit serves as a static site (see README).
 .DS_Store
 *.log

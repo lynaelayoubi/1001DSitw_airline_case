@@ -57,3 +57,8 @@ body {
 summary::marker {
   color: var(--color-slate-400);
 }
+
+/* A focus ring for the keyboard, not after a click. */
+summary:focus:not(:focus-visible) {
+  outline: none;
+}
