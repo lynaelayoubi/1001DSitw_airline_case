@@ -3,17 +3,17 @@ import { useDeferredValue, useMemo } from 'react';
 import { draftAssignment, type AssignmentDraft } from '../../calc/assign';
 import { closingDecisions } from '../../calc/deadlines';
 import { assignable, decisionChoices, runScenario } from '../../calc/scenario';
-import { Answer } from '../components/Answer';
+import { Answer, Calculation } from '../components/Answer';
 import { BudgetSection } from '../components/Budget';
-import { DecisionPicker, MarketRow } from '../components/Questions';
+import { DecisionBuilder, DecisionList, MarketPanel } from '../components/Questions';
 import { useDemo } from '../demo';
 import type { ScreenProps } from './Shell';
 
 /**
- * Scenario planning: the market changes as one row of fields, the aircraft decisions in one picker, and
- * the answer — what the changed figures do to the tool's advice, kept apart from your decisions, each
- * judged against today's plan (calc/scenario.ts). The full calculation is folded beneath; this year's
- * budget sits at the bottom. Nothing here changes today's plan.
+ * Scenario planning, in two columns on a wide screen: your scenario on the left — the market, a decision
+ * to add, your decisions each with its verdict — and on the right, in view while you work, what it does:
+ * the answer and the tool's advice (calc/scenario.ts). The calculation folds beneath both; this year's
+ * budget closes the page. Nothing here changes today's plan.
  */
 export default function Scenarios(
   props: ScreenProps & { onAssign: (d: AssignmentDraft) => void; focus: { tail: string; at: number } | null },
@@ -37,8 +37,7 @@ export default function Scenarios(
     }
     return out;
   }, [result, data, leaseOf]);
-  // Each decision better than today's plan, drafted from the plan with that decision alone. A return
-  // date is agreed with the lessor, not assigned.
+  // Each decision better than today's plan, drafted from the plan with that decision alone.
   const decisionDrafts = useMemo(() => {
     const out: Record<number, AssignmentDraft> = {};
     result.verdicts.forEach((v, k) => {
@@ -53,26 +52,30 @@ export default function Scenarios(
   }, [result, data, leaseOf]);
   return (
     <div className="space-y-12">
-      <section>
+      <header>
         <h2 className="caps mb-2">Scenario planning</h2>
-        <p className="mb-8 text-slate-500">See what a change in the market, or a decision of your own, does to your plan. The Overview always shows today's plan.</p>
-        <h3 className="caps mb-3">If the market changes</h3>
-        <MarketRow scenario={scenario} onScenario={setScenario} />
-        <h3 className="caps mt-10 mb-3">If you decide</h3>
-        <DecisionPicker scenario={scenario} onScenario={setScenario} choices={offered.open} cleared={offered.cleared} named={choices} focus={focus} />
-      </section>
-      <Answer
-        scenario={scenario}
-        result={result}
-        pending={shown !== scenario}
-        adviceDrafts={adviceDrafts}
-        decisionDrafts={decisionDrafts}
-        onAssign={onAssign}
-        named={choices}
-        asOf={fleet.asOf}
-        robustness={robustness}
-        robustnessPending={robustnessPending}
-      />
+        <p className="text-slate-500">See what a change in the market, or a decision of your own, does to your plan. The Overview always shows today's plan.</p>
+      </header>
+      <div className="grid gap-x-16 gap-y-12 lg:grid-cols-12 lg:items-start">
+        <div className="space-y-10 lg:col-span-5">
+          <MarketPanel scenario={scenario} onScenario={setScenario} />
+          <DecisionBuilder scenario={scenario} onScenario={setScenario} choices={offered.open} cleared={offered.cleared} focus={focus} />
+          <DecisionList
+            scenario={scenario}
+            onScenario={setScenario}
+            priced={shown.decisions}
+            verdicts={result.verdicts}
+            drafts={decisionDrafts}
+            onAssign={onAssign}
+            named={choices}
+            asOf={fleet.asOf}
+          />
+        </div>
+        <aside className="lg:sticky lg:top-6 lg:col-span-7 lg:max-h-[calc(100vh-3rem)] lg:overflow-y-auto">
+          <Answer scenario={scenario} result={result} pending={shown !== scenario} adviceDrafts={adviceDrafts} onAssign={onAssign} asOf={fleet.asOf} />
+        </aside>
+      </div>
+      <Calculation scenario={scenario} result={result} robustness={robustness} robustnessPending={robustnessPending} />
       <BudgetSection budget={budget} onBudget={onBudget} plan={budgetPlan} asOf={fleet.asOf} />
     </div>
   );

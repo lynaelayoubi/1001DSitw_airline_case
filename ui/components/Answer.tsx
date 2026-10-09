@@ -1,12 +1,10 @@
 import type { AssignmentDraft } from '../../calc/assign';
 import type { PlanTotals, Scenario, ScenarioResult } from '../../calc/scenario';
 import type { Robustness } from '../../calc/robustness';
-import type { TailChoices } from '../../calc/whatif';
 import { useDemo } from '../demo';
 import { decideBy, money } from '../format';
-import { decisionEffectSentence, decisionSentence, verdictSentence, worldEffectSentence } from '../questions';
+import { decisionEffectSentence, worldEffectSentence } from '../questions';
 import { canAssign } from '../roles';
-import { ClauseText } from './ClauseText';
 import { Evidence } from './Evidence';
 
 const signed = (n: number) => (Math.abs(n) < 0.5 ? 'no change' : `${n > 0 ? '+' : '−'}${money(Math.abs(n))}`);
@@ -28,151 +26,112 @@ const when = (x: { decideBy: string | null; slotMonth: string | null; noDeadline
   x.noDeadline ? 'no deadline' : x.decideBy ? decideBy(x.decideBy, asOf, x.slotMonth) : 'nothing to book';
 
 /**
- * The answer: one sentence, and what each change does on its own. Then the tool's advice — the
- * recommendations the changed figures change, each ready to assign — kept apart from your decisions,
- * each judged against today's advice for its aircraft: better, and ready to assign; worse, and not
- * recommended; or refused by the lease, with the clause. The full calculation is folded beneath.
+ * The answer, beside the questions so it stays in view: one sentence, the two totals, what each change
+ * does on its own, and the tool's advice — the recommendations the changed figures change, each ready to
+ * assign. Your decisions are judged where you added them (DecisionList), never here.
  */
 export function Answer({
   scenario,
   result: r,
   pending,
   adviceDrafts,
-  decisionDrafts,
   onAssign,
-  named,
   asOf,
-  robustness,
-  robustnessPending,
 }: {
   scenario: Scenario;
   result: ScenarioResult;
   pending: boolean;
   /** The new action on each aircraft the advice changes, drafted for assigning, by tail. */
   adviceDrafts: Record<string, AssignmentDraft>;
-  /** Each decision better than today's plan, drafted for assigning, by its place in the list. */
-  decisionDrafts: Record<number, AssignmentDraft>;
   onAssign: (d: AssignmentDraft) => void;
-  named: TailChoices[];
   asOf: string;
-  robustness: Robustness | null;
-  robustnessPending: boolean;
 }) {
   const { role } = useDemo();
   const empty = !scenario.world.length && !scenario.decisions.length;
   const effects = [...r.worldEffects.map(worldEffectSentence), ...r.verdicts.map(decisionEffectSentence).filter((x): x is string => !!x)];
-  const assign = (d: AssignmentDraft | undefined) =>
-    d && canAssign(role) ? (
-      <button className="link" onClick={() => onAssign(d)}>
-        Assign and notify
-      </button>
-    ) : null;
+  const totals = (
+    <div className="flex flex-wrap gap-x-12 gap-y-2 tabular-nums">
+      <span>
+        <span className="text-slate-500">Today </span>
+        <span className="font-semibold">{money(r.today.allIn)}</span>
+      </span>
+      {scenario.world.length > 0 && (
+        <span>
+          <span className="text-slate-500">With the changed figures </span>
+          <span className="font-semibold">{money(r.world.allIn)}</span>
+        </span>
+      )}
+    </div>
+  );
+  if (empty)
+    return (
+      <div>
+        <p className="mb-3 text-slate-500">Change a figure or add a decision to see what it does to your plan.</p>
+        {totals}
+      </div>
+    );
   return (
-    <div className={pending ? 'opacity-60' : ''}>
-      {empty ? (
-        <p className="text-slate-500">Change a figure or add a decision above to see what it does to your plan.</p>
-      ) : (
-        <>
-          <p className="text-display font-semibold tracking-tight">{answerSentence(r, scenario)}</p>
-          <div className="mt-3 flex flex-wrap gap-12 tabular-nums">
-            <span>
-              <span className="text-slate-500">Today </span>
-              <span className="font-semibold">{money(r.today.allIn)}</span>
-            </span>
-            {scenario.world.length > 0 && (
-              <span>
-                <span className="text-slate-500">With the changed figures </span>
-                <span className="font-semibold">{money(r.world.allIn)}</span>
-              </span>
-            )}
-          </div>
-          {effects.length > 0 && (
-            <ul className="mt-4 space-y-1">
-              {effects.map((e) => (
-                <li key={e}>{e}</li>
-              ))}
-            </ul>
-          )}
-
-          {scenario.world.length > 0 && (
-            <>
-              <h3 className="caps mt-12 mb-3">The tool's advice changes</h3>
-              {r.advice.length === 0 ? (
-                <p className="text-slate-500">Nothing: with the changed figures, every recommendation stands.</p>
-              ) : (
-                <table className="w-full">
-                  <tbody>
-                    {r.advice.map((c) => (
-                      <tr key={c.tail} className="border-t border-slate-100 align-baseline first:border-t-0">
-                        <td className="py-3 pr-6 font-medium whitespace-nowrap">{c.tail}</td>
-                        <td className="py-3 pr-6">
-                          <span className="text-slate-500">{c.from}</span> → {c.to}
-                        </td>
-                        <td className="py-3 pr-6 text-balance">{when(c, asOf)}</td>
-                        <td className="py-3 pr-6 text-right whitespace-nowrap tabular-nums">{signed(c.difference)}</td>
-                        <td className="py-3 text-right whitespace-nowrap">
-                          {adviceDrafts[c.tail] ? assign(adviceDrafts[c.tail]) : <span className="text-label text-slate-500">nothing to assign</span>}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </>
-          )}
-
-          {r.verdicts.length > 0 && (
-            <>
-              <h3 className="caps mt-12 mb-3">Your decisions</h3>
-              <ul>
-                {r.verdicts.map((v, k) => (
-                  <li key={k} className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-slate-100 py-3 first:border-t-0">
-                    <div className="min-w-0 flex-1">
-                      <div>{decisionSentence(v.proposal, named)}</div>
-                      <div className={`mt-1 ${v.verdict === 'better' ? 'font-medium' : 'text-slate-500'}`}>
-                        {v.verdict === 'refused' ? (
-                          <>
-                            <span className="font-medium text-slate-900">Not possible:</span> <ClauseText tail={v.proposal.tail} text={v.refused!} />
-                          </>
-                        ) : (
-                          verdictSentence(v)
-                        )}
-                      </div>
-                    </div>
-                    {v.verdict === 'better' && (
-                      <>
-                        {v.closing && v.proposal.kind !== 'return' && (
-                          <span className="text-balance">
-                            {when({ decideBy: v.closing.decideBy ?? v.closing.grounded?.from ?? null, slotMonth: v.closing.slotMonth, noDeadline: !!v.closing.startNow }, asOf)}
-                          </span>
-                        )}
-                        <span className="whitespace-nowrap">
-                          {decisionDrafts[k] ? (
-                            assign(decisionDrafts[k])
-                          ) : (
-                            <span className="text-label text-slate-500">{v.proposal.kind === 'return' ? 'agree it with the lessor' : 'nothing to assign'}</span>
-                          )}
-                        </span>
-                      </>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </>
+    <div className={`transition-opacity ${pending ? 'opacity-60' : ''}`}>
+      <p className="text-display font-semibold tracking-tight text-balance">{answerSentence(r, scenario)}</p>
+      <div className="mt-3">{totals}</div>
+      {effects.length > 0 && (
+        <ul className="mt-6 border-t border-slate-100">
+          {effects.map((e) => (
+            <li key={e} className="border-b border-slate-100 py-2">
+              {e}
+            </li>
+          ))}
+        </ul>
       )}
 
-      <details className="mt-12">
-        <summary className="cursor-pointer">
-          <span className="caps">Show the calculation</span>
-        </summary>
-        <div className="mt-6 space-y-12">
-          {!empty && <Totals r={r} />}
-          <Evidence robustness={robustness} pending={robustnessPending} />
-        </div>
-      </details>
+      {scenario.world.length > 0 &&
+        (r.advice.length === 0 ? (
+          <p className="mt-6 text-slate-500">The tool's advice holds: every recommendation stands with these figures.</p>
+        ) : (
+          <>
+            <h3 className="caps mt-10 mb-1">The tool's advice changes</h3>
+            <ul>
+              {r.advice.map((c) => (
+                <li key={c.tail} className="border-t border-slate-100 py-3 first:border-t-0">
+                  <div>
+                    <span className="mr-3 font-medium">{c.tail}</span>
+                    <span className="text-slate-500">{c.from}</span> → {c.to}
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-baseline gap-x-4 text-label">
+                    <span>{when(c, asOf)}</span>
+                    <span className="tabular-nums">{signed(c.difference)}</span>
+                    {adviceDrafts[c.tail] ? (
+                      canAssign(role) && (
+                        <button className="link" onClick={() => onAssign(adviceDrafts[c.tail]!)}>
+                          Assign and notify
+                        </button>
+                      )
+                    ) : (
+                      <span className="text-slate-500">nothing to assign</span>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </>
+        ))}
     </div>
+  );
+}
+
+/** The full calculation, folded: the three-column totals and the evidence behind each figure. */
+export function Calculation({ scenario, result, robustness, robustnessPending }: { scenario: Scenario; result: ScenarioResult; robustness: Robustness | null; robustnessPending: boolean }) {
+  const empty = !scenario.world.length && !scenario.decisions.length;
+  return (
+    <details>
+      <summary className="cursor-pointer">
+        <span className="caps">Show the calculation</span>
+      </summary>
+      <div className="mt-6 space-y-12">
+        {!empty && <Totals r={result} />}
+        <Evidence robustness={robustness} pending={robustnessPending} />
+      </div>
+    </details>
   );
 }
 

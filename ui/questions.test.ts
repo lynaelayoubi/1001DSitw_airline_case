@@ -2,7 +2,7 @@
 // what each change does on its own, the verdict on a decision, the headline — and the page itself, which
 // offers no action for a decision worse than today's plan, and no aircraft with nothing to decide.
 
-import { createElement } from 'react';
+import { createElement, type ReactElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
@@ -14,7 +14,7 @@ import { EMPTY_SCENARIO, decisionChoices, runScenario, type Scenario } from '../
 import type { Dataset } from '../calc/types';
 import { whatIfChoices } from '../calc/whatif';
 import { Answer, answerSentence } from './components/Answer';
-import { AircraftSelect } from './components/Questions';
+import { AircraftSelect, DecisionList } from './components/Questions';
 import { DemoProvider } from './demo';
 import { MARKET, MARKET_FIELDS, decisionEffectSentence, decisionSentence, marketChanges, marketProblem, verdictSentence, worldEffectSentence } from './questions';
 
@@ -82,41 +82,33 @@ describe('the words', () => {
   });
 });
 
-describe('the answer on the page', () => {
-  const page = (s: Scenario) =>
-    text(
-      renderToString(
-        createElement(
-          DemoProvider,
-          null,
-          createElement(Answer, {
-            scenario: s,
-            result: runScenario(data, today, s),
-            pending: false,
-            adviceDrafts: {},
-            decisionDrafts: {},
-            onAssign: () => {},
-            named: choices,
-            asOf: data.asOf,
-            robustness: null,
-            robustnessPending: false,
-          }),
-        ),
-      ),
-    );
+describe('the page', () => {
+  const render = (el: ReactElement) => text(renderToString(createElement(DemoProvider, null, el)));
+  const answer = (s: Scenario) =>
+    render(createElement(Answer, { scenario: s, result: runScenario(data, today, s), pending: false, adviceDrafts: {}, onAssign: () => {}, asOf: data.asOf }));
+  const decisions = (s: Scenario) => {
+    const r = runScenario(data, today, s);
+    return render(createElement(DecisionList, { scenario: s, onScenario: () => {}, priced: s.decisions, verdicts: r.verdicts, drafts: {}, onAssign: () => {}, named: choices, asOf: data.asOf }));
+  };
 
-  it('offers no action for a decision worse than today\'s plan', () => {
-    const html = page({ world: [contract], decisions: [visit] });
+  it("offers no action for a decision worse than today's plan, and keeps it out of the answer", () => {
+    const s: Scenario = { world: [contract], decisions: [visit] };
+    const html = decisions(s);
     expect(html).toContain('Your decisions');
+    expect(html).toContain("We send A6-MXM's ENG1 to the shop in February 2027, minimum shop visit (build-for-cash)");
     expect(html).toContain('Costs $1.17M more than paying at handback: not recommended.');
     expect(html).not.toContain('Assign and notify');
+    const a = answer(s);
+    expect(a).toContain('Your plan costs $1.97M less. No recommendation changes.');
+    expect(a).not.toContain('Assign and notify');
   });
 
-  it('lists no decisions for a scenario of changed figures only', () => {
-    const html = page({ world: [{ input: 'utilisation', value: 1.05 }], decisions: [] });
-    expect(html).toContain("The tool's advice changes");
-    expect(html).toContain('A6-MXM');
-    expect(html).not.toContain('Your decisions');
+  it('lists no decisions for a scenario of changed figures only, and shows the advice they change', () => {
+    const s: Scenario = { world: [{ input: 'utilisation', value: 1.05 }], decisions: [] };
+    expect(decisions(s)).toBe('');
+    const a = answer(s);
+    expect(a).toContain("The tool's advice changes");
+    expect(a).toContain('A6-MXM');
   });
 });
 

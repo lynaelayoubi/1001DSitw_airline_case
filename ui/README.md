@@ -49,28 +49,37 @@ a sample, and the screen says so. Other roles see the leases read-only.
 
 ### Scenario planning (v2)
 
-`screens/Scenarios.tsx`, on the scenario calculation (`calc/scenario.ts`). **If the market changes**
-(`components/Questions.tsx`, `MarketRow`) is one row of fields, always showing: shop costs [0]%, flying
-hours [0]%, reserves we can claim back [100]%, a day on the ground for a narrowbody and a widebody at
-today's figures. Zero means no change; a value outside the evidence is refused with one sentence saying
-the range, and not taken. **If you decide** (`DecisionPicker`) is one picker of the aircraft decisions —
-a shop visit, a swap, a return date, a route — each with its own values and one **Add**, read back as a
-sentence: "We send A6-MXM's ENG1 to the shop in February 2027, minimum shop visit (build-for-cash)".
-Aircraft with nothing to decide are listed as "Cleared: nothing to decide" and not offered.
+`screens/Scenarios.tsx`, on the scenario calculation (`calc/scenario.ts`), in two columns on a wide
+screen: **your scenario** on the left, and on the right, in view while you work, **what it does**. On a
+narrow screen they stack. The calculation folds beneath both; **This year's budget** closes the page.
 
-**The answer** (`components/Answer.tsx`) keeps the tool's advice apart from your decisions, because
+The left column (`components/Questions.tsx`):
+- **The market** (`MarketPanel`): one row per figure — shop costs and flying hours as a per cent change,
+  reserves we can claim back, a day on the ground for a narrowbody and a widebody — the field with its
+  unit inside it and today's figure beside it. Zero means no change. A changed field is edged in the
+  accent and can be reset; a value outside the evidence is refused with one sentence under its own
+  field, and not taken.
+- **Add a decision** (`DecisionBuilder`): four kinds — Shop visit, Swap, Return date, Route — then the
+  aircraft and the kind's own fields, labelled, in a fixed order. Aircraft with nothing to decide are
+  listed as "Cleared: nothing to decide" and cannot be picked. "Try a scenario" on the Overview arrives
+  here with its aircraft picked.
+- **Your decisions** (`DecisionList`): each decision once, read back as a sentence — "We send A6-MXM's
+  ENG1 to the shop in February 2027, minimum shop visit (build-for-cash)" — with its verdict straight
+  under it, judged on its own at today's figures against today's advice for its aircraft: "Better than
+  today's plan: saves $X", with its date and Assign and notify (a return date is agreed with the lessor,
+  not assigned); "Costs $X more than paying at handback: not recommended", with no button; or "Not
+  possible", with the clause.
+
+The right column (`components/Answer.tsx`) keeps the tool's advice apart from your decisions, because
 mixing them misleads. The headline counts only the advice — "Your plan costs $1.97M less. No
 recommendation changes." or "The plan holds: no recommendation changes." — with today's total and the
 total with the changed figures; under it, one line for what each change does on its own: "The 9% cut
-in shop costs saves $1.97M." "Your A6-MXM shop visit costs $1.17M more than paying at handback."
-**The tool's advice changes** lists the recommendations the changed figures alone change, each with its
-date and Assign and notify. **Your decisions** judges each decision on its own, at today's figures,
-against today's advice for its aircraft: "Better than today's plan: saves $X", with Assign and notify
-(a return date is agreed with the lessor, not assigned); "Costs $X more than paying at handback: not
-recommended", with no button; or "Not possible", with the clause. A shop visit whose date to decide by
-is today because of the slot lead time says "decide today to secure the February 2027 slot". **Show the
-calculation** folds the three-column totals and the evidence behind each figure; **This year's budget**
-closes the page. Assigning from here is logged "from Scenario planning".
+in shop costs saves $1.97M." "Your A6-MXM shop visit costs $1.17M more than paying at handback." Then
+**the tool's advice changes**: the recommendations the changed figures alone change, each with its date,
+its money and Assign and notify — or one line saying the advice holds. A shop visit whose date to decide
+by is today because of the slot lead time says "decide today to secure the February 2027 slot".
+**Show the calculation** (`Calculation`) folds the three-column totals and the evidence behind each
+figure. Assigning from here is logged "from Scenario planning".
 
 ### Return checklist (v2)
 

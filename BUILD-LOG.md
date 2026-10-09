@@ -1275,3 +1275,20 @@ they are the aircraft's facts, read when it is opened; its detail now starts wit
 The activity log moves directly under the recommended actions. "Try a scenario" opens Scenario planning
 with the aircraft picked — not on cleared aircraft, which the picker does not offer, and only for roles
 that can open the page. `calc/robustness.test.ts` gets a 60-second limit for slower machines.
+
+## Step 28 · v2, Scenario planning laid out to be used — Friday 9 October
+
+**Two columns: your scenario on the left, what it does on the right, kept in view while you work.** ·
+Rejected: one column, inputs above the answer. · Because with three decisions the headline sat 900px
+down and every change meant scrolling to see what it did. On a narrow screen the columns stack. The
+calculation folds beneath both, full width, so the answer column stays short.
+
+**Each decision once, with its verdict under it.** · Rejected: a list under the picker and the same
+sentences again under "Your decisions". · Because the duplicate was the page's biggest source of noise.
+
+**The market as a labelled table — field with its unit inside, today's figure beside it, a changed
+field edged in the accent with a reset — and a decision as four kinds and labelled fields.** · Rejected:
+one long row of five fields, and a sentence of five dropdowns that reflowed with each kind. · Because
+neither showed what had changed or read as a form. The always-showing sentence on cleared aircraft
+goes: the aircraft list already says "Cleared: nothing to decide". When the advice holds it is one
+line, not a heading over a sentence. No number and no verdict or effect wording changes.
