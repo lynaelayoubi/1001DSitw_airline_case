@@ -23,6 +23,8 @@ export interface Closing {
   label: string;
   /** null for an aircraft on the ground or a route change: neither has a date to decide by. */
   decideBy: ISODate | null;
+  /** The shop slot's month ("February 2027") when the date to decide by is the slot's booking date. */
+  slotMonth: string | null;
   /** Nothing keeps the tail flying: on the ground from, for how many days, at what downtime cost. */
   grounded: { from: ISODate; days: number; cost: number } | null;
   /** A route change: start now; each month of waiting gives up this much. */
@@ -42,6 +44,9 @@ export interface ClosingDecisions {
   trace: string;
 }
 
+/** The slot an option's date to decide by secures, when that date is the slot's lead time and not a notice: its month. */
+export const slotMonthOf = (o: LeverOption, decideBy: ISODate | null): string | null => (o.slot && decideBy !== null && o.slot.bookBy === decideBy ? o.slot.month : null);
+
 /** The date an item sorts by: its decide-by, or the day the aircraft goes down; none for a route change. */
 const when = (x: Closing) => x.decideBy ?? x.grounded?.from ?? null;
 
@@ -57,6 +62,7 @@ export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): Clo
         return {
           ...base,
           decideBy: null,
+          slotMonth: null,
           grounded: o.grounded,
           startNow: null,
           after: null,
@@ -67,6 +73,7 @@ export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): Clo
         return {
           ...base,
           decideBy: null,
+          slotMonth: null,
           grounded: null,
           startNow: o.startNow,
           after: null,
@@ -82,6 +89,7 @@ export function closingDecisions(plans: FleetRecommendation, asOf: ISODate): Clo
       return {
         ...base,
         decideBy,
+        slotMonth: slotMonthOf(o, decideBy),
         grounded: null,
         startNow: null,
         after,

@@ -187,7 +187,7 @@ export function engineShopVisitCost(
   const bucketCycles = workscopeBucketCycles(model, workscope);
   const totalPerFC = total / bucketCycles;
   const trace =
-    `${workscope} visit on ${model} (visit ${visitNumber}, ${phaseIn} going in, ${environment}): restoration ${usd(econIn.prCost)} × ${restorationShare.toFixed(2)} = ${usd(restoration)}, ` +
+    `${workscope === 'build-for-cash' ? 'minimum shop visit (build-for-cash)' : 'full shop visit (build-for-interval)'} on ${model} (visit ${visitNumber}, ${phaseIn} going in, ${environment}): restoration ${usd(econIn.prCost)} × ${restorationShare.toFixed(2)} = ${usd(restoration)}, ` +
     `LLP ${usd(spec.llpStackCost)} × ${llpShare.toFixed(2)} = ${usd(llp)}, total ${usd(total)}. ` +
     `Buys ${num(after.towFC)} FC (${num(after.towFH)} FH) on wing and ${num(bucketCycles)} FC of LLP life; ` +
     `${usd(total)} ÷ ${num(bucketCycles)} FC = ${usd(totalPerFC)}/FC`;

@@ -59,7 +59,7 @@ export function whatIf(data: Dataset, a: Assumptions, today: FleetRecommendation
   const returns = new Map<number, ProposalResult>();
   proposals.forEach((pr, k) => {
     if (pr.kind !== 'return') return;
-    const asked = describeProposal(pr);
+    const asked = describeProposal(pr, data.asOf);
     const refused = !returning.has(pr.tail)
       ? `${pr.tail} is not handing back inside the window.`
       : moved[pr.tail] !== undefined

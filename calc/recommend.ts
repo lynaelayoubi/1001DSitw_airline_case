@@ -15,6 +15,7 @@ import { num, usd } from './format';
 import {
   actingLate,
   coverUntilRestored,
+  around,
   describeProposal,
   doTheWork,
   firstTimeout,
@@ -224,7 +225,7 @@ export function recommendTail(ctx: LeverContext): TailRecommendation {
     offered = all({ ...ctx, focus });
     // What doing nothing turns into for a part that cannot fly on: acting late, on the day it runs out.
     late = actingLate({ ...ctx, focus });
-    const at = `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
+    const at = `${timeout.position} runs out of ${timeout.clock} ${around(ctx.baseline.projection.asOf, timeout.months)}, before handback`;
     preamble = `Required: ${at}, so the options are the ones that deal with it; paying at handback is not one of them. `;
     forced = { ...timeout, why: `${at}: it has to come off, so doing nothing is not an option` };
   }
@@ -470,7 +471,7 @@ function imposedRecommendation(ctx: LeverContext, proposed: LeverOption, timeout
   const o = life.apply(proposed);
   const late = lateAsIs && life.apply(lateAsIs);
   const doNothing = late ? late.total : life.apply(payAtHandback(ctx)).total;
-  const at = timeout && `${timeout.position} runs out of ${timeout.clock} at month ${num(timeout.months, 1)}, before handback`;
+  const at = timeout && `${timeout.position} runs out of ${timeout.clock} ${around(ctx.baseline.projection.asOf, timeout.months)}, before handback`;
   return {
     tail: ctx.ac.tail,
     doNothing,
@@ -543,7 +544,7 @@ export function recommendFleet(
   const units = new Map([...data.pool.map((u) => [u.id, { serial: u.serial, tail: null as string | null }] as const), ...data.aircraft.flatMap((x) => x.components.map((u) => [u.id, { serial: u.serial, tail: x.tail }] as const))]);
   const results: ProposalResult[] = proposals.map((pr) => {
     const unit = pr.kind === 'swap' && pr.unit ? units.get(pr.unit) : undefined;
-    const asked = describeProposal(pr, unit?.serial);
+    const asked = describeProposal(pr, fleet.asOf, unit?.serial);
     const refuse = (why: string): ProposalResult => ({ proposal: pr, asked, label: asked, refused: why });
     const t = tails.find((x) => x.tail === pr.tail);
     if (!t) return refuse(`${pr.tail} is not handing back inside the window.`);

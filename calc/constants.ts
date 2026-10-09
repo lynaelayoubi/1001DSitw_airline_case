@@ -644,22 +644,6 @@ export function costEstimateQuality() {
  */
 export const COST_ESTIMATE_UNCERTAINTY = costEstimateQuality().uncertainty;
 
-/**
- * Where the What if questions start (calc/scenario.ts), in the questions' own terms — each inside its
- * evidenced range (ASSUMPTION_INPUTS). The customer asked "what if our costs go up, what if we
- * renegotiate maintenance contracts". A renegotiated contract starts at shop costs down 9%: × 0.91 is
- * the floor of the evidence (ASSUMPTIONS §14). A day on the ground starts at today's figure.
- */
-export const WHAT_IF_STARTING_VALUES = {
-  /** Shop costs go up by, per cent. */
-  shopCostsUpPct: 10,
-  /** Shop costs down by, per cent, under a renegotiated maintenance contract. */
-  shopCostsDownPct: 9,
-  /** Flying more than planned, per cent; negative for less. */
-  flyingPct: 5,
-  /** Share of reserves that can be claimed back, per cent. */
-  reservesClaimedPct: 90,
-} as const;
 
 /**
  * The scenario panel at rest: every multiplier at 1, no extensions. Over-delivery bought at past shop

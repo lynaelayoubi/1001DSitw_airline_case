@@ -35,7 +35,7 @@ describe('draftAssignment', () => {
     const d = draft('A6-YTM');
     expect(d.owner).toBe('Maintenance planning');
     expect(d.due).toBe('2027-05-04');
-    expect(d.message).toContain("Book a shop slot for A6-YTM's ENG2 build-for-cash visit by 4 May 2027");
+    expect(d.message).toContain("Book the September 2027 shop slot for A6-YTM's ENG2 by 4 May 2027: a minimum shop visit (build-for-cash)");
     expect(d.message).toContain('Acting now saves $4.83M against acting late');
     expect(d.message).toContain('Annex D, para 4.1(b)');
     expect(d.message).toContain("90 days' notice of the removal, by 5 Jun 2027 (Clause 12.3(b))");

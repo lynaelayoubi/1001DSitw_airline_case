@@ -78,7 +78,7 @@ export function readiness(data: Pick<Dataset, 'lessors'>, fleet: FleetExposure, 
       if (o.slot)
         add({
           tail: t.tail,
-          title: `Book the shop slot: ${o.slot.what}`,
+          title: `Book the ${o.slot.month} shop slot for ${o.slot.position}: ${o.slot.visit}`,
           owner: READINESS_OWNERS.planning,
           due: o.slot.bookBy,
           kind: 'derived',

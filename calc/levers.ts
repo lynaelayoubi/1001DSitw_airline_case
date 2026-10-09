@@ -22,7 +22,7 @@ import {
   UTILISATION,
 } from './constants';
 import { assessComponent, unitCostOfLife, type ComponentResult, type RequirementResult, type TailResult } from './exposure';
-import { num, usd, usd2 } from './format';
+import { dayMonthYear, monthYear, num, usd, usd2 } from './format';
 import { addMonths, monthlyRate, monthsBetween, parseDate, toISO, type UsageProjection } from './projection';
 import { engineShopVisitCost } from './rates';
 import type { Aircraft, Assumptions, Component, ComponentKind, ISODate, Lessor, Proposal, ReturnCondition, RouteProfile, Workscope } from './types';
@@ -148,8 +148,8 @@ export interface LeverOption {
   grounded?: { from: ISODate; days: number; cost: number };
   /** Notices the lessor must have (clause 12.3(b)): when, for what, and whether the full notice no longer fits. */
   notices?: { due: ISODate; what: string; short: boolean }[];
-  /** A shop slot to book: by when, for what. */
-  slot?: { bookBy: ISODate; what: string };
+  /** A shop slot to book: by when, for which part, which visit in plain words, and the month ("September 2027"). */
+  slot?: { bookBy: ISODate; position: string; visit: string; month: string };
 }
 
 type Scope = Exclude<Workscope, 'none'>;
@@ -185,9 +185,35 @@ function scopesFor(kind: ComponentKind): Scope[] {
   return kind === 'engine' ? ['build-for-cash', 'build-for-interval'] : ['build-for-interval'];
 }
 
-function visitName(kind: ComponentKind, scope: Scope): string {
-  return kind === 'engine' ? `${scope} visit` : kind === 'landing-gear' ? 'gear overhaul' : 'APU overhaul';
+/** A shop visit in plain words first: "minimum shop visit (build-for-cash)", "gear overhaul". */
+export function visitName(kind: ComponentKind, scope: Scope): string {
+  if (kind !== 'engine') return kind === 'landing-gear' ? 'gear overhaul' : 'APU overhaul';
+  return scope === 'build-for-cash' ? 'minimum shop visit (build-for-cash)' : 'full shop visit (build-for-interval)';
 }
+
+/** A month from the data date, as a person names it: "September 2027". Never "month 11". */
+export const monthOf = (asOf: ISODate, m: number): string => monthYear(addMonths(asOf, m));
+
+/** A moment from the data date, fractional months and all, as a person writes it: "around 28 Mar 2028". */
+export const around = (asOf: ISODate, m: number): string => `around ${dayMonthYear(addMonths(asOf, m))}`;
+
+/** A shop visit as a person says it: "send ENG1 to the shop in September 2027, minimum shop visit (build-for-cash)". */
+const sendWords = (asOf: ISODate, position: string, kind: ComponentKind, scope: Scope, m: number) =>
+  `send ${position} to the shop in ${monthOf(asOf, m)}, ${visitName(kind, scope)}`;
+
+/** The slot a shop visit needs: book it by, for which part, which visit, which month. */
+const slotFor = (bookBy: ISODate, asOf: ISODate, position: string, kind: ComponentKind, scope: Scope, m: number) => ({
+  bookBy,
+  position,
+  visit: visitName(kind, scope),
+  month: monthOf(asOf, m),
+});
+
+/** With its article: "a gear overhaul", "an APU overhaul". */
+export const withArticle = (s: string): string => `${/^[aeiou]/i.test(s) ? 'an' : 'a'} ${s}`;
+
+/** Handback as a date: "on 19 Apr 2028". */
+const handback = (p: UsageProjection) => `on ${dayMonthYear(p.effectiveLeaseEnd)}`;
 
 function conditionFor(conditions: ReturnCondition[], id: string): ReturnCondition {
   const rc = conditions.find((x) => x.id === id);
@@ -272,13 +298,13 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
   const timedOut = r.components
     .map((c) => ({ c, out: runout(p, c) }))
     .filter(({ out }) => out.months < p.monthsToReturn - EPS)
-    .map(({ c, out }) => `${c.position} runs out of ${clockWord(out.requirement)} at month ${num(out.months, 1)}`);
+    .map(({ c, out }) => `${c.position} runs out of ${clockWord(out.requirement)} ${around(p.asOf, out.months)}`);
   if (ctx.focus !== undefined)
     return unavailable(
       ctx,
       'pay',
       'Pay at handback',
-      `${timedOut.join('; ')}, before handback at month ${num(p.monthsToReturn, 1)}: the aircraft cannot reach handback as it stands, so paying at handback is not an option until that is dealt with. On paper it would be ${usd(r.exposure)}.`,
+      `${timedOut.join('; ')}, before handback ${handback(p)}: the aircraft cannot reach handback as it stands, so paying at handback is not an option until that is dealt with. On paper it would be ${usd(r.exposure)}.`,
     );
   return finish(ctx, {
     lever: 'pay',
@@ -297,7 +323,7 @@ export function payAtHandback(ctx: LeverContext): LeverOption {
       `Pay at handback: no maintenance and no downtime. The lease takes ${usd(r.compensation)} in compensation and ` +
       `${usd(r.overDelivery)} of life goes back over the thresholds${ctx.a.countOverDeliveryAsLoss ? '' : ' (bought at past shop visits: sunk, so not counted)'} → ${usd(r.exposure)}.` +
       (timedOut.length
-        ? ` Caution: ${timedOut.join('; ')}, before handback at month ${num(p.monthsToReturn, 1)}. It will have to come off; this figure is the ` +
+        ? ` Caution: ${timedOut.join('; ')}, before handback ${handback(p)}. It will have to come off; this figure is the ` +
           `lease's price for the shortfall, capped at the shop visit that would put it right, not the cost of the required removal.`
         : ''),
   });
@@ -315,9 +341,9 @@ function visitBlock(ctx: LeverContext, i: number, month: number): string {
   const out = runout(p, ctx.baseline.asRecorded.components[i]!);
   const back = month + (c.kind === 'engine' ? ENGINE_TAT_MONTHS : 0);
   if (month < lead - EPS) return `inside the ${lead}-month shop-slot lead time`;
-  if (month > out.months + EPS) return `${c.position} runs out of ${clockWord(out.requirement)} at month ${num(out.months, 1)}, before this slot`;
+  if (month > out.months + EPS) return `${c.position} runs out of ${clockWord(out.requirement)} ${around(p.asOf, out.months)}, before this slot`;
   if (back > p.monthsToReturn + EPS)
-    return `a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back on wing at month ${num(back, 1)}, after handback at month ${num(p.monthsToReturn, 1)}`;
+    return `a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back on wing ${around(p.asOf, back)}, after handback ${handback(p)}`;
   return '';
 }
 
@@ -329,10 +355,10 @@ function noWindow(ctx: LeverContext, i: number): string {
   const out = runout(p, ctx.baseline.asRecorded.components[i]!);
   if (out.months < lead - EPS)
     return (
-      `${c.position} runs out of ${clockWord(out.requirement)} at month ${num(out.months, 1)}, before the earliest shop slot at month ${lead}: ` +
+      `${c.position} runs out of ${clockWord(out.requirement)} ${around(p.asOf, out.months)}, before the earliest shop slot, in ${monthOf(p.asOf, lead)}: ` +
       `it has to come off before a slot can be had, so only a spare keeps it flying (lever 3)`
     );
-  return `the earliest slot (month ${lead}) plus a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround comes after handback at month ${num(p.monthsToReturn, 1)}`;
+  return `the earliest slot (${monthOf(p.asOf, lead)}) plus a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround comes after handback ${handback(p)}`;
 }
 
 function visitMonths(ctx: LeverContext): number[] {
@@ -500,8 +526,8 @@ function simulateVisit(ctx: LeverContext, i: number, month: number, scope: Scope
   const reason = visitBlock(ctx, i, month);
   const sunk = a.countOverDeliveryAsLoss && before.overDelivery > 0 ? ` The ${usd(before.overDelivery)} of avoidable LLP life on the old run is lost either way and stays in.` : '';
   const trace =
-    `${c.position} ${visitName(c.kind, scope)} inducted month ${month} (${date})` +
-    (engine ? `, back on wing month ${num(back, 1)} after a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround` : '') +
+    `${c.position} ${visitName(c.kind, scope)} inducted in ${monthYear(date)}` +
+    (engine ? `, back on wing ${around(p.asOf, back)} after a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround` : '') +
     `: ${workTrace} + removal and installation ${usd(ri.amount)} (${ri.trace}) − reserves ${usd(reserves.amount)} (${reserves.trace}) = ${usd(cost)}. ` +
     `Down ${days(downtimeDays)} × ${usd(perDay)} = ${usd(downtimeCost)} (${downWhy}). ` +
     `At handback ${c.position} would owe ${usd(after.compensation)} in compensation against ${usd(before.compensation)} if nothing is done; ` +
@@ -555,12 +581,12 @@ export function doTheWork(ctx: LeverContext): LeverOption {
   }
   if (!picks.length) return unavailable(ctx, 'L1', label, `No shop visit can be finished before handback: ${notes.join('; ')}.`);
   const v = picks.reduce((x, y) => (y.total < x.total ? y : x));
-  const others = picks.filter((x) => x !== v).map((x) => `${x.position} ${visitName(x.kind, x.workscope)} at month ${x.month} would come to ${usd(x.total)} all-in`);
+  const others = picks.filter((x) => x !== v).map((x) => `${x.position} ${visitName(x.kind, x.workscope)} in ${monthOf(ctx.baseline.projection.asOf, x.month)} would come to ${usd(x.total)} all-in`);
   const next = visitBlock(ctx, v.index, v.month + 1);
   const deadline = addMonths(ctx.baseline.projection.asOf, v.month - lead);
   return finish(ctx, {
     lever: 'L1',
-    label: `Do the work: ${v.position} ${visitName(v.kind, v.workscope)}`,
+    label: `Do the work: ${sendWords(ctx.baseline.projection.asOf, v.position, v.kind, v.workscope, v.month)}`,
     cost: v.cost,
     downtimeDays: v.downtimeDays,
     downtimeCost: v.downtimeCost,
@@ -573,11 +599,11 @@ export function doTheWork(ctx: LeverContext): LeverOption {
     deadline,
     position: v.position,
     actionKey: `visit:${v.position}:${v.month}:${v.workscope}`,
-    slot: { bookBy: deadline, what: `${v.position} ${visitName(v.kind, v.workscope)}, month ${v.month}` },
+    slot: slotFor(deadline, ctx.baseline.projection.asOf, v.position, v.kind, v.workscope, v.month),
     notices: visitNotice(ctx, v),
     trace:
       `Lever 1, do the work rather than pay: the cheapest workscope that clears the contract, inducted in the last month it can be ` +
-      `(month ${v.month}; ${next ? `month ${v.month + 1} is out — ${next}` : 'the month before handback'}). ${v.trace} ` +
+      `(${monthOf(ctx.baseline.projection.asOf, v.month)}; ${next ? `${monthOf(ctx.baseline.projection.asOf, v.month + 1)} is out — ${next}` : 'the month before handback'}). ${v.trace} ` +
       `It puts right ${usd(v.before.compensation)} of compensation for ${usd(v.cost + v.downtimeCost)} of work and downtime. ` +
       `Book the slot by ${deadline} (${lead} months' lead).` +
       (others.length ? ` Elsewhere on the tail: ${others.join('; ')}.` : '') +
@@ -631,16 +657,16 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
   }
   if (!best) return unavailable(ctx, 'L4', label, `No month works: ${notes.join('; ')}.`);
   const { v, curve } = best;
-  const others = bests.filter((x) => x !== v).map((x) => `${x.position} at best ${x.workscope} in month ${x.month}, ${usd(x.total)} all-in`);
+  const others = bests.filter((x) => x !== v).map((x) => `${x.position} at best ${withArticle(visitName(x.kind, x.workscope))} in ${monthOf(ctx.baseline.projection.asOf, x.month)}, ${usd(x.total)} all-in`);
   const open = curve.filter((x) => x.feasible);
   const byMonth = [...new Set(open.map((x) => x.month))].map((m) => {
     const here = open.filter((x) => x.month === m);
-    return `month ${m} ${here.map((x) => `${x.workscope === 'build-for-cash' ? 'cash' : 'interval'} ${usd(x.total)}`).join(' / ')}`;
+    return `${monthOf(ctx.baseline.projection.asOf, m)} ${here.map((x) => `${x.workscope === 'build-for-cash' ? 'cash' : 'interval'} ${usd(x.total)}`).join(' / ')}`;
   });
   const deadline = addMonths(ctx.baseline.projection.asOf, v.month - lead);
   return finish(ctx, {
     lever: 'L4',
-    label: `Time the shop visit: ${v.position} ${visitName(v.kind, v.workscope)}, month ${v.month}`,
+    label: `Time the shop visit: ${sendWords(ctx.baseline.projection.asOf, v.position, v.kind, v.workscope, v.month)}`,
     cost: v.cost,
     downtimeDays: v.downtimeDays,
     downtimeCost: v.downtimeCost,
@@ -654,11 +680,11 @@ export function timeTheShopVisit(ctx: LeverContext): LeverOption {
     position: v.position,
     actionKey: `visit:${v.position}:${v.month}:${v.workscope}`,
     curve,
-    slot: { bookBy: deadline, what: `${v.position} ${visitName(v.kind, v.workscope)}, month ${v.month}` },
+    slot: slotFor(deadline, ctx.baseline.projection.asOf, v.position, v.kind, v.workscope, v.month),
     notices: visitNotice(ctx, v),
     trace:
       `Lever 4, time the shop visit: ${v.position} swept month by month from the ${lead}-month slot lead time to handback, both workscopes. ` +
-      `Open months: ${byMonth.join('; ')}. Cheapest: ${v.workscope} inducted month ${v.month}. ${v.trace} ` +
+      `Open months: ${byMonth.join('; ')}. Cheapest: ${withArticle(visitName(v.kind, v.workscope))} inducted in ${monthOf(ctx.baseline.projection.asOf, v.month)}. ${v.trace} ` +
       `A visit costs the same whichever open month it is in, so months differ only by the reserves reclaimed by then and any compensation left; ` +
       `equal months go to the latest, which keeps the decision open longest. Book the slot by ${deadline}.` +
       (others.length ? ` Elsewhere on the tail: ${others.join('; ')}.` : '') +
@@ -706,7 +732,7 @@ function routeRun(ctx: LeverContext, profile: RouteProfile) {
   const comps = ac.components.map((c) => assessComponent(ac, c, conditions, q, 'as-recorded', a));
   const sum = (f: (r: ComponentResult) => number) => comps.reduce((s, r) => s + f(r), 0);
   const still = ctx.focus === undefined ? null : runout(q, comps[ctx.focus]!);
-  const blocked = still && still.months < T - EPS ? `on ${profile} ${ac.components[ctx.focus!]!.position} would still run out of ${clockWord(still.requirement)} at month ${num(still.months, 1)}` : '';
+  const blocked = still && still.months < T - EPS ? `on ${profile} ${ac.components[ctx.focus!]!.position} would still run out of ${clockWord(still.requirement)} ${around(q.asOf, still.months)}` : '';
   return { profile, u, q, blocked, exposure: sum((r) => r.exposure), compensation: sum((r) => r.compensation), overDelivery: sum((r) => r.overDelivery) };
 }
 
@@ -763,7 +789,7 @@ function spareExposure(ac: Aircraft, unit: Component, result: ComponentResult, c
   const life = lifeAboveThresholds(ac, unit, result, conditions, a);
   return {
     exposure: result.compensation + life.amount,
-    trace: life.amount ? `${unit.serial} is a spare, so all its life above the thresholds leaves the airline with it, priced at a build-for-interval visit's rates: ${life.trace}` : '',
+    trace: life.amount ? `${unit.serial} is a spare, so all its life above the thresholds leaves the airline with it, priced at the rates of a full shop visit (build-for-interval): ${life.trace}` : '',
   };
 }
 
@@ -892,7 +918,7 @@ function evaluateSwap(ctx: LeverContext, i: number, unit: Component, donor?: { d
   const reach = (q: UsageProjection, r: ComponentResult, tail: string, serial: string) => {
     const out = runout(q, r);
     return out.months < q.monthsToReturn - EPS
-      ? `${serial} would run out of ${clockWord(out.requirement)} on ${tail} at month ${num(out.months, 1)}, before its handback, so the swap only moves the problem`
+      ? `${serial} would run out of ${clockWord(out.requirement)} on ${tail} ${around(q.asOf, out.months)}, before its handback, so the swap only moves the problem`
       : '';
   };
   let blocked = reach(p, after, ac.tail, unit.serial) || replacementBlock(ctx.lessor, c.kind, after, before, unit.serial, c.position);
@@ -1142,7 +1168,7 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
       ctx,
       'L1',
       label,
-      `the first slot after ${c.position} runs out is month ${slot}; a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back at month ${num(back, 1)}, after handback at month ${num(p.monthsToReturn, 1)}.`,
+      `the first slot after ${c.position} runs out is in ${monthOf(p.asOf, slot)}; a ${ENGINE_SHOP_TURNAROUND_DAYS.max}-day turnaround puts it back ${around(p.asOf, back)}, after handback ${handback(p)}.`,
     );
   const span = back - out.months;
   const { covers, usable } = coverSpares(ctx, i, span);
@@ -1178,9 +1204,9 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
     position: c.position,
     actionKey: `cover:${c.position}:${slot}:${v.workscope}`,
     covers: { id: sp.u.id, serial: sp.u.serial, from: out.months, until: back },
-    slot: { bookBy, what: `${c.position} ${visitName(c.kind, v.workscope)}, month ${slot}` },
+    slot: slotFor(bookBy, p.asOf, c.position, c.kind, v.workscope, slot),
     notices: [
-      { due: notice.decideBy, what: `${c.position} comes off when it runs out, on ${outDate}`, short: addDays(outDate, -n) < p.asOf },
+      { due: notice.decideBy, what: `${c.position} comes off when it runs out, on ${dayMonthYear(outDate)}`, short: addDays(outDate, -n) < p.asOf },
       { due: addDays(addMonths(p.asOf, back), -n), what: `spare ${sp.u.serial} comes off to reinstall ${c.position}`, short: false },
     ],
     trace:
@@ -1190,7 +1216,7 @@ export function coverUntilRestored(ctx: LeverContext): LeverOption {
       `reinstalled at month ${num(back, 1)}, before handback at month ${num(p.monthsToReturn, 1)}. ${v.trace} ` +
       `The spare's time away from the pool: ${num(span, 1)} months on this tail, ` +
       `${sp.burn.map((x) => `${num(x.used)} ${x.r.unit}${x.r.group === 'llp' ? ' of LLP life' : ''} × ${usd2(x.rate)}`).join(' + ')} = ${usd(sp.cost)}, ` +
-      `priced at a build-for-interval visit's rates. Notice of the removal: ${notice.note}. Reinstalling ${c.position} is a planned ` +
+      `priced at the rates of a full shop visit (build-for-interval). Notice of the removal: ${notice.note}. Reinstalling ${c.position} is a planned ` +
       `removal of the spare: ${n} days' notice before month ${num(back, 1)}. Book the slot by ${bookBy}.`,
   });
 }
@@ -1240,7 +1266,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
       options.push(
         finish(ctx, {
           lever: 'ground',
-          label: `Acting late: ${c.position} swapped for spare ${swap.unit.serial} on ${outDate}`,
+          label: `Acting late: ${c.position} swapped for spare ${swap.unit.serial} on ${dayMonthYear(outDate)}`,
           cost: swap.cost,
           downtimeDays: swap.downtimeDays,
           downtimeCost: swap.downtimeCost,
@@ -1267,7 +1293,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
         options.push(
           finish(ctx, {
             lever: 'ground',
-            label: `Acting late: spare ${sp.u.serial} covers ${c.position} from ${outDate} while it goes to the shop`,
+            label: `Acting late: spare ${sp.u.serial} covers ${c.position} from ${dayMonthYear(outDate)} while it goes to the shop`,
             cost: v.cost + sp.cost,
             downtimeDays: v.downtimeDays,
             downtimeCost: v.downtimeCost,
@@ -1293,7 +1319,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
     options.push(
       finish(ctx, {
         lever: 'ground',
-        label: `Acting late: on the ground from ${outDate} for a slot, then the shop visit`,
+        label: `Acting late: on the ground from ${dayMonthYear(outDate)} for a slot, then the shop visit`,
         cost: v.cost,
         downtimeDays: waitDays + v.downtimeDays,
         downtimeCost: waitDays * perDay + v.downtimeCost,
@@ -1317,7 +1343,7 @@ export function actingLate(ctx: LeverContext): LeverOption {
     options.push(
       finish(ctx, {
         lever: 'ground',
-        label: `Acting late: on the ground from ${outDate} to handback`,
+        label: `Acting late: on the ground from ${dayMonthYear(outDate)} to handback`,
         cost: 0,
         downtimeDays: groundDays,
         downtimeCost: groundDays * perDay,
@@ -1360,13 +1386,13 @@ export function onTheGround(ctx: LeverContext): LeverOption {
     const waitDays = Math.round((slot - out.months) * DAYS_PER_MONTH);
     // No wait: it reaches a slot before it runs out, so this is the shop visit itself (lever 1), not time on the ground.
     if (waitDays <= 0)
-      return unavailable(ctx, 'ground', label, `${c.position} reaches the first slot (month ${slot}) before it runs out: that is a shop visit, not time on the ground.`);
+      return unavailable(ctx, 'ground', label, `${c.position} reaches the first slot (${monthOf(p.asOf, slot)}) before it runs out: that is a shop visit, not time on the ground.`);
     const v = forcedVisit(ctx, i, slot, out.months, false);
     const groundDays = waitDays + v.downtimeDays;
     const downtimeCost = waitDays * perDay + v.downtimeCost;
     return finish(ctx, {
       lever: 'ground',
-      label: `On the ground from ${outDate} until the slot, then the shop visit`,
+      label: `On the ground from ${dayMonthYear(outDate)} until the slot, then the shop visit`,
       cost: v.cost,
       downtimeDays: groundDays,
       downtimeCost,
@@ -1380,19 +1406,19 @@ export function onTheGround(ctx: LeverContext): LeverOption {
       position: c.position,
       actionKey: `ground:${c.position}`,
       grounded: { from: outDate, days: groundDays, cost: downtimeCost },
-      slot: { bookBy: addMonths(p.asOf, slot - a.shopSlotLeadTimeMonths), what: `${c.position} ${visitName(c.kind, v.workscope)}, month ${slot}` },
+      slot: slotFor(addMonths(p.asOf, slot - a.shopSlotLeadTimeMonths), p.asOf, c.position, c.kind, v.workscope, slot),
       notices:
         c.kind === 'engine'
           ? [
               (() => {
                 const f = forcedNotice(ctx, outDate, ctx.lessor.engineRemovalNoticeDays, c.position);
-                return { due: f.decideBy, what: `${c.position} comes off when it runs out, on ${outDate}`, short: addDays(outDate, -ctx.lessor.engineRemovalNoticeDays) < p.asOf };
+                return { due: f.decideBy, what: `${c.position} comes off when it runs out, on ${dayMonthYear(outDate)}`, short: addDays(outDate, -ctx.lessor.engineRemovalNoticeDays) < p.asOf };
               })(),
             ]
           : undefined,
       trace:
         `${c.position} runs out of ${clockWord(out.requirement)} on ${outDate}, and nothing keeps the aircraft flying: it stays on the ground until ` +
-        `the first slot the lead time allows (month ${slot}), ${days(waitDays)} × ${usd(perDay)} = ${usd(waitDays * perDay)}, then goes through the ` +
+        `the first slot the lead time allows (${monthOf(p.asOf, slot)}), ${days(waitDays)} × ${usd(perDay)} = ${usd(waitDays * perDay)}, then goes through the ` +
         `shop visit. ${v.trace}`,
     });
   }
@@ -1400,7 +1426,7 @@ export function onTheGround(ctx: LeverContext): LeverOption {
   const downtimeCost = groundDays * perDay;
   return finish(ctx, {
     lever: 'ground',
-    label: `On the ground from ${outDate} to handback`,
+    label: `On the ground from ${dayMonthYear(outDate)} to handback`,
     cost: 0,
     downtimeDays: groundDays,
     downtimeCost,
@@ -1426,13 +1452,13 @@ export function onTheGround(ctx: LeverContext): LeverOption {
 // happen: never priced as if it could.
 // ---------------------------------------------------------------------------------------
 
-/** What a proposal asks for, as the customer would say it; a swap's unit by its serial. */
-export function describeProposal(p: Proposal, serial?: string): string {
+/** What a proposal asks for, as the customer would say it; a swap's unit by its serial, a shop visit by its month. */
+export function describeProposal(p: Proposal, asOf: ISODate, serial?: string): string {
   switch (p.kind) {
     case 'swap':
       return `Swap ${p.position} ${serial ? `for ${serial}` : 'for the right-sized unit'}`;
     case 'visit':
-      return `Send ${p.position} to the shop, month ${p.month}${p.position.startsWith('ENG') ? `, ${p.workscope}` : ''}`;
+      return `Send ${p.position} to the shop in ${monthOf(asOf, p.month)}, ${visitName(p.position.startsWith('ENG') ? 'engine' : p.position === 'APU' ? 'apu' : 'landing-gear', p.workscope)}`;
     case 'route':
       return p.profile ? `Route change: fly it ${p.profile}` : 'Change its route';
     case 'return':
@@ -1451,7 +1477,7 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
   const { ac, baseline } = ctx;
   const p = baseline.projection;
   const out = ctx.focus === undefined ? null : { c: ac.components[ctx.focus]!, r: runout(p, baseline.asRecorded.components[ctx.focus]!) };
-  const runsOut = out ? `${out.c.position} runs out of ${clockWord(out.r.requirement)} at month ${num(out.r.months, 1)}, before handback` : '';
+  const runsOut = out ? `${out.c.position} runs out of ${clockWord(out.r.requirement)} ${around(p.asOf, out.r.months)}, before handback` : '';
 
   if (proposal.kind === 'route') {
     const label = proposal.profile ? `Route change: fly it ${proposal.profile}` : 'Change its route';
@@ -1483,13 +1509,13 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
     if (!MOVABLE.includes(c.kind)) return unavailable(ctx, 'L4', label, `The airframe's heavy check is not timed by the levers: its downtime is not in ASSUMPTIONS §13.`);
     const scope: Scope = c.kind === 'engine' ? proposal.workscope : 'build-for-interval';
     const block = visitBlock(ctx, i, proposal.month);
-    if (block) return unavailable(ctx, 'L4', label, `A slot in month ${proposal.month} (${addMonths(p.asOf, proposal.month)}) cannot be had: ${block}.`);
+    if (block) return unavailable(ctx, 'L4', label, `A slot in ${monthOf(p.asOf, proposal.month)} cannot be had: ${block}.`);
     const v = simulateVisit(ctx, i, proposal.month, scope);
     const lead = ctx.a.shopSlotLeadTimeMonths;
     const deadline = addMonths(p.asOf, v.month - lead);
     return finish(ctx, {
       lever: 'L4',
-      label: `Send ${c.position} to the shop: ${visitName(c.kind, scope)}, month ${v.month}`,
+      label: `Send ${c.position} to the shop in ${monthOf(p.asOf, v.month)}, ${visitName(c.kind, scope)}`,
       cost: v.cost,
       downtimeDays: v.downtimeDays,
       downtimeCost: v.downtimeCost,
@@ -1502,6 +1528,7 @@ export function proposedOption(ctx: LeverContext, proposal: Exclude<Proposal, { 
       deadline,
       position: c.position,
       actionKey: `visit:${c.position}:${v.month}:${scope}`,
+      slot: slotFor(deadline, p.asOf, c.position, c.kind, scope, v.month),
       trace: `Your change: ${v.trace} Book the slot by ${deadline} (${lead} months' lead).`,
     });
   }

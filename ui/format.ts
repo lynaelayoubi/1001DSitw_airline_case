@@ -25,8 +25,12 @@ export function months(n: number): string {
   return `${n.toFixed(1).replace(/\.0$/, '')} mo`;
 }
 
-/** A decide-by date as a person says it: "decide today" when it is the data's date, otherwise the date. */
-export const decideBy = (d: string, asOf: string): string => (d === asOf ? 'decide today' : `decide by ${date(d)}`);
+/**
+ * A decide-by date as a person says it: "decide today" when it is the data's date, otherwise the date.
+ * When today is the shop slot's lead time, which slot it secures: "decide today to secure the February 2027 slot".
+ */
+export const decideBy = (d: string, asOf: string, slotMonth?: string | null): string =>
+  d === asOf ? (slotMonth ? `decide today to secure the ${slotMonth} slot` : 'decide today') : `decide by ${date(d)}`;
 
 export function date(iso: string): string {
   const d = new Date(iso + 'T00:00:00Z');

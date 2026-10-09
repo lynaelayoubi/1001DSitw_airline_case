@@ -9,10 +9,10 @@ object from `calc/`; the UI formats, it never calculates.
 The one long screen is four pages under a top navigation (`screens/Shell.tsx`, `components/Header.tsx`);
 the page lives in the address (#overview, #leases, #scenarios, #checklist), so a reload or the back
 button keeps it, with no routing library.
-- **Overview** (`screens/Overview.tsx`): the recommended actions, what acting now saves, the headline
-  money and the fleet table — nothing else. Opening an aircraft shows its detail as before, Show the
-  calculation included.
-- **Leases** (`screens/Leases.tsx`), **Scenarios** (`screens/Scenarios.tsx`) and **Return checklist**
+- **Overview** (`screens/Overview.tsx`): the recommended actions, the activity log directly under them,
+  what acting now saves, the headline money and the fleet table — nothing else. Opening an aircraft
+  shows its detail as before, Show the calculation included.
+- **Leases** (`screens/Leases.tsx`), **Scenario planning** (`screens/Scenarios.tsx`) and **Return checklist**
   (`screens/Checklist.tsx`) take what used to sit under the table.
 - **Viewing as** (`roles.ts`): Head of fleet and Analyst see every page; the Leasing team sees
   Overview, Leases and the checklist; Maintenance planning sees Overview and the checklist. A role that
@@ -28,7 +28,9 @@ and **Done**, with its owner, channel, due date and when it last moved. **Assign
 (`components/AssignPanel.tsx`) slides in with the owner, due date and message prefilled from the
 recommendation (`calc/assign.ts`) — or, for a maintenance request, the structured request as the
 system would receive it. Sending is marked "Preview: nothing leaves the app". The **activity log**
-(`components/ActivityLog.tsx`) closes the Overview: who did what, when. The Head of fleet and the
+(`components/ActivityLog.tsx`) sits directly under the recommended actions: who did what, when.
+**Try a scenario**, on each recommended action and on each aircraft row that can take a decision,
+opens Scenario planning with that aircraft already picked. The Head of fleet and the
 Analyst assign; the owner's role accepts and marks done. It lives in this browser (`demo.tsx`), and
 **Reset demo**, under the role switcher, clears it.
 
@@ -45,26 +47,30 @@ swap from "decide today" to 8 Oct 2026. A corrected rule says "Applies on next r
 lease** (`components/AddLease.tsx`) takes a PDF and shows it being read; in this preview the terms are
 a sample, and the screen says so. Other roles see the leases read-only.
 
-### What if (v2)
+### Scenario planning (v2)
 
-`screens/Scenarios.tsx`, labelled **What if**: one question, one answer, one action, on the scenario
-calculation (`calc/scenario.ts`). **The questions** (`components/Questions.tsx`, `questions.ts`) are one
-picker in plain English — shop costs go up by [10]%, we renegotiate the maintenance contract: shop
-costs down by [9]%, our aircraft fly [5]% more or less than planned, we can only claim back [90]% of
-our reserves, a day on the ground costs [amount], we send / swap / move / change an aircraft's
-component, return date or route — each with its own values and one **Add**; a value outside the
-evidence is refused with one sentence saying the range. The list reads each back as the same sentence;
-a shop-cost question that replaces the other says so ("Replaced 'Shop costs go up by 10%'"). Aircraft
-with nothing to decide are listed as "Cleared: nothing to decide" and not offered. **The answer**
-(`components/Answer.tsx`) opens with one sentence — "Your plan costs $X more/less. N recommendations
-change." or "Your plan holds: no recommendation changes." — and today's total beside the scenario's;
-then **What you'd do differently**, one line per aircraft whose recommendation changes: today's action
-→ the new one, the date to decide by, the money, and **Assign and notify**, the Overview's panel
-prefilled with the new action (logged "from What if"); a question that cannot be taken says why, with
-its clause. **Show the calculation** folds the three-column totals and the evidence behind each figure;
-**This year's budget** closes the page. "Confirm before you act" is not here: it is about today's plan,
-and sits on the Overview beside the recommendation it concerns — on the action row, or, for a tail that
-pays at handback, on its row in the fleet table.
+`screens/Scenarios.tsx`, on the scenario calculation (`calc/scenario.ts`). **If the market changes**
+(`components/Questions.tsx`, `MarketRow`) is one row of fields, always showing: shop costs [0]%, flying
+hours [0]%, reserves we can claim back [100]%, a day on the ground for a narrowbody and a widebody at
+today's figures. Zero means no change; a value outside the evidence is refused with one sentence saying
+the range, and not taken. **If you decide** (`DecisionPicker`) is one picker of the aircraft decisions —
+a shop visit, a swap, a return date, a route — each with its own values and one **Add**, read back as a
+sentence: "We send A6-MXM's ENG1 to the shop in February 2027, minimum shop visit (build-for-cash)".
+Aircraft with nothing to decide are listed as "Cleared: nothing to decide" and not offered.
+
+**The answer** (`components/Answer.tsx`) keeps the tool's advice apart from your decisions, because
+mixing them misleads. The headline counts only the advice — "Your plan costs $1.97M less. No
+recommendation changes." or "The plan holds: no recommendation changes." — with today's total and the
+total with the changed figures; under it, one line for what each change does on its own: "The 9% cut
+in shop costs saves $1.97M." "Your A6-MXM shop visit costs $1.17M more than paying at handback."
+**The tool's advice changes** lists the recommendations the changed figures alone change, each with its
+date and Assign and notify. **Your decisions** judges each decision on its own, at today's figures,
+against today's advice for its aircraft: "Better than today's plan: saves $X", with Assign and notify
+(a return date is agreed with the lessor, not assigned); "Costs $X more than paying at handback: not
+recommended", with no button; or "Not possible", with the clause. A shop visit whose date to decide by
+is today because of the slot lead time says "decide today to secure the February 2027 slot". **Show the
+calculation** folds the three-column totals and the evidence behind each figure; **This year's budget**
+closes the page. Assigning from here is logged "from Scenario planning".
 
 ### Return checklist (v2)
 
@@ -110,12 +116,12 @@ Everything below justifies the list, and sits under it.
 - One row per returning tail, ranked by exposure if nothing changes. The whole fleet sits
   behind a toggle so it looks like a fleet; tails beyond the 24-month window show no figure,
   because projecting years with no shop visit in them is not a forecast.
-- Columns are the ones the customer named: tail, type, lessor, return date, months left,
-  exposure, the clock that runs out first, QME flag, decision deadline. The four components sit under the
-  exposure as a one-line breakdown.
+- Five columns: tail, return, if nothing changes, after recommendation, decide by. The four
+  components sit under the exposure as a one-line breakdown. Type, lessor (opening the lease), months
+  left, the clock that sets the bill and clock reset are in the aircraft's detail, one line at its top.
 - **Clock reset** says, in plain words, whether the lease recognises each component's last shop
   visit as resetting its clock (SPEC §2.5's QME) and, where it does not, how much more handback
-  costs — on the row ("not counted: ENG1 · $19.2M more at handback"), in one plain line above the
+  costs — in the aircraft's detail ("clock reset: not counted on ENG1, $19.4M more at handback"), in one plain line above the
   table that sums the column, and on the component card, which shows the figure if the reset counts beside the figure under the
   lease.
 - **Amber** means "required" or an overdue date, and nothing else: not the clock-reset finding,
@@ -142,7 +148,7 @@ Everything below justifies the list, and sits under it.
   the tiles: what each figure is made of is on screen, and the two definitions that are not — acting
   late, and a clock reset the lease does not count — are the tips on "If nothing changes" and on the
   clock-reset line.
-- **Sets the bill** names the clock that decides what the tail pays at handback (its tip says so).
+- **Sets the bill**, in the aircraft's detail, names the clock that decides what the tail pays at handback.
   The figure after the recommendation is labelled **all-in**; a tail that pays says what the cheque
   is — "Pay at handback: $677K cheque" — and what paying beats is the best option on the part that
   owes most, not the cheapest anywhere: "paying beats a shop visit on ENG2 by $15.9M", not an APU

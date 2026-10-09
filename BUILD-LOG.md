@@ -1239,3 +1239,39 @@ markup and the slot lead time are not asked about: they stay in the evidence.
 **"Confirm before you act" leaves this page.** · Rejected: keeping it here. · Because it is about today's
 plan, and sits on the Overview beside the recommendation it concerns; a tail that pays at handback has
 no action row, so its note now sits on its row in the fleet table (A6-MXM).
+
+## Step 27 · v2, Scenario planning: the tool's advice kept apart from your decisions — Friday 9 October
+
+**The page becomes "Scenario planning", and its answer keeps the tool's advice apart from the head of
+fleet's decisions.** · Rejected: one list of changed recommendations, as on the What if page. · Because
+it misled: a renegotiated contract plus "send A6-MXM's ENG1 to the shop" read "1 recommendation
+changes" and offered the shop visit for assigning, though it costs $1.17M more than paying at handback.
+The headline now counts only what the changed figures do; each change says what it does on its own;
+the advice lists what those figures change, ready to assign; each decision is judged against today's
+advice for its aircraft — better and ready to assign, worse and not recommended with no button, or
+refused with the clause.
+
+**A decision is judged on its own, at today's figures.** · Rejected: judging it on top of the changed
+figures. · Because the question is "is my decision better than what the tool says today", and a verdict
+that moves with every market field cannot answer it. Searching every single decision on this fleet,
+only moving a return date beats today's plan — today's plan is already the cheapest action the model
+finds — and a return date is agreed with the lessor, so it is not offered to assign.
+
+**The market changes are fields, always showing, starting at no change.** · Rejected: market questions
+in the picker. · Because they are the market's figures, not choices to add one at a time; the picker
+keeps only the aircraft decisions. The "Replaced …" note goes with it: one shop-costs field cannot hold
+two values.
+
+**Plain words in the calculation's own labels.** · Rejected: rewording on the screen only. · Because the
+labels reach the Overview, the checklist and the assignment messages too: "Do the work: send ENG1 to the
+shop in September 2027, minimum shop visit (build-for-cash)", never "month 11" or "build-for-cash visit"
+alone, and run-outs as dates ("around 28 Mar 2028"). A shop slot carries its month, part and visit as
+fields, so nothing parses a label. A date to decide by that is today because of the slot lead time says
+"decide today to secure the February 2027 slot". No number changes.
+
+**The fleet table shows five columns**: tail, return, if nothing changes, after recommendation, decide
+by. · Rejected: keeping type, lessor, months left, sets the bill and clock reset as columns. · Because
+they are the aircraft's facts, read when it is opened; its detail now starts with them on one line.
+The activity log moves directly under the recommended actions. "Try a scenario" opens Scenario planning
+with the aircraft picked — not on cleared aircraft, which the picker does not offer, and only for roles
+that can open the page. `calc/robustness.test.ts` gets a 60-second limit for slower machines.

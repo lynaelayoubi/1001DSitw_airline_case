@@ -110,11 +110,11 @@ export function avoidableSurplus(ac: Aircraft, c: Component, rc: ReturnCondition
   const cheap = workscopeBucketCycles(ac.engineModel, 'build-for-cash');
   const extra = workscopeBucketCycles(ac.engineModel, c.lastWorkscope) - cheap;
   if (surplusUnits < extra)
-    return { units: 0, trace: `a build-for-cash visit's ${num(cheap)} FC would have left this clause short, so the larger workscope was needed and none of it was avoidable` };
+    return { units: 0, trace: `a minimum shop visit's (build-for-cash) ${num(cheap)} FC would have left this clause short, so the larger workscope was needed and none of it was avoidable` };
   return {
     units: extra,
     trace:
-      `build-for-interval bought ${num(extra)} FC more LLP life than a build-for-cash visit, which would still have cleared the clause: those ${num(extra)} FC were avoidable, ` +
+      `build-for-interval bought ${num(extra)} FC more LLP life than a minimum shop visit (build-for-cash), which would still have cleared the clause: those ${num(extra)} FC were avoidable, ` +
       `the other ${num(surplusUnits - extra)} FC the remainder of a visit that had to happen`,
   };
 }

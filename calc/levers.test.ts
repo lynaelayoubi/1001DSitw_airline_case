@@ -56,7 +56,7 @@ describe('pay at handback', () => {
   });
 
   it('says so when a component runs out before handback', () => {
-    expect(payAtHandback(context(aircraft({}, [eng2]))).trace).toContain('ENG2 runs out of cycles at month 5.0');
+    expect(payAtHandback(context(aircraft({}, [eng2]))).trace).toContain('ENG2 runs out of cycles around 4 Mar 2027, before handback on 2 Feb 2028');
   });
 
   it('is off the table when the levers are told to deal with that component', () => {
@@ -79,7 +79,7 @@ describe('L1 · do the work', () => {
     const ctx = context(aircraft({}, [eng2]));
     const o = doTheWork(ctx);
     expect(o.feasible).toBe(true);
-    expect(o.label).toBe('Do the work: ENG2 build-for-cash visit');
+    expect(o.label).toBe('Do the work: send ENG2 to the shop in March 2027, minimum shop visit (build-for-cash)');
     expect(o.cost).toBeCloseTo(BFC_RESTORATION + ENGINE_RI, 3);
     expect(o.downtimeDays).toBe(14); // no spare in the pool: the aircraft waits
     expect(o.downtimeCost).toBe(14 * 45_000);
@@ -126,7 +126,7 @@ describe('L4 · time the shop visit', () => {
     expect(o.curve).toHaveLength(13 * 2); // months 4–16
     const open = [...new Set(o.curve!.filter((x) => x.feasible).map((x) => x.month))];
     expect(open).toEqual([4, 5]); // ENG2 runs out at month 5
-    expect(o.curve!.find((x) => x.month === 6)!.reason).toContain('runs out of cycles at month 5.0');
+    expect(o.curve!.find((x) => x.month === 6)!.reason).toContain('runs out of cycles around 4 Mar 2027, before this slot');
   });
 
   it('stops where the turnaround would bring the engine back after handback', () => {
@@ -144,7 +144,7 @@ describe('L4 · time the shop visit', () => {
     const at = (m: number) => o.curve!.find((x) => x.month === m && x.workscope === 'build-for-cash')!;
     expect(at(4).total).toBeCloseTo(at(5).total, 3);
     expect(at(4).overDelivery).toBeCloseTo(SUNK_OD, 3); // carried, whatever the month
-    expect(o.label).toBe('Time the shop visit: ENG2 build-for-cash visit, month 5');
+    expect(o.label).toBe('Time the shop visit: send ENG2 to the shop in March 2027, minimum shop visit (build-for-cash)');
   });
 
   it('on a reserve lease, reclaims a month more of reserves for each month later it goes in', () => {

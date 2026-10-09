@@ -3,12 +3,12 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, WHAT_IF_STARTING_VALUES } from './constants';
+import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS } from './constants';
 import { closingDecisions } from './deadlines';
 import { assessFleet } from './exposure';
-import { recommendFleet } from './recommend';
+import { compareRecommendations, recommendFleet } from './recommend';
 import { readInput } from './robustness';
-import { CLEARED_REFUSAL, EMPTY_SCENARIO, decisionChoices, runScenario } from './scenario';
+import { CLEARED_REFUSAL, EMPTY_SCENARIO, assignable, decisionChoices, runScenario } from './scenario';
 import type { Dataset, Proposal } from './types';
 import { whatIf, whatIfChoices } from './whatif';
 
@@ -68,19 +68,10 @@ describe('runScenario', () => {
     expect(r.changed).toEqual([]);
   });
 
-  it('holds every world change inside its evidenced range, and every question starts inside it', () => {
+  it('holds every world change inside its evidenced range', () => {
     const shop = ASSUMPTION_INPUTS.find((i) => i.id === 'maintenanceCost')!;
     const r = runScenario(data, today, { world: [{ input: 'maintenanceCost', value: 0.5 }], decisions: [] });
     expect(readInput(r.assumptions, 'maintenanceCost')).toBe(shop.range.min);
-    const inRange = (id: (typeof ASSUMPTION_INPUTS)[number]['id'], v: number) => {
-      const range = ASSUMPTION_INPUTS.find((i) => i.id === id)!.range;
-      return v >= range.min - 1e-9 && v <= range.max + 1e-9;
-    };
-    const s = WHAT_IF_STARTING_VALUES;
-    expect(inRange('maintenanceCost', 1 + s.shopCostsUpPct / 100)).toBe(true);
-    expect(inRange('maintenanceCost', 1 - s.shopCostsDownPct / 100)).toBe(true);
-    expect(inRange('utilisation', 1 + s.flyingPct / 100)).toBe(true);
-    expect(inRange('reservesReclaim', s.reservesClaimedPct / 100)).toBe(true);
   });
 
   it("gives each aircraft that changes the scenario's own decide-by date and its money difference", () => {
@@ -95,5 +86,60 @@ describe('runScenario', () => {
     expect(r.costChange).toBeCloseTo(r.scenario.allIn - r.today.allIn, 6);
     // The fleet the scenario was priced on is the one its plan was made from.
     expect(r.scenarioFleet.returning.map((t) => t.tail).sort()).toEqual(r.scenarioPlan.plans.map((p) => p.tail).sort());
+  });
+});
+
+describe("the tool's advice and your decisions, kept apart", () => {
+  const mxm = whatIfChoices(data, fleet).find((c) => c.tail === 'A6-MXM')!;
+  const visit = { kind: 'visit' as const, tail: 'A6-MXM', position: 'ENG1', month: mxm.firstSlot, workscope: 'build-for-cash' as const };
+  const contract = { input: 'maintenanceCost' as const, value: 0.91 };
+
+  it('lists no decisions for a scenario of changed figures only, and the advice is what those figures change', () => {
+    const r = runScenario(data, today, { world: [{ input: 'utilisation', value: 1.05 }], decisions: [] });
+    expect(r.verdicts).toEqual([]);
+    expect(r.advice.map((c) => c.tail)).toEqual(compareRecommendations(today, r.worldPlan).changed.map((c) => c.tail));
+    expect(r.advice.map((c) => c.tail)).toEqual(['A6-MXM']);
+    expect(r.worldEffects).toHaveLength(1);
+    expect(r.worldEffects[0]!.difference).toBeCloseTo(r.world.allIn - r.today.allIn, 6);
+  });
+
+  it('offers no action for a decision worse than today\'s advice, and keeps it out of the advice and the headline', () => {
+    // The renegotiated contract and A6-MXM's ENG1 to the shop: the visit costs more than paying at handback.
+    const r = runScenario(data, today, { world: [contract], decisions: [visit] });
+    const v = r.verdicts[0]!;
+    expect(v.verdict).toBe('worse');
+    expect(v.today).toEqual({ label: 'Pay at handback', lever: 'pay' });
+    expect(v.difference / 1e6).toBeCloseTo(1.17, 2);
+    expect(assignable(v)).toBe(false);
+    // Judged at today's figures, on its own: the same with or without the contract.
+    expect(runScenario(data, today, { world: [], decisions: [visit] }).verdicts[0]!.difference).toBeCloseTo(v.difference, 6);
+    // A6-MXM changes only because of the decision: it is in the combined plan, never in the advice.
+    expect(r.changed.map((c) => c.tail)).toContain('A6-MXM');
+    expect(r.advice).toEqual([]);
+    expect(r.worldEffects[0]!.difference / 1e6).toBeCloseTo(-1.97, 2);
+    // Its date is the slot's lead time: today, to secure the first slot.
+    expect(v.closing!.decideBy).toBe(data.asOf);
+    expect(v.closing!.slotMonth).toBe('February 2027');
+  });
+
+  it('offers an action only for a decision better than today\'s plan, and never for a return date', () => {
+    const r = runScenario(data, today, { world: [], decisions: [visit, { kind: 'return', tail: 'A6-YTM', months: 3 }] });
+    const [worse, later] = r.verdicts;
+    expect(later!.verdict).toBe('better');
+    expect(later!.difference).toBeLessThan(0);
+    expect(assignable(later!)).toBe(false); // agreed with the lessor, not assigned
+    const better = { ...worse!, verdict: 'better' as const, difference: -1 };
+    expect(assignable(better)).toBe(true);
+    expect(assignable({ ...better, verdict: 'same' })).toBe(false);
+    expect(assignable({ ...better, closing: null })).toBe(false);
+  });
+
+  it('says why the lease refuses a decision, and prices none of it', () => {
+    const r = runScenario(data, today, { world: [], decisions: [{ kind: 'swap', tail: '9H-ZUU', position: 'ENG2', unit: spare('ESN-6512') }] });
+    const v = r.verdicts[0]!;
+    expect(v.verdict).toBe('refused');
+    expect(v.refused).toContain('ESN-6512 would run out of cycles on 9H-ZUU around');
+    expect(v.difference).toBe(0);
+    expect(assignable(v)).toBe(false);
   });
 });

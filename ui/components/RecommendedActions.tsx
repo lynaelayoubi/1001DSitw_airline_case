@@ -32,6 +32,7 @@ export function RecommendedActions({
   asOf,
   drafts,
   onAssign,
+  onTry,
 }: {
   closing: ClosingDecisions;
   totals: FleetRecommendation['totals'];
@@ -39,6 +40,8 @@ export function RecommendedActions({
   asOf: string;
   drafts: Record<string, AssignmentDraft>;
   onAssign: (d: AssignmentDraft) => void;
+  /** Opens Scenario planning with the aircraft picked; null where the role cannot open it. */
+  onTry: ((tail: string) => void) | null;
 }) {
   return (
     <section className="grid gap-x-12 gap-y-12 lg:grid-cols-12">
@@ -57,7 +60,15 @@ export function RecommendedActions({
                     {checks.some((c) => c.tail === x.tail) && (
                       <div className="mt-1 text-label text-slate-500">Confirm before you act: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
                     )}
-                    {drafts[x.tail] && <ActionStatus draft={drafts[x.tail]!} onAssign={onAssign} />}
+                    {drafts[x.tail] ? (
+                      <ActionStatus draft={drafts[x.tail]!} onAssign={onAssign} onTry={onTry ? () => onTry(x.tail) : undefined} />
+                    ) : (
+                      onTry && (
+                        <div className="mt-1 text-label">
+                          <TryLink onTry={() => onTry(x.tail)} />
+                        </div>
+                      )
+                    )}
                   </td>
                   <td className="py-2 pr-6 whitespace-nowrap">
                     {x.grounded ? (
@@ -66,7 +77,7 @@ export function RecommendedActions({
                       <span>no deadline · loses {money(x.startNow.perMonth)} a month</span>
                     ) : (
                       <span className="cursor-help" title={afterTheDate({ ...x, decideBy: x.decideBy! })}>
-                        {decideBy(x.decideBy!, asOf)}
+                        {decideBy(x.decideBy!, asOf, x.slotMonth)}
                       </span>
                     )}
                   </td>
@@ -109,7 +120,16 @@ export function RecommendedActions({
  * Where an action stands: Open until it is assigned, then Sent, Accepted and Done, with its owner and
  * the date of the last step. Whoever decides can assign it; its owner moves it on.
  */
-function ActionStatus({ draft, onAssign }: { draft: AssignmentDraft; onAssign: (d: AssignmentDraft) => void }) {
+/** Scenario planning, with this aircraft picked. */
+function TryLink({ onTry }: { onTry: () => void }) {
+  return (
+    <button className="link" onClick={onTry}>
+      Try a scenario
+    </button>
+  );
+}
+
+function ActionStatus({ draft, onAssign, onTry }: { draft: AssignmentDraft; onAssign: (d: AssignmentDraft) => void; onTry?: () => void }) {
   const demo = useDemo();
   const a = demo.assignments[draft.id];
   const step = (status: 'accepted' | 'done', verb: string) => () => {
@@ -127,6 +147,7 @@ function ActionStatus({ draft, onAssign }: { draft: AssignmentDraft; onAssign: (
         ) : (
           <span className="text-slate-500">not yet assigned</span>
         )}
+        {onTry && <TryLink onTry={onTry} />}
       </div>
     );
   const last = a.history[a.history.length - 1]!;
@@ -147,6 +168,7 @@ function ActionStatus({ draft, onAssign }: { draft: AssignmentDraft; onAssign: (
           Mark done{onBehalf(demo.role, a.owner) ? ` for ${a.owner}` : ''}
         </button>
       )}
+      {onTry && <TryLink onTry={onTry} />}
     </div>
   );
 }

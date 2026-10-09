@@ -1,69 +1,131 @@
-// The What if questions: the sentence each reads as, the range each takes, the answer's wording, and
-// the aircraft list, which offers no question about a cleared aircraft.
+// Scenario planning, in words: the market fields and the range each takes, the decisions as sentences,
+// what each change does on its own, the verdict on a decision, the headline — and the page itself, which
+// offers no action for a decision worse than today's plan, and no aircraft with nothing to decide.
 
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { DEFAULT_ASSUMPTIONS } from '../calc/constants';
+import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS } from '../calc/constants';
 import { assessFleet } from '../calc/exposure';
 import { recommendFleet } from '../calc/recommend';
-import { EMPTY_SCENARIO, decisionChoices, runScenario } from '../calc/scenario';
+import { EMPTY_SCENARIO, decisionChoices, runScenario, type Scenario } from '../calc/scenario';
 import type { Dataset } from '../calc/types';
 import { whatIfChoices } from '../calc/whatif';
-import { answerSentence } from './components/Answer';
+import { Answer, answerSentence } from './components/Answer';
 import { AircraftSelect } from './components/Questions';
-import { PERCENT, decisionSentence, outsideRange, workscopeWords, worldSentence } from './questions';
+import { DemoProvider } from './demo';
+import { MARKET, MARKET_FIELDS, decisionEffectSentence, decisionSentence, marketChanges, marketProblem, verdictSentence, worldEffectSentence } from './questions';
 
 const data = dataset as unknown as Dataset;
 const fleet = assessFleet(data, DEFAULT_ASSUMPTIONS);
 const today = recommendFleet(data, fleet, DEFAULT_ASSUMPTIONS);
 const choices = whatIfChoices(data, fleet);
+const mxm = choices.find((c) => c.tail === 'A6-MXM')!;
+const visit = { kind: 'visit' as const, tail: 'A6-MXM', position: 'ENG1', month: mxm.firstSlot, workscope: 'build-for-cash' as const };
+const contract = { input: 'maintenanceCost' as const, value: 0.91 };
+// React marks text boundaries with empty comments, and escapes apostrophes, when it renders to a string.
+const text = (html: string) => html.replace(/<!-- -->/g, '').replace(/&#x27;/g, "'");
 
-describe('the questions', () => {
-  it('read back as the question asked', () => {
-    expect(worldSentence({ input: 'maintenanceCost', value: PERCENT.shopUp.toValue(10) })).toBe('Shop costs go up by 10%');
-    expect(worldSentence({ input: 'maintenanceCost', value: PERCENT.shopDown.toValue(9) })).toBe('We renegotiate the maintenance contract: shop costs down by 9%');
-    expect(worldSentence({ input: 'utilisation', value: PERCENT.fly.toValue(5) })).toBe('Our aircraft fly 5% more than planned');
-    expect(worldSentence({ input: 'utilisation', value: PERCENT.fly.toValue(-5) })).toBe('Our aircraft fly 5% less than planned');
-    expect(worldSentence({ input: 'reservesReclaim', value: PERCENT.reserves.toValue(90) })).toBe('We can only claim back 90% of our reserves');
-    expect(worldSentence({ input: 'downtimeWidebody', value: 150_000 })).toBe('A day on the ground costs $150K for a widebody');
-    expect(decisionSentence({ kind: 'return', tail: 'A6-DLL', months: 3 }, choices)).toBe("We move A6-DLL's return date by 3 months");
-    expect(decisionSentence({ kind: 'route', tail: 'A6-GPZ', profile: 'mixed' }, choices)).toBe("We change A6-GPZ's route profile to mixed");
-    expect(decisionSentence({ kind: 'visit', tail: 'A6-DLL', position: 'ENG2', month: 6, workscope: 'build-for-cash' }, choices)).toBe(
-      "We send A6-DLL's ENG2 to the shop in April 2027: minimum shop visit (build-for-cash)",
-    );
-    expect(workscopeWords('build-for-interval')).toBe('full shop visit (build-for-interval)');
+describe('the market fields', () => {
+  it('take the range the evidence supports, and start at no change', () => {
+    for (const f of MARKET_FIELDS) {
+      const q = MARKET[f];
+      const r = ASSUMPTION_INPUTS.find((i) => i.id === q.input)!.range;
+      expect(q.toValue(q.min), f).toBeCloseTo(r.min, 6);
+      expect(q.toValue(q.max), f).toBeCloseTo(r.max, 6);
+      expect(marketChanges({ [f]: q.none }), f).toEqual([]);
+    }
+    expect(MARKET.shop.none).toBe(0);
+    expect(MARKET.fly.none).toBe(0);
+    expect(MARKET.reserves.none).toBe(100);
+    expect(marketChanges({ shop: -9, fly: 0, reserves: 100 })).toEqual([{ input: 'maintenanceCost', value: 0.91 }]);
   });
 
   it('refuse a value outside the evidence with one sentence saying the range', () => {
-    expect(outsideRange('shopUp', '10')).toBeNull();
-    expect(outsideRange('shopUp', '60')).toBe('Between 0% and 50%: the range the evidence supports.');
-    expect(outsideRange('shopDown', '10')).toBe('Between 0% and 9%: that is as far down as the evidence goes.');
-    expect(outsideRange('fly', '-5')).toBeNull();
-    expect(outsideRange('fly', '25')).toBe('Between 13% less and 20% more than planned: the range the evidence supports.');
-    expect(outsideRange('reserves', '120')).toBe('Between 0% and 100%: the range the evidence supports.');
-    expect(outsideRange('downtime', '400000', 'widebody')).toBe('Between $0 and $300K a day for a widebody: the range the evidence supports.');
-    for (const q of Object.values(PERCENT)) expect(q.start >= q.min && q.start <= q.max).toBe(true);
+    expect(marketProblem('shop', '-9')).toBeNull();
+    expect(marketProblem('shop', '')).toBeNull(); // empty is no change
+    expect(marketProblem('shop', '-10')).toBe('Shop costs: between 9% lower and 50% higher, the range the evidence supports.');
+    expect(marketProblem('fly', '25')).toBe('Flying hours: between 13% less and 20% more than planned, the range the evidence supports.');
+    expect(marketProblem('reserves', '120')).toBe('Reserves we can claim back: between 0% and 100%.');
+    expect(marketProblem('widebody', '400')).toBe('A day on the ground for a widebody: between $0 and $300K, the range the evidence supports.');
   });
 });
 
-describe('the answer', () => {
-  it('says the plan holds when nothing changes, and otherwise what it costs and how many recommendations change', () => {
-    expect(answerSentence(runScenario(data, today, EMPTY_SCENARIO))).toBe('Your plan holds: no recommendation changes.');
-    const r = runScenario(data, today, { world: [{ input: 'utilisation', value: PERCENT.fly.toValue(5) }], decisions: [] });
-    expect(answerSentence(r)).toMatch(/^Your plan costs \$[\d.]+[MK] (more|less)\. 1 recommendation changes\.$/);
+describe('the words', () => {
+  it('read each decision back as the question asked, with the month and the workscope in plain words', () => {
+    expect(decisionSentence(visit, choices)).toBe("We send A6-MXM's ENG1 to the shop in February 2027, minimum shop visit (build-for-cash)");
+    expect(decisionSentence({ kind: 'visit', tail: 'A6-DLL', position: 'MLG', month: 6, workscope: 'build-for-interval' }, choices)).toBe("We send A6-DLL's MLG to the shop in April 2027, gear overhaul");
+    expect(decisionSentence({ kind: 'return', tail: 'A6-DLL', months: 3 }, choices)).toBe("We move A6-DLL's return date by 3 months");
+    expect(decisionSentence({ kind: 'route', tail: 'A6-GPZ', profile: 'mixed' }, choices)).toBe("We change A6-GPZ's route profile to mixed");
+  });
+
+  it('say what each change does on its own, and judge a decision against today\'s advice for its aircraft', () => {
+    const r = runScenario(data, today, { world: [contract], decisions: [visit] });
+    expect(worldEffectSentence(r.worldEffects[0]!)).toBe('The 9% cut in shop costs saves $1.97M.');
+    expect(decisionEffectSentence(r.verdicts[0]!)).toBe('Your A6-MXM shop visit costs $1.17M more than paying at handback.');
+    expect(verdictSentence(r.verdicts[0]!)).toBe('Costs $1.17M more than paying at handback: not recommended.');
+    const later = runScenario(data, today, { world: [], decisions: [{ kind: 'return', tail: 'A6-YTM', months: 3 }] }).verdicts[0]!;
+    expect(verdictSentence(later)).toBe("Better than today's plan: saves $140K.");
+    expect(decisionEffectSentence(later)).toBe("Your A6-YTM return-date move saves $140K against today's plan.");
+  });
+
+  it('count only the tool\'s advice in the headline', () => {
+    expect(answerSentence(runScenario(data, today, EMPTY_SCENARIO), EMPTY_SCENARIO)).toBe('The plan holds: no recommendation changes.');
+    const decisionsOnly: Scenario = { world: [], decisions: [visit] };
+    expect(answerSentence(runScenario(data, today, decisionsOnly), decisionsOnly)).toBe('The plan holds: no recommendation changes.');
+    const example: Scenario = { world: [contract], decisions: [visit] };
+    expect(answerSentence(runScenario(data, today, example), example)).toBe('Your plan costs $1.97M less. No recommendation changes.');
+    const flying: Scenario = { world: [{ input: 'utilisation', value: 1.05 }], decisions: [] };
+    expect(answerSentence(runScenario(data, today, flying), flying)).toBe('Your plan costs $2.13M more. 1 recommendation changes.');
+  });
+});
+
+describe('the answer on the page', () => {
+  const page = (s: Scenario) =>
+    text(
+      renderToString(
+        createElement(
+          DemoProvider,
+          null,
+          createElement(Answer, {
+            scenario: s,
+            result: runScenario(data, today, s),
+            pending: false,
+            adviceDrafts: {},
+            decisionDrafts: {},
+            onAssign: () => {},
+            named: choices,
+            asOf: data.asOf,
+            robustness: null,
+            robustnessPending: false,
+          }),
+        ),
+      ),
+    );
+
+  it('offers no action for a decision worse than today\'s plan', () => {
+    const html = page({ world: [contract], decisions: [visit] });
+    expect(html).toContain('Your decisions');
+    expect(html).toContain('Costs $1.17M more than paying at handback: not recommended.');
+    expect(html).not.toContain('Assign and notify');
+  });
+
+  it('lists no decisions for a scenario of changed figures only', () => {
+    const html = page({ world: [{ input: 'utilisation', value: 1.05 }], decisions: [] });
+    expect(html).toContain("The tool's advice changes");
+    expect(html).toContain('A6-MXM');
+    expect(html).not.toContain('Your decisions');
   });
 });
 
 describe('AircraftSelect', () => {
-  // React marks text boundaries with empty comments when it renders to a string; they are not content.
   const { open, cleared } = decisionChoices(choices, today);
-  const html = renderToString(createElement(AircraftSelect, { choices: open, cleared, value: open[0]!.tail, onChange: () => {} })).replace(/<!-- -->/g, '');
+  const html = text(renderToString(createElement(AircraftSelect, { choices: open, cleared, value: open[0]!.tail, onChange: () => {} })));
   const options = [...html.matchAll(/<option([^>]*)>([^<]*)<\/option>/g)].map((m) => ({ attrs: m[1]!, text: m[2]! }));
 
-  it('offers no question about a cleared aircraft: it is listed as "Cleared: nothing to decide", and cannot be picked', () => {
+  it('offers no decision on a cleared aircraft: it is listed as "Cleared: nothing to decide", and cannot be picked', () => {
     expect([...cleared].sort()).toEqual(['9H-MMC', '9H-PJS', '9H-RYM']);
     for (const t of cleared) {
       const o = options.filter((x) => x.text.startsWith(t));

@@ -4,31 +4,41 @@ import type { Robustness } from '../../calc/robustness';
 import type { TailChoices } from '../../calc/whatif';
 import { useDemo } from '../demo';
 import { decideBy, money } from '../format';
-import { decisionSentence } from '../questions';
+import { decisionEffectSentence, decisionSentence, verdictSentence, worldEffectSentence } from '../questions';
 import { canAssign } from '../roles';
 import { ClauseText } from './ClauseText';
 import { Evidence } from './Evidence';
 
 const signed = (n: number) => (Math.abs(n) < 0.5 ? 'no change' : `${n > 0 ? '+' : '−'}${money(Math.abs(n))}`);
 
-/** The answer in one sentence: what the plan costs now, and how many recommendations change. */
-export function answerSentence(r: ScenarioResult): string {
-  const n = r.changed.length;
-  if (n === 0) return 'Your plan holds: no recommendation changes.';
-  const cost = Math.abs(r.costChange) < 0.5 ? 'Your plan costs the same.' : `Your plan costs ${money(Math.abs(r.costChange))} ${r.costChange > 0 ? 'more' : 'less'}.`;
-  return `${cost} ${n} ${n === 1 ? 'recommendation changes' : 'recommendations change'}.`;
+/**
+ * The headline counts only the tool's advice: what the changed figures do to the plan, and how many
+ * recommendations they change. Your decisions never enter it; each is judged on its own below.
+ */
+export function answerSentence(r: ScenarioResult, s: Scenario): string {
+  const n = r.advice.length;
+  const d = r.world.allIn - r.today.allIn;
+  if (!s.world.length || (n === 0 && Math.abs(d) < 0.5)) return 'The plan holds: no recommendation changes.';
+  const cost = Math.abs(d) < 0.5 ? 'Your plan costs the same.' : `Your plan costs ${money(Math.abs(d))} ${d > 0 ? 'more' : 'less'}.`;
+  return `${cost} ${n === 0 ? 'No recommendation changes' : `${n} ${n === 1 ? 'recommendation changes' : 'recommendations change'}`}.`;
 }
 
+/** A date to decide by, in words; "no deadline" for a route change, which loses money each month it waits. */
+const when = (x: { decideBy: string | null; slotMonth: string | null; noDeadline: boolean }, asOf: string) =>
+  x.noDeadline ? 'no deadline' : x.decideBy ? decideBy(x.decideBy, asOf, x.slotMonth) : 'nothing to book';
+
 /**
- * The answer to the questions asked: one sentence and two totals; then what you'd do differently, one
- * line per aircraft whose recommendation changes, each ready to assign; then any question that could
- * not be taken, and why. The full calculation is folded beneath.
+ * The answer: one sentence, and what each change does on its own. Then the tool's advice — the
+ * recommendations the changed figures change, each ready to assign — kept apart from your decisions,
+ * each judged against today's advice for its aircraft: better, and ready to assign; worse, and not
+ * recommended; or refused by the lease, with the clause. The full calculation is folded beneath.
  */
 export function Answer({
   scenario,
   result: r,
   pending,
-  drafts,
+  adviceDrafts,
+  decisionDrafts,
   onAssign,
   named,
   asOf,
@@ -38,8 +48,10 @@ export function Answer({
   scenario: Scenario;
   result: ScenarioResult;
   pending: boolean;
-  /** The new action on each changed aircraft, drafted for assigning, where it has one to assign. */
-  drafts: Record<string, AssignmentDraft>;
+  /** The new action on each aircraft the advice changes, drafted for assigning, by tail. */
+  adviceDrafts: Record<string, AssignmentDraft>;
+  /** Each decision better than today's plan, drafted for assigning, by its place in the list. */
+  decisionDrafts: Record<number, AssignmentDraft>;
   onAssign: (d: AssignmentDraft) => void;
   named: TailChoices[];
   asOf: string;
@@ -48,63 +60,105 @@ export function Answer({
 }) {
   const { role } = useDemo();
   const empty = !scenario.world.length && !scenario.decisions.length;
-  const refused = r.decisions.filter((d) => d.refused);
+  const effects = [...r.worldEffects.map(worldEffectSentence), ...r.verdicts.map(decisionEffectSentence).filter((x): x is string => !!x)];
+  const assign = (d: AssignmentDraft | undefined) =>
+    d && canAssign(role) ? (
+      <button className="link" onClick={() => onAssign(d)}>
+        Assign and notify
+      </button>
+    ) : null;
   return (
     <div className={pending ? 'opacity-60' : ''}>
       {empty ? (
-        <p className="text-slate-500">Ask a question above to see what it does to your plan.</p>
+        <p className="text-slate-500">Change a figure or add a decision above to see what it does to your plan.</p>
       ) : (
         <>
-          <p className="text-display font-semibold tracking-tight">{answerSentence(r)}</p>
+          <p className="text-display font-semibold tracking-tight">{answerSentence(r, scenario)}</p>
           <div className="mt-3 flex flex-wrap gap-12 tabular-nums">
             <span>
               <span className="text-slate-500">Today </span>
               <span className="font-semibold">{money(r.today.allIn)}</span>
             </span>
-            <span>
-              <span className="text-slate-500">With these changes </span>
-              <span className="font-semibold">{money(r.scenario.allIn)}</span>
-            </span>
+            {scenario.world.length > 0 && (
+              <span>
+                <span className="text-slate-500">With the changed figures </span>
+                <span className="font-semibold">{money(r.world.allIn)}</span>
+              </span>
+            )}
           </div>
-
-          <h3 className="caps mt-12 mb-3">What you'd do differently</h3>
-          {r.changed.length === 0 ? (
-            <p className="text-slate-500">Nothing: every recommendation stands.</p>
-          ) : (
-            <table className="w-full">
-              <tbody>
-                {r.changed.map((c) => (
-                  <tr key={c.tail} className="border-t border-slate-100 align-baseline first:border-t-0">
-                    <td className="py-3 pr-6 font-medium whitespace-nowrap">{c.tail}</td>
-                    <td className="py-3 pr-6">
-                      <span className="text-slate-500">{c.from}</span> → {c.to}
-                    </td>
-                    <td className="py-3 pr-6 whitespace-nowrap">{c.noDeadline ? 'no deadline' : c.decideBy ? decideBy(c.decideBy, asOf) : 'nothing to book'}</td>
-                    <td className="py-3 pr-6 text-right whitespace-nowrap tabular-nums">{signed(c.difference)}</td>
-                    <td className="py-3 text-right whitespace-nowrap">
-                      {drafts[c.tail] ? (
-                        canAssign(role) && (
-                          <button className="link" onClick={() => onAssign(drafts[c.tail]!)}>
-                            Assign and notify
-                          </button>
-                        )
-                      ) : (
-                        <span className="text-label text-slate-500">nothing to assign</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-          {refused.length > 0 && (
-            <ul className="mt-6 space-y-2">
-              {refused.map((d, k) => (
-                <li key={k}>
-                  <span className="font-medium">Not possible:</span> {decisionSentence(d.proposal, named)}. <ClauseText tail={d.proposal.tail} text={d.refused!} />
-                </li>
+          {effects.length > 0 && (
+            <ul className="mt-4 space-y-1">
+              {effects.map((e) => (
+                <li key={e}>{e}</li>
               ))}
             </ul>
+          )}
+
+          {scenario.world.length > 0 && (
+            <>
+              <h3 className="caps mt-12 mb-3">The tool's advice changes</h3>
+              {r.advice.length === 0 ? (
+                <p className="text-slate-500">Nothing: with the changed figures, every recommendation stands.</p>
+              ) : (
+                <table className="w-full">
+                  <tbody>
+                    {r.advice.map((c) => (
+                      <tr key={c.tail} className="border-t border-slate-100 align-baseline first:border-t-0">
+                        <td className="py-3 pr-6 font-medium whitespace-nowrap">{c.tail}</td>
+                        <td className="py-3 pr-6">
+                          <span className="text-slate-500">{c.from}</span> → {c.to}
+                        </td>
+                        <td className="py-3 pr-6 text-balance">{when(c, asOf)}</td>
+                        <td className="py-3 pr-6 text-right whitespace-nowrap tabular-nums">{signed(c.difference)}</td>
+                        <td className="py-3 text-right whitespace-nowrap">
+                          {adviceDrafts[c.tail] ? assign(adviceDrafts[c.tail]) : <span className="text-label text-slate-500">nothing to assign</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </>
+          )}
+
+          {r.verdicts.length > 0 && (
+            <>
+              <h3 className="caps mt-12 mb-3">Your decisions</h3>
+              <ul>
+                {r.verdicts.map((v, k) => (
+                  <li key={k} className="flex flex-wrap items-baseline gap-x-6 gap-y-1 border-t border-slate-100 py-3 first:border-t-0">
+                    <div className="min-w-0 flex-1">
+                      <div>{decisionSentence(v.proposal, named)}</div>
+                      <div className={`mt-1 ${v.verdict === 'better' ? 'font-medium' : 'text-slate-500'}`}>
+                        {v.verdict === 'refused' ? (
+                          <>
+                            <span className="font-medium text-slate-900">Not possible:</span> <ClauseText tail={v.proposal.tail} text={v.refused!} />
+                          </>
+                        ) : (
+                          verdictSentence(v)
+                        )}
+                      </div>
+                    </div>
+                    {v.verdict === 'better' && (
+                      <>
+                        {v.closing && v.proposal.kind !== 'return' && (
+                          <span className="text-balance">
+                            {when({ decideBy: v.closing.decideBy ?? v.closing.grounded?.from ?? null, slotMonth: v.closing.slotMonth, noDeadline: !!v.closing.startNow }, asOf)}
+                          </span>
+                        )}
+                        <span className="whitespace-nowrap">
+                          {decisionDrafts[k] ? (
+                            assign(decisionDrafts[k])
+                          ) : (
+                            <span className="text-label text-slate-500">{v.proposal.kind === 'return' ? 'agree it with the lessor' : 'nothing to assign'}</span>
+                          )}
+                        </span>
+                      </>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </>
       )}

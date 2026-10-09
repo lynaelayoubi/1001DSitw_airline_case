@@ -43,7 +43,8 @@ describe('readiness', () => {
     // A6-YTM's and A6-MVC's ENG2 come off for their shop visits: notice 90 days before induction, which
     // falls after the slot is booked.
     for (const [tail, booked] of [['A6-YTM', '2027-05-04'], ['A6-MVC', '2027-06-04']] as const) {
-      const slot = of(tail, 'Book the shop slot')[0]!;
+      const slot = of(tail, 'Book the ')[0]!;
+      expect(slot.title).toMatch(/^Book the \w+ 2027 shop slot for ENG2: minimum shop visit \(build-for-cash\)$/);
       expect(slot.due).toBe(booked);
       expect(of(tail, 'Notify the lessor')[0]!.due > slot.due).toBe(true);
     }

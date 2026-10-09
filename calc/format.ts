@@ -42,7 +42,19 @@ export function usdShort(n: number): string {
   return `${sign}$${Math.round(abs)}`;
 }
 
+// Dates are worded in labels the model builds thousands of times a sweep: one formatter each, and
+// each date worded once.
+const dmy = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+const my = new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const worded = new Map<string, string>();
+const word = (f: Intl.DateTimeFormat, key: string, iso: string) => {
+  let s = worded.get(key);
+  if (s === undefined) worded.set(key, (s = f.format(new Date(iso + 'T00:00:00Z'))));
+  return s;
+};
+
 /** A date as a person writes it — "4 May 2027" — for messages, where an ISO date reads as code. */
-export function dayMonthYear(iso: string): string {
-  return new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
-}
+export const dayMonthYear = (iso: string): string => word(dmy, `d${iso}`, iso);
+
+/** A month as a person names it — "September 2027" — for a shop slot. */
+export const monthYear = (iso: string): string => word(my, `m${iso}`, iso);

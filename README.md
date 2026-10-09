@@ -19,7 +19,7 @@ It is a preview of the MVP, not the MVP: anything simulated says "Preview: nothi
 on screen and is listed in `WHATS-FAKE.md`. The calculation and its headline figures are as on `main`.
 
 - **Pages instead of one long screen**: Overview (the headline money, the recommended actions, the
-  fleet table), Leases, Scenarios, Return checklist, under a top navigation.
+  fleet table), Leases, Scenario planning, Return checklist, under a top navigation.
 - **Viewing as**: Head of fleet, Leasing team, Maintenance planning, Analyst — each sees only the
   pages it needs, and only some can change things. No login.
 - **Every recommendation can be acted on**: Assign and notify, with the owner, due date and a
@@ -28,9 +28,10 @@ on screen and is listed in `WHATS-FAKE.md`. The calculation and its headline fig
 - **Leases, reviewed and corrected**: each term the tool read, with the clause it came from, for the
   leasing team to approve or correct with a reason; a corrected threshold or notice period changes
   the calculation at once. Adding a lease is shown end to end; the reading is a preview.
-- **What if**: plain-English questions — costs, flying, reserves, a day on the ground, a shop visit, a
-  swap, a return date, a route — answered in one sentence, with what you'd do differently, each ready
-  to assign.
+- **Scenario planning**: the market changes as one row of fields, and the aircraft decisions — a shop
+  visit, a swap, a return date, a route — in one picker. The tool's advice is kept apart from your
+  decisions: what the changed figures do to the plan, each change ready to assign, and each decision
+  judged against today's advice — better, worse and not recommended, or refused by the lease.
 - **The documents a return needs**: a standard template per aircraft, each with an owner and a status.
 
 What you do in the demo — assignments, reviews, statuses — is kept in this browser; **Reset demo**,

@@ -42,7 +42,7 @@ describe('recommendTail', () => {
     expect(r.runnerUp!.lever).toBe('L1');
     expect(r.delta).toBeCloseTo(r.runnerUp!.total - r.recommended.total, 3);
     expect(r.options.find((o) => o.lever === 'pay')!.feasible).toBe(false);
-    expect(r.trace).toContain('ENG2 runs out of cycles at month 5.0');
+    expect(r.trace).toContain('ENG2 runs out of cycles around 4 Mar 2027, before handback');
   });
 
   it('splits avoidable from unavoidable, against acting late on a forced tail', () => {
@@ -235,10 +235,10 @@ describe('the generated fleet', () => {
     // On ENG2 itself the best is a shop visit, $15.9M more. A6-MXM's exposure is all on ENG1.
     const dll = r.byTail['A6-DLL']!.recommendation;
     expect(dll.runnerUp!.position).toBe('APU');
-    expect(dll.payBeats).toMatchObject({ position: 'ENG2', option: { label: 'Do the work: ENG2 build-for-cash visit' } });
+    expect(dll.payBeats).toMatchObject({ position: 'ENG2', option: { label: expect.stringMatching(/^Do the work: send ENG2 to the shop in \w+ \d{4}, minimum shop visit \(build-for-cash\)$/) } });
     expect(dll.payBeats!.delta! / 1e6).toBeCloseTo(15.89, 2);
     expect(dll.payBeats!.delta).toBeCloseTo(dll.payBeats!.option!.total - dll.recommended.total, 6);
-    expect(r.byTail['A6-MXM']!.recommendation.payBeats).toMatchObject({ position: 'ENG1', option: { label: 'Do the work: ENG1 build-for-cash visit' } });
+    expect(r.byTail['A6-MXM']!.recommendation.payBeats).toMatchObject({ position: 'ENG1', option: { label: 'Do the work: send ENG1 to the shop in September 2027, minimum shop visit (build-for-cash)' } });
     for (const p of r.plans) if (p.recommendation.recommended.lever !== 'pay' || p.recommendation.nothingToDecide) expect(p.recommendation.payBeats, p.tail).toBeNull();
   });
 

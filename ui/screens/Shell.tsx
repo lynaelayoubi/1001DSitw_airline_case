@@ -5,6 +5,7 @@ import type { ClosingDecisions } from '../../calc/deadlines';
 import type { FleetExposure } from '../../calc/exposure';
 import type { Lease } from '../../calc/lease';
 import type { Readiness } from '../../calc/readiness';
+import { decisionChoices } from '../../calc/scenario';
 import type { FleetRecommendation } from '../../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../../calc/robustness';
 import type { Dataset } from '../../calc/types';
@@ -106,6 +107,16 @@ export default function Shell(props: ScreenProps) {
     return out;
   }, [closing, plans, fleet, leaseOf]);
   const [assigning, setAssigning] = useState<{ draft: AssignmentDraft; source?: string } | null>(null);
+  // "Try a scenario" on the Overview: Scenario planning, with that aircraft picked. Only where the role
+  // can open it, and only on an aircraft the picker offers (not a cleared one).
+  const [focus, setFocus] = useState<{ tail: string; at: number } | null>(null);
+  const tryable = useMemo(() => new Set(decisionChoices(props.choices, plans).open.map((c) => c.tail)), [props.choices, plans]);
+  const onTry = canSee(role, 'scenarios')
+    ? (tail: string) => {
+        setFocus({ tail, at: Date.now() });
+        go('scenarios');
+      }
+    : null;
 
   return (
     <LeaseLinksContext.Provider value={links}>
@@ -114,10 +125,10 @@ export default function Shell(props: ScreenProps) {
         {/* Each page behind its own guard: a page that fails says so, and the header stays. */}
         <PageGuard key={shownPage}>
           {shownPage === 'overview' && (
-            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={(d) => setAssigning({ draft: d })} />
+            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={(d) => setAssigning({ draft: d })} onTry={onTry} tryable={tryable} />
           )}
           {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
-          {shownPage === 'scenarios' && <Scenarios {...props} onAssign={(d) => setAssigning({ draft: d, source: 'What if' })} />}
+          {shownPage === 'scenarios' && <Scenarios {...props} focus={focus} onAssign={(d) => setAssigning({ draft: d, source: 'Scenario planning' })} />}
           {shownPage === 'checklist' && <Checklist fleet={props.fleet} readiness={props.readiness} onShowTail={showTail} />}
         </PageGuard>
       </main>

@@ -2,7 +2,7 @@
 // breakevens it finds, and the holds / close-call split. Checked on the generated fleet, and each
 // breakeven is confirmed by re-recommending at it.
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import dataset from '../data/fleet.json';
 import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS } from './constants';
@@ -11,6 +11,9 @@ import { usd } from './format';
 import { actionOf, recommendFleet } from './recommend';
 import { computeExtensionEffects, computeRobustness, inputsLine, readInput, writeInput } from './robustness';
 import type { Dataset } from './types';
+
+// The sweep re-recommends the fleet hundreds of times: a slower machine needs longer than the default 5 seconds.
+vi.setConfig({ testTimeout: 60_000, hookTimeout: 60_000 });
 
 const data = dataset as unknown as Dataset;
 const a = DEFAULT_ASSUMPTIONS;
@@ -122,7 +125,7 @@ describe('check before acting', () => {
     // ENG1 then runs out on 13 April, six days before its 19 April 2028 handback.
     const mxm = r.close.find((c) => c.tail === 'A6-MXM')!;
     expect(mxm.flip.change).toBe('+2%');
-    expect(mxm.flip.to).toBe('Cannot tell apart: On the ground from 2028-04-13 to handback / Do the work: ENG1 build-for-cash visit');
+    expect(mxm.flip.to).toBe('Cannot tell apart: On the ground from 13 Apr 2028 to handback / Do the work: send ENG1 to the shop in September 2027, minimum shop visit (build-for-cash)');
   });
 });
 

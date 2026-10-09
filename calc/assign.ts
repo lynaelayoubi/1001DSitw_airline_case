@@ -8,6 +8,7 @@ import type { Closing } from './deadlines';
 import type { TailResult } from './exposure';
 import { dayMonthYear, num, usdShort } from './format';
 import type { Lease } from './lease';
+import { withArticle } from './levers';
 import { addMonths } from './projection';
 import { actionOf, type TailPlan } from './recommend';
 import type { ISODate, ReturnCondition } from './types';
@@ -55,7 +56,6 @@ export function draftAssignment(x: Closing, plan: TailPlan, t: TailResult, lease
   const swapped = o.move?.incoming.from === 'pool' ? o.move.incoming.serial : null;
 
   // What to do.
-  const visitWhat = o.label.replace(/^(Do the work|Time the shop visit): /, '').replace(/, month \d+$/, '');
   const route = o.label.replace(/^Route change: /, '').replace(/ \(flag to routing\)$/, '');
   const what =
     o.lever === 'L2'
@@ -63,7 +63,7 @@ export function draftAssignment(x: Closing, plan: TailPlan, t: TailResult, lease
       : swapped
         ? `Swap ${tail}'s ${position} (${comp.serial}) for spare ${swapped} ${when}.`
         : o.slot
-          ? `Book a shop slot for ${tail}'s ${visitWhat} ${when}: it goes into the shop around ${dayMonthYear(o.spendDate!)}.`
+          ? `Book the ${o.slot.month} shop slot for ${tail}'s ${o.slot.position} ${when}: ${withArticle(o.slot.visit)}, into the shop around ${dayMonthYear(o.spendDate!)}.`
           : o.grounded
             ? `${tail} goes on the ground from ${dayMonthYear(o.grounded.from)} for ${num(o.grounded.days)} days: ${o.label}.`
             : `${tail}: ${o.label}, ${when}.`;
@@ -107,7 +107,7 @@ export function draftAssignment(x: Closing, plan: TailPlan, t: TailResult, lease
       : swapped
         ? `Remove ${position} (${comp.serial}); fit spare ${swapped} for good`
         : o.slot
-          ? `Shop visit: ${visitWhat}, inducted around ${dayMonthYear(o.spendDate!)}`
+          ? `${o.slot.visit[0]!.toUpperCase()}${o.slot.visit.slice(1)} on ${o.slot.position}, into the shop around ${dayMonthYear(o.spendDate!)}`
           : o.label;
 
   return {

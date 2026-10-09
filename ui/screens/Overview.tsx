@@ -10,11 +10,12 @@ import type { AssignmentDraft } from '../../calc/assign';
 import type { CloseCall } from '../../calc/robustness';
 import { ActivityLog } from '../components/ActivityLog';
 import { checkNote } from '../components/HowFirm';
+import { slotMonthOf } from '../../calc/deadlines';
 import { Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
 import { TailReadiness } from '../components/Readiness';
 import { Working } from '../components/Working';
-import { date, int, kindLabel, money, months, unitLabel } from '../format';
+import { date, decideBy, int, kindLabel, money, months, unitLabel } from '../format';
 import { useLeaseLinks } from '../leaseLinks';
 import type { ScreenProps } from './Shell';
 
@@ -42,6 +43,8 @@ export default function Overview({
   flash,
   drafts,
   onAssign,
+  onTry,
+  tryable,
 }: Pick<ScreenProps, 'fleet' | 'plans' | 'atRest' | 'robustness' | 'budget' | 'budgetPlan' | 'closing' | 'readiness'> & {
   showAll: boolean;
   onShowAll: (v: boolean) => void;
@@ -50,6 +53,10 @@ export default function Overview({
   flash: string | null;
   drafts: Record<string, AssignmentDraft>;
   onAssign: (d: AssignmentDraft) => void;
+  /** Opens Scenario planning with the aircraft picked; null where the role cannot open it. */
+  onTry: ((tail: string) => void) | null;
+  /** The aircraft the decision picker offers: every returning one but the cleared. */
+  tryable: Set<string>;
 }) {
   const rows = useMemo(() => {
     // Ranked by the figure each row shows if nothing changes: on a forced tail, acting late.
@@ -69,7 +76,8 @@ export default function Overview({
         </p>
       </div>
 
-      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} drafts={drafts} onAssign={onAssign} />
+      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} drafts={drafts} onAssign={onAssign} onTry={onTry} />
+      <ActivityLog />
       <Headline fleet={fleet} plans={plans} />
 
       <div className="mt-12 flex flex-wrap items-end justify-between gap-6">
@@ -88,19 +96,12 @@ export default function Overview({
           <thead className="caps">
             <tr className="border-b border-slate-200">
               <Th>Tail</Th>
-              <Th>Type</Th>
-              <Th>Lessor</Th>
               <Th>Return</Th>
-              <Th right>Months left</Th>
               <Th right tip="Compensation at handback if this tail does nothing, and the life of any engine another option would keep — or, where a part runs out first, the cost of acting only when it does.">
                 If nothing changes
               </Th>
               <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
                 After recommendation
-              </Th>
-              <Th tip="The clock that decides what this tail pays at handback.">Sets the bill</Th>
-              <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
-                Clock reset
               </Th>
               <Th tip="The last date to commit to the recommended action.">Decide by</Th>
             </tr>
@@ -117,6 +118,7 @@ export default function Overview({
                   check={closing.items.some((i) => i.tail === t.tail) ? undefined : robustness?.checks.find((c) => c.tail === t.tail)}
                   open={open === t.tail}
                   onToggle={() => onOpen(open === t.tail ? null : t.tail)}
+                  onTry={onTry && tryable.has(t.tail) ? () => onTry(t.tail) : undefined}
                 />
                 {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
               </Fragment>
@@ -124,8 +126,6 @@ export default function Overview({
           </tbody>
         </table>
       </div>
-
-      <ActivityLog />
     </>
   );
 }
@@ -147,6 +147,7 @@ function TailRow({
   check,
   open,
   onToggle,
+  onTry,
 }: {
   t: TailResult;
   plan?: TailPlan;
@@ -155,6 +156,7 @@ function TailRow({
   check?: CloseCall;
   open: boolean;
   onToggle: () => void;
+  onTry?: () => void;
 }) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
@@ -165,24 +167,29 @@ function TailRow({
       <td className="py-4 pr-2 font-medium whitespace-nowrap">
         <span className="mr-1 inline-block w-3 text-slate-400">{open ? '▾' : '▸'}</span>
         {t.tail}
-      </td>
-      <td className="px-2 py-4 whitespace-nowrap">{t.type}</td>
-      <td className="max-w-[10rem] min-w-[8rem] px-2 py-4">
-        <LessorLink tail={t.tail} name={t.lessor} />
+        {onTry && (
+          <div className="mt-1 pl-4 text-label font-normal">
+            <button
+              className="link"
+              onClick={(e) => {
+                e.stopPropagation();
+                onTry();
+              }}
+            >
+              Try a scenario
+            </button>
+          </div>
+        )}
       </td>
       <td className="px-2 py-4 whitespace-nowrap">{date(t.projection.effectiveLeaseEnd)}</td>
-      <td className="px-2 py-4 text-right tabular-nums">
-        {months(t.projection.monthsToReturn)}
-      </td>
       {beyond ? (
         <>
           <td className="px-2 py-4 text-right text-slate-400" colSpan={2}>
             beyond the {RETURNING_WINDOW_MONTHS}-month window — not forecast
           </td>
-          <td className="px-2 py-4 text-slate-300">—</td>
         </>
       ) : nothing ? (
-        <td className="px-2 py-4 text-slate-500" colSpan={5}>
+        <td className="px-2 py-4 text-slate-500" colSpan={3}>
           cleared: meets every return condition, as recorded and under the lease
         </td>
       ) : (
@@ -205,28 +212,16 @@ function TailRow({
           <td className="px-2 py-4 text-right">
             {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} check={check} /> : <span className="text-slate-300">—</span>}
           </td>
-          <td className="px-2 py-4 whitespace-nowrap">
-            <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
-            {t.binding.how === 'tightest' && <span className="ml-1 text-label text-slate-400">clear</span>}
-          </td>
         </>
-      )}
-      {!nothing && (
-        <td className="px-2 py-4">
-          {t.qmeFlag ? (
-            <div>
-              <div className="font-medium whitespace-nowrap">not counted: {t.qmePositions.join(', ')}</div>
-              {!beyond && t.qmeDelta > 0 && <div className="mt-1 text-label text-balance text-slate-500 tabular-nums">{money(t.qmeDelta)} more at handback</div>}
-            </div>
-          ) : (
-            <span className="text-slate-400">counted</span>
-          )}
-        </td>
       )}
       {!nothing && (
         <td className="min-w-[8rem] py-4 pl-2">
           {plan?.decisionDeadline ? (
-            <span className="whitespace-nowrap">{plan.decisionDeadline === t.projection.asOf ? 'decide today' : date(plan.decisionDeadline)}</span>
+            <span className="text-balance">
+              {plan.decisionDeadline === t.projection.asOf
+                ? decideBy(plan.decisionDeadline, t.projection.asOf, slotMonthOf(plan.recommendation.recommended, plan.decisionDeadline))
+                : date(plan.decisionDeadline)}
+            </span>
           ) : plan?.recommendation.recommended.grounded ? (
             <span className="font-medium text-amber-800">on the ground from {date(plan.recommendation.recommended.grounded.from)}</span>
           ) : plan?.recommendation.recommended.startNow ? (
@@ -320,6 +315,32 @@ function Breakdown({ t }: { t: TailResult }) {
   );
 }
 
+/** What the fleet table leaves to the detail: type, lessor (opening the lease), months left, the clock that sets the bill, and clock reset. */
+function TailFacts({ t }: { t: TailResult }) {
+  return (
+    <div className="flex flex-wrap gap-x-6 gap-y-1 text-slate-500">
+      <span className="text-slate-900">{t.type}</span>
+      <LessorLink tail={t.tail} name={t.lessor} />
+      <span className="tabular-nums">{months(t.projection.monthsToReturn)} left</span>
+      <span>
+        sets the bill: <span className="text-slate-900">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
+        {t.binding.how === 'tightest' && ', clear of every condition'}
+      </span>
+      <span>
+        clock reset:{' '}
+        {t.qmeFlag ? (
+          <span className="text-slate-900">
+            not counted on {t.qmePositions.join(', ')}
+            {t.withinHorizon && t.qmeDelta > 0 && `, ${money(t.qmeDelta)} more at handback`}
+          </span>
+        ) : (
+          'counted'
+        )}
+      </span>
+    </div>
+  );
+}
+
 /** The lessor's name opens the tail's lease. */
 function LessorLink({ tail, name }: { tail: string; name: string }) {
   const links = useLeaseLinks();
@@ -352,8 +373,9 @@ function TailDetail({
   const nothing = rec?.nothingToDecide ?? false;
   return (
     <tr className="bg-slate-50">
-      <td colSpan={10} className="px-4 pt-2 pb-6">
+      <td colSpan={5} className="px-4 pt-2 pb-6">
         <div className="grid gap-4">
+          <TailFacts t={t} />
           {plan && !nothing && (
             <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
               <div>

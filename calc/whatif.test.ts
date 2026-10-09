@@ -71,7 +71,7 @@ describe('whatIf', () => {
     const why = w.proposals.map((x) => x.refused);
     expect(why[0]).toContain('No GE90-115B engine is free'); // no spare of that type
     expect(why[1]).toContain('inside the 4-month shop-slot lead time'); // a slot inside the lead time
-    expect(why[2]).toContain('ENG2 runs out of cycles at month 1.1, before this slot'); // a component already run out
+    expect(why[2]).toContain('ENG2 runs out of cycles around 7 Nov 2026, before this slot'); // a component already run out
     expect(why[3]).toContain('flies only the long-haul profile'); // no other route
     expect(why[4]).toContain('this does not deal with it'); // a tail that cannot reach handback as it stands
     expect(w.applied).toBe(0);
@@ -103,7 +103,7 @@ describe('whatIf', () => {
       { kind: 'route', tail: '9H-RYM', profile: 'short-dense' },
     );
     expect(w.applied).toBe(3);
-    expect(w.proposals[1]!.label).toBe('Send ENG2 to the shop: build-for-interval visit, month 10');
+    expect(w.proposals[1]!.label).toBe('Send ENG2 to the shop in August 2027, full shop visit (build-for-interval)');
     // A6-MXM's own recommendation, re-planned on the later return, is what the plan at that return date says.
     const later = { ...a, leaseExtensionMonths: { 'A6-MXM': 6 } };
     const alone = recommendFleet(data, assessFleet(data, later), later);
