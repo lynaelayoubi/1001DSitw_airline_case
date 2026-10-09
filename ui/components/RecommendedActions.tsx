@@ -55,7 +55,7 @@ export function RecommendedActions({
                   <td className="py-2 pr-6">
                     {x.label}
                     {checks.some((c) => c.tail === x.tail) && (
-                      <div className="mt-1 text-label text-slate-500">Check before acting: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
+                      <div className="mt-1 text-label text-slate-500">Confirm before you act: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
                     )}
                     {drafts[x.tail] && <ActionStatus draft={drafts[x.tail]!} onAssign={onAssign} />}
                   </td>

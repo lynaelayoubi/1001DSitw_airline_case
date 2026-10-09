@@ -32,7 +32,11 @@ export function WhatYouCanDo({
 }) {
   return (
     <section>
-      <h2 className="caps mb-3">Scenario planning</h2>
+      <h2 className="caps mb-2">Your decisions</h2>
+      <p className="mb-6 text-slate-500">
+        Try your own actions — swap a part, send one to the shop, change a route, move a return date — and see what they change against today's plan. The plan on
+        the Overview stays as it is until you act.
+      </p>
       <div className="grid gap-12 lg:grid-cols-2">
         <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
         <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} asOf={asOf} />

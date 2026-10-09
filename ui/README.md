@@ -45,6 +45,16 @@ swap from "decide today" to 8 Oct 2026. A corrected rule says "Applies on next r
 lease** (`components/AddLease.tsx`) takes a PDF and shows it being read; in this preview the terms are
 a sample, and the screen says so. Other roles see the leases read-only.
 
+### Scenarios (v2)
+
+`screens/Scenarios.tsx`, in two parts. **Your decisions** (`components/WhatYouCanDo.tsx`): the what-if —
+swap a part, send one to the shop, change a route, move a return date — priced against today's plan,
+and the maintenance budget. **The world** (`components/WhatThisAssumes.tsx`, now open): every
+assumption with its value, evidenced range, where the real number lives, whether it changes an
+answer, and an override that recomputes everything, the Overview included. Then **Confirm before you
+act** (`components/HowFirm.tsx`), with one sentence saying what it means; the same note on an action
+row reads "Confirm before you act: …".
+
 ## How it looks
 
 Calm, sparse, aligned. Defined once, in `index.css`:

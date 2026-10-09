@@ -32,15 +32,18 @@ export function checkNote(c: CloseCall): string {
 }
 
 /**
- * What to check before acting: the recommendations an assumption could flip within the first half of
- * its evidenced range (calc/robustness.ts), each as an instruction — not a grade of the model. The
- * full sweep runs behind it and behind the assumptions' "Changes an answer" column; its method is in
+ * Confirm before you act: the recommendations an assumption could flip within the first half of its
+ * evidenced range (calc/robustness.ts), each as an instruction — not a grade of the model. The full
+ * sweep runs behind it and behind the assumptions' "Changes an answer" column; its method is in
  * ASSUMPTIONS §14, not on the screen.
  */
 export function HowFirm({ robustness: r, pending }: { robustness: Robustness | null; pending: boolean }) {
   return (
     <section className={pending ? 'opacity-60' : ''}>
-      <h2 className="caps mb-3">Check before acting</h2>
+      <h2 className="caps mb-2">Confirm before you act</h2>
+      <p className="mb-3 text-slate-500">
+        These recommendations would change if one assumption turned out a little different from the figure used, so confirm the real number before acting on them.
+      </p>
       {!r ? (
         <p className="text-slate-500">Checking which answers turn on an assumption…</p>
       ) : r.close.length === 0 ? (

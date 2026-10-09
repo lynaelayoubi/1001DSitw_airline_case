@@ -1154,3 +1154,12 @@ old and new value and the reason, goes into the lease's change history.** · Rej
 **"Add a lease" walks through upload and reading, honestly: the file is not read, the terms are a
 sample from an in-service aircraft's lease, and the screen says so.** · Rejected: hiding the step,
 or pretending to read. · Because the flow is the point, and nothing may pretend to be real.
+
+## Step 22 · v2, the Scenarios page — Friday 9 October
+
+**One Scenarios page in two parts, "Your decisions" and "The world", with the assumptions open
+rather than collapsed; "Check before acting" becomes "Confirm before you act", with a sentence on
+what it means.** · Rejected: the assumptions behind a disclosure under the table. · Because the
+customer wanted them inside scenario planning — "what if our costs go up, what if we renegotiate
+maintenance contracts" — which is shop costs in "The world". The budget sits under "Your decisions":
+it is a decision. Text and layout only.

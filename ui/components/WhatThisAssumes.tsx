@@ -31,23 +31,23 @@ export function WhatThisAssumes({
   const moving = robustness?.changing.length ?? 0;
   const overridden = ASSUMPTION_INPUTS.filter((i) => readInput(assumptions, i.id) !== readInput(DEFAULT_ASSUMPTIONS, i.id)).length;
   return (
-    <details>
-      <summary className="cursor-pointer">
-        <span className="caps">Assumptions behind these numbers</span>
-        <span className="text-label text-slate-500">
-          {' '}
-          —{' '}
-          {robustness ? (
-            <span className={pending ? 'opacity-60' : ''}>
-              {moving} of {ASSUMPTION_INPUTS.length} {moving === 1 ? 'moves' : 'move'} an answer
-            </span>
-          ) : (
-            <span>checking which move an answer…</span>
-          )}
-          {overridden > 0 && <span className="ml-2 font-medium text-slate-900">· {overridden} overridden</span>}
-        </span>
-      </summary>
-      <table className="mt-3 w-full">
+    <section>
+      <h2 className="caps mb-2">The world</h2>
+      <p className="text-slate-500">
+        What the numbers assume about costs, flying, time on the ground and the lessors — what if shop costs go up, or come down after a maintenance contract is
+        renegotiated? Change one and everything recomputes, the Overview included.
+      </p>
+      <p className="mt-2 mb-3 text-label text-slate-500">
+        {robustness ? (
+          <span className={pending ? 'opacity-60' : ''}>
+            {moving} of {ASSUMPTION_INPUTS.length} {moving === 1 ? 'moves' : 'move'} an answer inside the range its evidence supports
+          </span>
+        ) : (
+          <span>Checking which move an answer…</span>
+        )}
+        {overridden > 0 && <span className="ml-2 font-medium text-slate-900">· {overridden} changed from the figure used</span>}
+      </p>
+      <table className="w-full">
         <thead className="caps">
           <tr className="border-b border-slate-200">
             <th className="pr-3 pb-3 text-left font-medium">Assumption</th>
@@ -98,7 +98,7 @@ export function WhatThisAssumes({
           })}
         </tbody>
       </table>
-    </details>
+    </section>
   );
 }
 
