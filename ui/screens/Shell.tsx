@@ -125,7 +125,7 @@ export default function Shell(props: ScreenProps) {
         {/* Each page behind its own guard: a page that fails says so, and the header stays. */}
         <PageGuard key={shownPage}>
           {shownPage === 'overview' && (
-            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={(d) => setAssigning({ draft: d })} onTry={onTry} tryable={tryable} />
+            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={(d) => setAssigning({ draft: d })} onTry={onTry} tryable={tryable} onShowTail={showTail} />
           )}
           {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
           {shownPage === 'scenarios' && <Scenarios {...props} focus={focus} onAssign={(d) => setAssigning({ draft: d, source: 'Scenario planning' })} />}

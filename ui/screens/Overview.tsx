@@ -45,6 +45,7 @@ export default function Overview({
   onAssign,
   onTry,
   tryable,
+  onShowTail,
 }: Pick<ScreenProps, 'fleet' | 'plans' | 'atRest' | 'robustness' | 'budget' | 'budgetPlan' | 'closing' | 'readiness'> & {
   showAll: boolean;
   onShowAll: (v: boolean) => void;
@@ -57,6 +58,8 @@ export default function Overview({
   onTry: ((tail: string) => void) | null;
   /** The aircraft the decision picker offers: every returning one but the cleared. */
   tryable: Set<string>;
+  /** Opens the aircraft's detail in the fleet table, and scrolls to it. */
+  onShowTail: (tail: string) => void;
 }) {
   const rows = useMemo(() => {
     // Ranked by the figure each row shows if nothing changes: on a forced tail, acting late.
@@ -76,7 +79,7 @@ export default function Overview({
         </p>
       </div>
 
-      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} drafts={drafts} onAssign={onAssign} onTry={onTry} />
+      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} drafts={drafts} onAssign={onAssign} onTry={onTry} onShowTail={onShowTail} />
       <ActivityLog />
       <Headline fleet={fleet} plans={plans} />
 

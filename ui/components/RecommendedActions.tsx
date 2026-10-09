@@ -33,6 +33,7 @@ export function RecommendedActions({
   drafts,
   onAssign,
   onTry,
+  onShowTail,
 }: {
   closing: ClosingDecisions;
   totals: FleetRecommendation['totals'];
@@ -42,6 +43,8 @@ export function RecommendedActions({
   onAssign: (d: AssignmentDraft) => void;
   /** Opens Scenario planning with the aircraft picked; null where the role cannot open it. */
   onTry: ((tail: string) => void) | null;
+  /** The aircraft code opens its detail in the fleet table. */
+  onShowTail: (tail: string) => void;
 }) {
   return (
     <section className="grid gap-x-12 gap-y-12 lg:grid-cols-12">
@@ -54,7 +57,11 @@ export function RecommendedActions({
             <tbody>
               {closing.items.map((x) => (
                 <tr key={x.tail} className="align-baseline">
-                  <td className="py-2 pr-6 font-medium whitespace-nowrap">{x.tail}</td>
+                  <td className="py-2 pr-6 whitespace-nowrap">
+                    <button className="link font-medium" onClick={() => onShowTail(x.tail)} title={`Open ${x.tail}'s detail`}>
+                      {x.tail}
+                    </button>
+                  </td>
                   <td className="py-2 pr-6">
                     {x.label}
                     {checks.some((c) => c.tail === x.tail) && (
@@ -117,8 +124,9 @@ export function RecommendedActions({
 }
 
 /**
- * Where an action stands: Open until it is assigned, then Sent, Accepted and Done, with its owner and
- * the date of the last step. Whoever decides can assign it; its owner moves it on.
+ * Where an action stands. Until it is assigned, only what can be done with it — Assign and notify, Try a
+ * scenario; then Sent, Accepted and Done, with its owner and the date of the last step. Whoever decides
+ * can assign it; its owner moves it on.
  */
 /** Scenario planning, with this aircraft picked. */
 function TryLink({ onTry }: { onTry: () => void }) {
@@ -139,7 +147,6 @@ function ActionStatus({ draft, onAssign, onTry }: { draft: AssignmentDraft; onAs
   if (!a)
     return (
       <div className="mt-1 flex flex-wrap items-baseline gap-3 text-label">
-        <span className="font-medium text-slate-500">{STATUS_WORD.open}</span>
         {canAssign(demo.role) ? (
           <button className="link" onClick={() => onAssign(draft)}>
             Assign and notify

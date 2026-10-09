@@ -13,7 +13,7 @@ import { roleLabel, type Role } from './roles';
 import { usePersisted } from './store';
 
 export type Status = 'sent' | 'accepted' | 'done';
-export const STATUS_WORD: Record<Status | 'open', string> = { open: 'Open', sent: 'Sent', accepted: 'Accepted', done: 'Done' };
+export const STATUS_WORD: Record<Status, string> = { sent: 'Sent', accepted: 'Accepted', done: 'Done' };
 
 export interface Assignment {
   id: string;

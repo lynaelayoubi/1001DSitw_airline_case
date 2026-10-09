@@ -24,7 +24,7 @@ on screen and is listed in `WHATS-FAKE.md`. The calculation and its headline fig
   pages it needs, and only some can change things. No login.
 - **Every recommendation can be acted on**: Assign and notify, with the owner, due date and a
   plain-English message prefilled from the recommendation, or the structured maintenance request;
-  then Open, Sent, Accepted, Done, and an activity log. Nothing is sent.
+  then Sent, Accepted, Done, and an activity log. Nothing is sent.
 - **Leases, reviewed and corrected**: each term the tool read, with the clause it came from, for the
   leasing team to approve or correct with a reason; a corrected threshold or notice period changes
   the calculation at once. Adding a lease is shown end to end; the reading is a preview.

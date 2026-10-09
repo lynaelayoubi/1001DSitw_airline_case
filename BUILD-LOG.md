@@ -1314,3 +1314,8 @@ the aircraft details. Wording unchanged.
 **The Activity box stays hidden until something is logged.** · Rejected: an empty box saying "Nothing
 yet". · Because an empty box is noise on the first screen; it appears with the first assignment, or the
 first lease correction or document update, which the log also records.
+
+**In Recommended actions the aircraft code opens its detail, and the word "Open" goes.** · Rejected:
+keeping "Open" as the status of an action not yet assigned. · Because it read as a link that did
+nothing, and the code itself did not open anything. An unassigned action now shows only Assign and
+notify and Try a scenario; an assigned one shows Sent, Accepted or Done, as before.

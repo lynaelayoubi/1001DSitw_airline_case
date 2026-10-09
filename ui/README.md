@@ -23,7 +23,8 @@ button keeps it, with no routing library.
 
 ### Acting on a recommendation (v2)
 
-Every recommended action carries its status: **Open** until it is assigned, then **Sent**, **Accepted**
+Every recommended action's aircraft code opens its detail in the fleet table. Until the action is assigned it
+shows only what can be done with it; then its status, **Sent**, **Accepted**
 and **Done**, with its owner, channel, due date and when it last moved. **Assign and notify**
 (`components/AssignPanel.tsx`) slides in with the owner, due date and message prefilled from the
 recommendation (`calc/assign.ts`) — or, for a maintenance request, the structured request as the
