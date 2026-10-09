@@ -54,6 +54,16 @@ body {
   }
 }
 
+/* A bar that fills once: a lease being read. */
+@keyframes fill {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
 summary::marker {
   color: var(--color-slate-400);
 }

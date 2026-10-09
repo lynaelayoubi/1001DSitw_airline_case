@@ -1182,3 +1182,9 @@ number: the headline figures ($40.0M, $31.4M, $8.67M) are pinned in the tests an
 test from v1 still passes. New in calc, all pure and tested: `assign.ts` (drafting an action for its
 owner), `corrections.ts` (the leasing team's corrections, none by default), `documents.ts` (the
 redelivery records), and `leaseTerms` in `lease.ts`.
+
+**"Add a lease" is a drop zone — "Drop the lease PDF here, or Choose a file" — that lights up when a
+file is dragged over, turns away anything that is not a PDF, and shows the file being read with a
+filling bar.** · Rejected: the browser's bare file input, which did not look like somewhere to add a
+lease. · Because the flow is the point of the preview. Still labelled "Preview: nothing leaves the
+app"; the file is still not read.
