@@ -44,6 +44,8 @@ export interface ScreenProps {
   onProposals: (p: Proposal[]) => void;
   whatIf: WhatIfResult | null;
   leaseOf: (tail: string) => Lease | null;
+  /** The lease as read, before any correction: what the leasing team reviews. */
+  leaseAsRead: (tail: string) => Lease | null;
   readiness: Readiness;
 }
 
@@ -114,7 +116,7 @@ export default function Shell(props: ScreenProps) {
         {shownPage === 'overview' && (
           <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={setAssigning} />
         )}
-        {shownPage === 'leases' && <Leases fleet={props.fleet} leaseOf={leaseOf} onShowTail={showTail} />}
+        {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
         {shownPage === 'scenarios' && <Scenarios {...props} />}
         {shownPage === 'checklist' && <Checklist readiness={props.readiness} onShowTail={showTail} />}
       </main>

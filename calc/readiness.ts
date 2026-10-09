@@ -10,6 +10,7 @@
 
 import { READINESS_OWNERS, READINESS_TEMPLATE, READINESS_WINDOW_DAYS } from './constants';
 import type { FleetExposure } from './exposure';
+import { qmeDocuments } from './lease';
 import { num, usd } from './format';
 import { addMonths, parseDate, toISO } from './projection';
 import type { FleetRecommendation } from './recommend';
@@ -46,12 +47,6 @@ export interface Readiness {
 
 const MS_PER_DAY = 86_400_000;
 const addDays = (d: ISODate, n: number): ISODate => toISO(new Date(parseDate(d).getTime() + n * MS_PER_DAY));
-
-/** The documents a lessor's QME clause requires, as it lists them: "(i) …, (ii) … and (iii) …". */
-function qmeDocuments(clauseText: string): string {
-  const m = clauseText.match(/delivered to Lessor (\(i\).*?), in each case/);
-  return m ? m[1]! : 'the evidence the clause requires';
-}
 
 export function readiness(data: Pick<Dataset, 'lessors'>, fleet: FleetExposure, plans: FleetRecommendation): Readiness {
   const asOf = fleet.asOf;

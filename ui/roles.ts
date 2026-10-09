@@ -22,6 +22,9 @@ export const roleLabel = (r: Role) => ROLES.find((x) => x.id === r)!.label;
 export const canSee = (r: Role, p: Page) => ROLES.find((x) => x.id === r)!.pages.includes(p);
 export const isPage = (s: string): s is Page => PAGES.some((p) => p.id === s);
 
+/** Who approves or corrects how a lease was read, and adds a lease: the leasing team, who own the return conditions. */
+export const canReviewLease = (r: Role) => r === 'leasing';
+
 /** Who can assign a recommended action and notify its owner: the people who decide. */
 export const canAssign = (r: Role) => r === 'head' || r === 'analyst';
 

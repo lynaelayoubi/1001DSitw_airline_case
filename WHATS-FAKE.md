@@ -87,6 +87,13 @@ work then only costs the delta. That is on the "what I'd build next" list.
   local storage, nowhere else: another browser or another person sees none of it. Reset demo clears it.
 - **Roles.** "Viewing as" switches what is shown and who may change what; there is no login, and
   nothing is enforced beyond the screen.
+- **Reading a lease PDF.** "Add a lease" takes a PDF and shows it being read, but the file is not
+  read: the terms that appear are a sample from an existing lease in the data (an in-service
+  aircraft's), labelled so on screen, and the added lease does not enter the calculation. Reading
+  real leases is the MVP's work.
+- **Lease reviews.** Approvals, corrections and their history live in this browser, like the
+  assignments. Corrections to thresholds and notice periods do change the calculation here; a
+  corrected rule (replacement, what makes a shop visit count, reserves) is recorded only.
 
 ## Simplified rather than faked
 

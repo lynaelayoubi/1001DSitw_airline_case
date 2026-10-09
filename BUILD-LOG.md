@@ -1134,3 +1134,23 @@ anything"; the draft is a pure function in `calc/assign.ts`, tested, so every fi
 the recommendation's. Route changes go to Network planning by default — the customer's owner list has
 no routing team. Nothing is sent: labelled on screen and in WHATS-FAKE. State lives in this browser's
 local storage, so a reload keeps it and Reset demo clears it.
+
+## Step 21 · v2, leases reviewed and corrected — Friday 9 October
+
+**Corrected thresholds and notice periods flow into the calculation straight away; corrections to
+the replacement rule, what makes a shop visit count, and reserves are recorded and marked "Applies on
+next recalculation".** · Rejected: recording every correction only, and applying every correction.
+· Because the levers already take a threshold and a notice period as numbers: a pure function applies
+them to a copy of the data, and with no correction returns the data itself, so no default figure can
+move (tested). A correction then visibly changes a recommendation — 9H-ZUU's notice from 90 to 30
+days moves its swap from "decide today" to 8 Oct 2026. The other three change how a lever works,
+which is riskier than a preview should take on. A notice correction gives that aircraft its own copy
+of the lessor's terms, so a side letter on one lease does not move another.
+
+**The leasing team alone approves or corrects; every approval and correction, with who, when, the
+old and new value and the reason, goes into the lease's change history.** · Rejected: anyone editing.
+· Because the leasing team owns the return conditions; other roles see the leases read-only.
+
+**"Add a lease" walks through upload and reading, honestly: the file is not read, the terms are a
+sample from an in-service aircraft's lease, and the screen says so.** · Rejected: hiding the step,
+or pretending to read. · Because the flow is the point, and nothing may pretend to be real.

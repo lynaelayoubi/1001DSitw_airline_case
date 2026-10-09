@@ -32,6 +32,19 @@ system would receive it. Sending is marked "Preview: nothing leaves the app". Th
 Analyst assign; the owner's role accepts and marks done. It lives in this browser (`demo.tsx`), and
 **Reset demo**, under the role switcher, clears it.
 
+### Leases (v2)
+
+`screens/Leases.tsx` lists the leases of the aircraft handing back, each "Read, awaiting review" or
+"Approved by leasing team". Opening one (`components/LeaseReview.tsx`) shows each term the tool uses
+— the return condition thresholds, the notice period, the replacement rule, what makes a shop visit
+count, reserves — with the clause it came from, quoted (`calc/lease.ts`, `leaseTerms`). The leasing
+team approves each, or corrects it with a required reason; both go into the lease's change history,
+and a correction into the activity log. A corrected threshold or notice period is used by the
+calculation at once (`calc/corrections.ts`): correcting 9H-ZUU's notice from 90 to 30 days moves its
+swap from "decide today" to 8 Oct 2026. A corrected rule says "Applies on next recalculation". **Add a
+lease** (`components/AddLease.tsx`) takes a PDF and shows it being read; in this preview the terms are
+a sample, and the screen says so. Other roles see the leases read-only.
+
 ## How it looks
 
 Calm, sparse, aligned. Defined once, in `index.css`:

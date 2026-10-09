@@ -787,3 +787,13 @@ by the leasing team; maintenance people are told return dates late.
 | The maintenance request | aircraft, component and serial, action, due date, reason, lease reference, owner | the same draft, as fields a maintenance system would take |
 | Sending | **nothing is sent**: the action is marked Sent with its owner, channel and date, and logged | a preview, labelled on screen; WHATS-FAKE.md |
 | Who can assign; who moves it on | the Head of fleet and the Analyst assign; the owner's role accepts and marks it done. Technical records and Network planning have no seat in the role switcher, so the Head of fleet records it on their behalf, and the log says so | v2 role switcher (`ui/roles.ts`) |
+
+## 19 · Correcting how a lease was read (v2, as built, `calc/corrections.ts`)
+
+| Item | Value | Source |
+|---|---|---|
+| Terms reviewed | per lease: each return condition's threshold, the notice of a planned engine removal (12.3(b)), the replacement rule (12.2), what makes a shop visit count (the QME clause), maintenance reserves | `calc/lease.ts`, `leaseTerms`, each with the clause it came from |
+| Corrections used at once | a return condition's threshold, and the notice period: the levers already take both as numbers. With no correction the data is the data as read, untouched | applied to a copy of the dataset before anything is computed, so every figure follows |
+| Corrections recorded only | the replacement rule, what makes a shop visit count, and reserve or no-reserve: they change how a lever works, not a number in it. Shown as "Applies on next recalculation" | the safer course for a preview |
+| A notice correction | applies to that aircraft's lease only, though the data holds notice per lessor: the aircraft gets its own copy of the lessor's terms | a side letter belongs to one lease |
+| The plan a correction is measured against | the leases as read: a row whose action a correction changes says what it was | — |
