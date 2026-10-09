@@ -1310,3 +1310,7 @@ shows where it matters, when a budget is set and the required actions exceed it.
 knowing", below the fleet table.** · Rejected: keeping them under the headline figures. · Because they
 are worth knowing but are not the money: one is sunk and in none of the totals, the other a finding of
 the aircraft details. Wording unchanged.
+
+**The Activity box stays hidden until something is logged.** · Rejected: an empty box saying "Nothing
+yet". · Because an empty box is noise on the first screen; it appears with the first assignment, or the
+first lease correction or document update, which the log also records.

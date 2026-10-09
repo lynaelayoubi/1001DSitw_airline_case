@@ -28,7 +28,8 @@ and **Done**, with its owner, channel, due date and when it last moved. **Assign
 (`components/AssignPanel.tsx`) slides in with the owner, due date and message prefilled from the
 recommendation (`calc/assign.ts`) — or, for a maintenance request, the structured request as the
 system would receive it. Sending is marked "Preview: nothing leaves the app". The **activity log**
-(`components/ActivityLog.tsx`) sits directly under the recommended actions: who did what, when.
+(`components/ActivityLog.tsx`) sits directly under the recommended actions: who did what, when. It
+stays hidden until something is logged.
 **Try a scenario**, on each recommended action and on each aircraft row that can take a decision,
 opens Scenario planning with that aircraft already picked. The Head of fleet and the
 Analyst assign; the owner's role accepts and marks done. It lives in this browser (`demo.tsx`), and
