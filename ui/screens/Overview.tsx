@@ -1,92 +1,48 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { Fragment, useMemo } from 'react';
 
 import { RETURNING_WINDOW_MONTHS } from '../../calc/constants';
-import type { ComponentResult, FleetExposure, RequirementResult, TailResult } from '../../calc/exposure';
+import type { ComponentResult, RequirementResult, TailResult } from '../../calc/exposure';
 import type { LeverOption } from '../../calc/levers';
-import { actionOf, type FleetRecommendation, type TailPlan } from '../../calc/recommend';
-import type { BudgetPlan } from '../../calc/budget';
-import type { ClosingDecisions } from '../../calc/deadlines';
-import { conditionAnchor, type Lease } from '../../calc/lease';
-import type { Readiness, ReadinessItem } from '../../calc/readiness';
-import type { ExtensionEffects, Robustness } from '../../calc/robustness';
-import type { Assumptions, Proposal } from '../../calc/types';
-import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
+import { actionOf, type TailPlan } from '../../calc/recommend';
+import { conditionAnchor } from '../../calc/lease';
+import type { ReadinessItem } from '../../calc/readiness';
 import { Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
-import { HowFirm } from '../components/HowFirm';
-import { LeaseView } from '../components/LeaseView';
-import { ReadinessList, TailReadiness } from '../components/Readiness';
-import { WhatThisAssumes } from '../components/WhatThisAssumes';
-import { WhatYouCanDo } from '../components/WhatYouCanDo';
+import { TailReadiness } from '../components/Readiness';
 import { Working } from '../components/Working';
 import { date, int, kindLabel, money, months, unitLabel } from '../format';
-import { LeaseLinksContext, useLeaseLinks } from '../leaseLinks';
+import { useLeaseLinks } from '../leaseLinks';
+import type { ScreenProps } from './Shell';
 
 /**
- * SPEC §3.1 — the screen leads with its answer: the recommended actions, soonest first, with the
- * avoidable total beside them. Under it, what justifies it: the headline, then one row per
- * returning tail, ranked by money (the full fleet behind a toggle; tails beyond the window show no
- * figure, because a projection across years with no shop visit in it is not a forecast). Then what
- * the customer can do — his own what-if and this year's budget — and last, collapsed, what the
- * answers assume and how firm they are. A row whose recommended action differs from the plan at
- * rest says what it was.
+ * SPEC §3.1 — the Overview leads with its answer: the recommended actions, soonest first, with what
+ * acting now saves beside them; under them the headline money, then one row per returning tail,
+ * ranked by money (the full fleet behind a toggle; tails beyond the window show no figure, because a
+ * projection across years with no shop visit in it is not a forecast). Opening a tail shows its
+ * detail and the calculation behind it. Nothing else: scenarios, leases and the return checklist are
+ * pages of their own. A row whose recommended action differs from the plan at rest says what it was.
  */
-export default function FleetScreen({
+export default function Overview({
   fleet,
   plans,
   atRest,
   robustness,
-  extension,
-  robustnessPending,
-  assumptions,
-  onAssumptions,
   budget,
-  onBudget,
   budgetPlan,
   closing,
-  choices,
-  proposals,
-  onProposals,
-  whatIf,
-  leaseOf,
   readiness,
-}: {
-  fleet: FleetExposure;
-  plans: FleetRecommendation;
-  atRest: FleetRecommendation;
-  robustness: Robustness | null;
-  extension: ExtensionEffects | null;
-  robustnessPending: boolean;
-  assumptions: Assumptions;
-  onAssumptions: (a: Assumptions) => void;
-  budget: number | null;
-  onBudget: (b: number | null) => void;
-  budgetPlan: BudgetPlan;
-  closing: ClosingDecisions;
-  choices: TailChoices[];
-  proposals: Proposal[];
-  onProposals: (p: Proposal[]) => void;
-  whatIf: WhatIfResult | null;
-  leaseOf: (tail: string) => Lease | null;
-  readiness: Readiness;
+  showAll,
+  onShowAll,
+  open,
+  onOpen,
+  flash,
+}: Pick<ScreenProps, 'fleet' | 'plans' | 'atRest' | 'robustness' | 'budget' | 'budgetPlan' | 'closing' | 'readiness'> & {
+  showAll: boolean;
+  onShowAll: (v: boolean) => void;
+  open: string | null;
+  onOpen: (tail: string | null) => void;
+  flash: string | null;
 }) {
-  const [showAll, setShowAll] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
-  // The lease slide-over, and the requirement row a lease condition was followed back to.
-  const [lease, setLease] = useState<{ tail: string; anchor?: string } | null>(null);
-  const [flash, setFlash] = useState<string | null>(null);
-  const links = useMemo(() => ({ leaseOf, open: (tail: string, anchor?: string) => setLease({ tail, anchor }) }), [leaseOf]);
-  const shown = lease ? leaseOf(lease.tail) : null;
-  useEffect(() => {
-    if (!flash) return;
-    const t = setTimeout(() => document.getElementById(flash)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 0);
-    const off = setTimeout(() => setFlash(null), 2500);
-    return () => {
-      clearTimeout(t);
-      clearTimeout(off);
-    };
-  }, [flash]);
-
   const rows = useMemo(() => {
     // Ranked by the figure each row shows if nothing changes: on a forced tail, acting late.
     const doNothing = (t: TailResult) => plans.byTail[t.tail]?.doNothing ?? t.asRecorded.exposure;
@@ -97,110 +53,68 @@ export default function FleetScreen({
   }, [fleet, plans, showAll]);
 
   return (
-    <LeaseLinksContext.Provider value={links}>
-      <main className="mx-auto max-w-[1440px] px-4 py-12 md:px-8">
-        <header className="mb-12 flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <h1 className="text-display font-semibold tracking-tight">Handback</h1>
-            <p className="mt-2 text-slate-500">A live model of every lease obligation on the fleet: what it costs, what to do, and the date after which you cannot.</p>
-            <p className="text-slate-500">
-              as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
-            </p>
-          </div>
-          <div className="flex overflow-hidden rounded-md border border-slate-200">
-            <button className={`px-3 py-1 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => setShowAll(false)}>
-              Returning ({fleet.returning.length})
-            </button>
-            <button className={`px-3 py-1 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => setShowAll(true)}>
-              Whole fleet ({fleet.tails.length})
-            </button>
-          </div>
-        </header>
+    <>
+      <div className="mb-12 text-slate-500">
+        <p>A live model of every lease obligation on the fleet: what it costs, what to do, and the date after which you cannot.</p>
+        <p>
+          as of {date(fleet.asOf)} · {fleet.returning.length} tails handing back inside {RETURNING_WINDOW_MONTHS} months
+        </p>
+      </div>
 
-        <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} />
-        <Headline fleet={fleet} plans={plans} />
+      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} />
+      <Headline fleet={fleet} plans={plans} />
 
-        <div className="mt-12 overflow-x-auto">
-          <table className="w-full">
-            <thead className="caps">
-              <tr className="border-b border-slate-200">
-                <Th>Tail</Th>
-                <Th>Type</Th>
-                <Th>Lessor</Th>
-                <Th>Return</Th>
-                <Th right>Months left</Th>
-                <Th right tip="Compensation at handback if this tail does nothing, and the life of any engine another option would keep — or, where a part runs out first, the cost of acting only when it does.">
-                  If nothing changes
-                </Th>
-                <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
-                  After recommendation
-                </Th>
-                <Th tip="The clock that decides what this tail pays at handback.">Sets the bill</Th>
-                <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
-                  Clock reset
-                </Th>
-                <Th tip="The last date to commit to the recommended action.">Decide by</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((t) => (
-                <Fragment key={t.tail}>
-                  <TailRow
-                    t={t}
-                    plan={plans.byTail[t.tail]}
-                    before={atRest.byTail[t.tail]}
-                    leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
-                    open={open === t.tail}
-                    onToggle={() => setOpen(open === t.tail ? null : t.tail)}
-                  />
-                  {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+      <div className="mt-12 flex flex-wrap items-end justify-between gap-6">
+        <h2 className="caps">Fleet</h2>
+        <div className="flex overflow-hidden rounded-md border border-slate-200">
+          <button className={`px-3 py-1 ${!showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => onShowAll(false)}>
+            Returning ({fleet.returning.length})
+          </button>
+          <button className={`px-3 py-1 ${showAll ? 'bg-slate-900 text-white' : 'bg-white text-slate-500 hover:text-slate-900'}`} onClick={() => onShowAll(true)}>
+            Whole fleet ({fleet.tails.length})
+          </button>
         </div>
-
-        <ReadinessList
-          readiness={readiness}
-          onShowTail={(tail) => {
-            setShowAll(false);
-            setOpen(tail);
-            setFlash(`tail-${tail}`);
-          }}
-        />
-
-        <WhatYouCanDo
-          extension={extension}
-          budget={budget}
-          onBudget={onBudget}
-          budgetPlan={budgetPlan}
-          asOf={fleet.asOf}
-          choices={choices}
-          proposals={proposals}
-          onProposals={onProposals}
-          whatIf={whatIf}
-        />
-
-        {/* What the answers rest on, and how firm they are: justification, under what it justifies. */}
-        <div>
-          <WhatThisAssumes assumptions={assumptions} onChange={onAssumptions} robustness={robustness} pending={robustnessPending} />
-          <HowFirm robustness={robustness} pending={robustnessPending} />
-        </div>
-
-      </main>
-      {lease && shown && (
-        <LeaseView
-          lease={shown}
-          anchor={lease.anchor}
-          onClose={() => setLease(null)}
-          onGoToRow={(componentId, conditionId) => {
-            setLease(null);
-            setOpen(shown.tail);
-            setFlash(`req-${componentId}-${conditionId}`);
-          }}
-        />
-      )}
-    </LeaseLinksContext.Provider>
+      </div>
+      <div className="mt-6 overflow-x-auto">
+        <table className="w-full">
+          <thead className="caps">
+            <tr className="border-b border-slate-200">
+              <Th>Tail</Th>
+              <Th>Type</Th>
+              <Th>Lessor</Th>
+              <Th>Return</Th>
+              <Th right>Months left</Th>
+              <Th right tip="Compensation at handback if this tail does nothing, and the life of any engine another option would keep — or, where a part runs out first, the cost of acting only when it does.">
+                If nothing changes
+              </Th>
+              <Th right tip="Work, downtime and what is still owed at handback, after the recommended action.">
+                After recommendation
+              </Th>
+              <Th tip="The clock that decides what this tail pays at handback.">Sets the bill</Th>
+              <Th tip="Whether the lease counts each component's last shop visit as resetting its clock, and what handback costs more if it does not.">
+                Clock reset
+              </Th>
+              <Th tip="The last date to commit to the recommended action.">Decide by</Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((t) => (
+              <Fragment key={t.tail}>
+                <TailRow
+                  t={t}
+                  plan={plans.byTail[t.tail]}
+                  before={atRest.byTail[t.tail]}
+                  leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
+                  open={open === t.tail}
+                  onToggle={() => onOpen(open === t.tail ? null : t.tail)}
+                />
+                {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

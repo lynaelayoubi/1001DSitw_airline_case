@@ -24,6 +24,20 @@ built.
 | 9 | **Visibly replace the spreadsheet** | *"Giving the analysts the view that they're not going to have to maintain some crazy Excel model anymore."* | **partial** — each tail's recommendation and each component's clauses open their working in place; nothing says so explicitly |
 | 10 | **Fit the actions to this year's maintenance budget** — what a budget funds, what it leaves out, and what that costs | *Not from the discovery call: added at the build owner's request. The nearest thing the customer said is that the provision is carved out at lease signing.* | **done** — budget input under "Scenario planning"; forced removals first, then the combination of optional actions that saves most; left-out tails show the saving given up and whether their decision closes inside the year |
 
+## v2 — the customer's feedback on v1
+
+From the v1 demo. Quotes are the customer's words; the rest is the feedback as relayed. v2 is a
+preview of the MVP, not the MVP: anything simulated says so on screen and in WHATS-FAKE.md.
+
+| # | What | Their words | Status |
+|---|---|---|---|
+| 11 | **Pages, not one long screen** — Overview, Leases, Scenarios, Return checklist | *"It made me want to read it rather than listen to you."* | **done** — a top navigation; the Overview holds the headline money, the recommended actions and the fleet table, nothing else |
+| 12 | **Permissions by role** | Asked for permissions: who sees and changes what | **done (preview)** — a "Viewing as" switcher (Head of fleet, Leasing team, Maintenance planning, Analyst); each role sees only its pages. No login |
+| 13 | **Act on a recommendation** — assign it, notify the owner, follow it to done | *"There's no way I can actually act on anything."* | planned |
+| 14 | **Correct how a lease was read** | If the leasing team disagrees with how a clause was interpreted, can they correct it in the tool? | planned |
+| 15 | **The assumptions inside scenario planning** | *"What if our costs go up, what if we renegotiate maintenance contracts."* | planned |
+| 16 | **The documents a return needs** | The mundane checklist too: the records a redelivery actually asks for | planned |
+
 ## Also asked for, inside the above
 
 - **Downtime cost**, as an assumption they can set themselves — *"but also the downtime costs… that's something that we want to be able to put some assumptions in for those costs."* → **done**: stated with its provenance and overridable by body class, and checked by the robustness sweep.

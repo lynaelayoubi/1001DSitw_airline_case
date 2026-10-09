@@ -97,13 +97,13 @@ function Standard({ tail, items }: { tail?: string; items: ReadinessItem[] }) {
  * are folded into one line per tail. Derived items point at their source; standard items say they
  * come from the template. Status comes from the due date (calc/readiness.ts); nothing here is set by hand.
  */
-export function ReadinessList({ readiness: r, onShowTail }: { readiness: ReadinessResult; onShowTail: (tail: string) => void }) {
+export function ReadinessList({ readiness: r, onShowTail, open = false }: { readiness: ReadinessResult; onShowTail: (tail: string) => void; open?: boolean }) {
   const later = Object.entries(r.byTail)
     .map(([tail, items]) => [tail, items.filter((x) => !upFront(x))] as const)
     .filter(([, items]) => items.length)
     .sort(([, x], [, y]) => x[0]!.due.localeCompare(y[0]!.due));
   return (
-    <details className="mt-12">
+    <details open={open}>
       <summary className="cursor-pointer">
         <span className="caps">Readiness checklist</span>
         <span className="ml-3 text-label text-slate-500">

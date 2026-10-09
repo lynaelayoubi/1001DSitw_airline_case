@@ -1107,3 +1107,19 @@ newer and the builder's version cannot be checked from here; with nothing built 
 time, nothing can fail live. The cost is one step: rebuild and commit `dist/` after any change.
 The page gains a favicon and a description for link previews, which says it is a prototype on
 synthetic data.
+
+## Step 19 · v2, pages instead of one long screen — Friday 9 October
+
+On branch `v2-mvp-preview`; `main` stays the version demoed.
+
+**Four pages under a top navigation — Overview, Leases, Scenarios, Return checklist — with the page
+in the address's #fragment.** · Rejected: a routing library, and one long screen. · Because the
+customer said the page "made me want to read it rather than listen to you"; the Overview now holds the
+headline money, the recommended actions and the fleet table, nothing else. A fragment keeps reload and
+back working with no dependency.
+
+**A "Viewing as" role switcher: each role sees only the pages it needs.** · Rejected: a login, and
+showing every page to everyone. · Because it demonstrates the permissions the customer asked for
+without pretending to authenticate anyone. Head of fleet and Analyst see all four; the Leasing team
+Overview, Leases and the checklist; Maintenance planning Overview and the checklist. No calc change:
+the headline figures are as on `main`.

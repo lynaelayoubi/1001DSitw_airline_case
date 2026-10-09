@@ -11,7 +11,7 @@ import type { ExtensionEffects, Robustness } from '../calc/robustness';
 import type { Assumptions, Dataset, Proposal } from '../calc/types';
 import { whatIf, whatIfChoices } from '../calc/whatif';
 import dataset from '../data/fleet.json';
-import FleetScreen from './screens/FleetScreen';
+import Shell from './screens/Shell';
 
 // The only place the dataset is read. Everything on screen comes out of assessFleet and
 // recommendFleet, recomputed from the assumptions (any override); the head of fleet's what-if is
@@ -61,7 +61,7 @@ export default function App() {
   }, [live]);
 
   return (
-    <FleetScreen
+    <Shell
       fleet={fleet}
       plans={plans}
       atRest={atRest}

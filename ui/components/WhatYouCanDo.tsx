@@ -31,7 +31,7 @@ export function WhatYouCanDo({
   asOf: string;
 }) {
   return (
-    <section className="mt-12">
+    <section>
       <h2 className="caps mb-3">Scenario planning</h2>
       <div className="grid gap-12 lg:grid-cols-2">
         <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />

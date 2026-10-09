@@ -31,7 +31,7 @@ export function WhatThisAssumes({
   const moving = robustness?.changing.length ?? 0;
   const overridden = ASSUMPTION_INPUTS.filter((i) => readInput(assumptions, i.id) !== readInput(DEFAULT_ASSUMPTIONS, i.id)).length;
   return (
-    <details className="mt-12">
+    <details>
       <summary className="cursor-pointer">
         <span className="caps">Assumptions behind these numbers</span>
         <span className="text-label text-slate-500">

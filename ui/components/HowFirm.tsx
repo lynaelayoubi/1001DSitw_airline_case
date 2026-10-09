@@ -39,7 +39,7 @@ export function checkNote(c: CloseCall): string {
  */
 export function HowFirm({ robustness: r, pending }: { robustness: Robustness | null; pending: boolean }) {
   return (
-    <section className={`mt-12 ${pending ? 'opacity-60' : ''}`}>
+    <section className={pending ? 'opacity-60' : ''}>
       <h2 className="caps mb-3">Check before acting</h2>
       {!r ? (
         <p className="text-slate-500">Checking which answers turn on an assumption…</p>

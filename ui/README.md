@@ -4,6 +4,23 @@
 why these screens, in SPEC §3's build order. Every figure on screen is read off a result
 object from `calc/`; the UI formats, it never calculates.
 
+## v2 · pages and roles
+
+The one long screen is four pages under a top navigation (`screens/Shell.tsx`, `components/Header.tsx`);
+the page lives in the address (#overview, #leases, #scenarios, #checklist), so a reload or the back
+button keeps it, with no routing library.
+- **Overview** (`screens/Overview.tsx`): the recommended actions, what acting now saves, the headline
+  money and the fleet table — nothing else. Opening an aircraft shows its detail as before, Show the
+  calculation included.
+- **Leases** (`screens/Leases.tsx`), **Scenarios** (`screens/Scenarios.tsx`) and **Return checklist**
+  (`screens/Checklist.tsx`) take what used to sit under the table.
+- **Viewing as** (`roles.ts`): Head of fleet and Analyst see every page; the Leasing team sees
+  Overview, Leases and the checklist; Maintenance planning sees Overview and the checklist. A role that
+  cannot see a page is taken to the Overview. No login: it shows the permissions, it does not enforce
+  them. The role is remembered in this browser (`store.ts`).
+- The lease slide-over still opens from any lessor name or clause reference, on any page, and "show
+  ENG2's row" or "show 9H-ZUU" opens that aircraft on the Overview.
+
 ## How it looks
 
 Calm, sparse, aligned. Defined once, in `index.css`:
