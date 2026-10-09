@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { fitToBudget } from '../calc/budget';
 import { DEFAULT_ASSUMPTIONS } from '../calc/constants';
@@ -9,38 +9,33 @@ import { leaseOf } from '../calc/lease';
 import { readiness } from '../calc/readiness';
 import { recommendFleet } from '../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../calc/robustness';
-import type { Assumptions, Dataset, Proposal } from '../calc/types';
-import { whatIf, whatIfChoices } from '../calc/whatif';
+import type { Dataset } from '../calc/types';
+import { whatIfChoices } from '../calc/whatif';
 import dataset from '../data/fleet.json';
 import { useDemo } from './demo';
 import Shell from './screens/Shell';
 
-// The only place the dataset is read. Everything on screen comes out of assessFleet and
-// recommendFleet, recomputed from the assumptions (any override) and from the leases as the leasing
-// team has corrected them (calc/corrections.ts — with no correction, the data as read). The head of
-// fleet's what-if is priced against that plan without replacing it, and the robustness sweep runs
-// in a worker and arrives a moment later.
+// The only place the dataset is read. Today's plan comes out of assessFleet and recommendFleet at the
+// default assumptions, on the leases as the leasing team has corrected them (calc/corrections.ts —
+// with no correction, the data as read). Nothing changes the assumptions behind it: a different world
+// belongs to a scenario (calc/scenario.ts), priced against this plan on the Scenarios page. The
+// robustness sweep runs in a worker and arrives a moment later.
 const asRead = dataset as unknown as Dataset;
 
 export default function App() {
   const { corrections } = useDemo();
   const data = useMemo(() => applyCorrections(asRead, corrections), [corrections]);
-  const [assumptions, setAssumptions] = useState<Assumptions>(DEFAULT_ASSUMPTIONS);
-  const live = useDeferredValue(assumptions);
   // The plan at rest is on the leases as read, so a row whose action a correction changes says what it was.
   const atRest = useMemo(() => recommendFleet(asRead, assessFleet(asRead, DEFAULT_ASSUMPTIONS), DEFAULT_ASSUMPTIONS), []);
-  const fleet = useMemo(() => assessFleet(data, live), [data, live]);
-  const plans = useMemo(() => recommendFleet(data, fleet, live), [data, fleet, live]);
+  const fleet = useMemo(() => assessFleet(data, DEFAULT_ASSUMPTIONS), [data]);
+  const plans = useMemo(() => recommendFleet(data, fleet, DEFAULT_ASSUMPTIONS), [data, fleet]);
   // A budget is a constraint on what to fund, not a model assumption; no limit until one is entered.
   const [budget, setBudget] = useState<number | null>(null);
   const budgetPlan = useMemo(() => fitToBudget(plans, budget ?? Infinity, data.asOf), [plans, budget, data]);
   const closing = useMemo(() => closingDecisions(plans, data.asOf), [plans, data]);
   const ready = useMemo(() => readiness(data, fleet, plans), [data, fleet, plans]);
-  // The head of fleet's own changes, against today's plan; the screen stays on today's plan.
-  const [proposals, setProposals] = useState<Proposal[]>([]);
-  const proposed = useDeferredValue(proposals);
+  // What a scenario's decisions can be, on each returning tail.
   const choices = useMemo(() => whatIfChoices(data, fleet), [data, fleet]);
-  const scenario = useMemo(() => (proposed.length ? whatIf(data, live, plans, proposed) : null), [data, live, plans, proposed]);
   // The lease behind any tail: as corrected (what the calculation uses), and as read.
   const leaseFor = useCallback((tail: string) => leaseOf(data, tail), [data]);
   const leaseAsRead = useCallback((tail: string) => leaseOf(asRead, tail), []);
@@ -58,17 +53,18 @@ export default function App() {
     return () => w.terminate();
   }, []);
   useEffect(() => {
-    // Ask again once the assumptions have been still for a moment: a dragged control should not queue a sweep per step.
+    // Sweep today's plan: at the default assumptions, on the leases as corrected. Ask again when a correction lands.
     const t = setTimeout(() => {
       asked.current += 1;
       setAskedId(asked.current);
-      worker.current?.postMessage({ id: asked.current, assumptions: live, corrections });
+      worker.current?.postMessage({ id: asked.current, assumptions: DEFAULT_ASSUMPTIONS, corrections });
     }, 250);
     return () => clearTimeout(t);
-  }, [live, corrections]);
+  }, [corrections]);
 
   return (
     <Shell
+      data={data}
       fleet={fleet}
       plans={plans}
       atRest={atRest}
@@ -80,14 +76,9 @@ export default function App() {
       budgetPlan={budgetPlan}
       closing={closing}
       choices={choices}
-      proposals={proposals}
-      onProposals={setProposals}
-      whatIf={scenario}
       leaseOf={leaseFor}
       leaseAsRead={leaseAsRead}
       readiness={ready}
-      assumptions={assumptions}
-      onAssumptions={setAssumptions}
     />
   );
 }

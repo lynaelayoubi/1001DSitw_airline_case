@@ -806,3 +806,14 @@ by the leasing team; maintenance people are told return dates late.
 | Owners | the certificates: Leasing team; programme compliance: Maintenance planning; the rest: Technical records | the customer's roles (`READINESS_OWNERS`) |
 | Starting status | To do; except an engine whose last shop visit the lease does not count, whose shop visit report starts Missing | from the maintenance record (QME status), the evidence the QME chase is after |
 | Who updates a status | the Leasing team and Maintenance planning, who gather the documents; each change goes into the activity log | v2 role switcher |
+
+## 21 · A scenario (v2, as built, `calc/scenario.ts`)
+
+| Item | Value | Source |
+|---|---|---|
+| Today's plan | the recommendation at the default assumptions, on the leases as corrected: what the Overview shows. Nothing on any page changes the assumptions behind it | — |
+| If the world changes like this | the recommendation re-run with the scenario's assumptions: today's plan re-made for that world, so an aircraft's action may change in it | the customer: "what if our costs go up, what if we renegotiate maintenance contracts" |
+| This scenario | the scenario's decisions applied to that plan by the what-if (`calc/whatif.ts`) | — |
+| A world change | any of the seven assumptions, held inside its evidenced range | §14 |
+| Ready-made | shop costs × 1.10; a renegotiated maintenance contract, shop costs × 0.91 — down 9%, not 10%, because × 0.91 is the floor of the evidence; flying × 1.05 (`SCENARIO_PRESETS`) | declared |
+| Why an aircraft changes | your decision on it; else the world, if it changes in the re-made plan; else a knock-on of another change | — |

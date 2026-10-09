@@ -645,6 +645,18 @@ export function costEstimateQuality() {
 export const COST_ESTIMATE_UNCERTAINTY = costEstimateQuality().uncertainty;
 
 /**
+ * Ready-made world changes for the scenario builder (calc/scenario.ts), each inside its evidenced
+ * range (ASSUMPTION_INPUTS). The customer asked "what if our costs go up, what if we renegotiate
+ * maintenance contracts". A renegotiated contract stops at shop costs down 9%: × 0.91 is the floor
+ * of the evidence (ASSUMPTIONS §14), so the button says 9%, not 10%.
+ */
+export const SCENARIO_PRESETS: { label: string; input: AssumptionInputId; value: number }[] = [
+  { label: 'Shop costs up 10%', input: 'maintenanceCost', value: 1.1 },
+  { label: 'Renegotiated maintenance contract: shop costs down 9%', input: 'maintenanceCost', value: 0.91 },
+  { label: 'Fly 5% more than plan', input: 'utilisation', value: 1.05 },
+];
+
+/**
  * The scenario panel at rest: every multiplier at 1, no extensions. Over-delivery bought at past shop
  * visits is not counted: it is sunk, so it is reported on its own line rather than in forward-looking
  * money (ASSUMPTIONS §8). A spare's life handed over still counts — that life leaves going forward.

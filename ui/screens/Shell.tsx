@@ -7,8 +7,8 @@ import type { Lease } from '../../calc/lease';
 import type { Readiness } from '../../calc/readiness';
 import type { FleetRecommendation } from '../../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../../calc/robustness';
-import type { Assumptions, Proposal } from '../../calc/types';
-import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
+import type { Dataset } from '../../calc/types';
+import type { TailChoices } from '../../calc/whatif';
 import { draftAssignment, type AssignmentDraft } from '../../calc/assign';
 import { AssignPanel } from '../components/AssignPanel';
 import { Header } from '../components/Header';
@@ -28,22 +28,19 @@ const pageFromHash = (): Page => {
 };
 
 export interface ScreenProps {
+  /** The data the plans are computed from: the leases as the leasing team has corrected them. */
+  data: Dataset;
   fleet: FleetExposure;
   plans: FleetRecommendation;
   atRest: FleetRecommendation;
   robustness: Robustness | null;
   extension: ExtensionEffects | null;
   robustnessPending: boolean;
-  assumptions: Assumptions;
-  onAssumptions: (a: Assumptions) => void;
   budget: number | null;
   onBudget: (b: number | null) => void;
   budgetPlan: BudgetPlan;
   closing: ClosingDecisions;
   choices: TailChoices[];
-  proposals: Proposal[];
-  onProposals: (p: Proposal[]) => void;
-  whatIf: WhatIfResult | null;
   leaseOf: (tail: string) => Lease | null;
   /** The lease as read, before any correction: what the leasing team reviews. */
   leaseAsRead: (tail: string) => Lease | null;

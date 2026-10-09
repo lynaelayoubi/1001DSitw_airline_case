@@ -3,9 +3,8 @@ import { useState } from 'react';
 import { LEASE_EXTENSION_CONTROL } from '../../calc/constants';
 import type { ExtensionEffects } from '../../calc/robustness';
 import type { Proposal } from '../../calc/types';
-import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
-import { date, money } from '../format';
-import { ClauseText } from './ClauseText';
+import type { TailChoices } from '../../calc/whatif';
+import { date } from '../format';
 
 /** The four decisions the customer controls. Not the seven assumptions: those are the world's, and the sweep moves them. */
 const KINDS: { kind: Proposal['kind']; label: string }[] = [
@@ -15,27 +14,13 @@ const KINDS: { kind: Proposal['kind']; label: string }[] = [
   { kind: 'return', label: 'Move its return date' },
 ];
 
-const signed = (n: number) => (Math.abs(n) < 0.5 ? 'no change' : `${n > 0 ? '+' : ''}${money(n)}`);
 const select = 'rounded-md border border-slate-200 bg-white px-2 py-1';
 
 /**
- * What if: the head of fleet proposes his own actions — several at once — and sees what they
- * change against today's plan, which stays on screen throughout (calc/whatif.ts). The output is
- * the difference. A proposal the model knows cannot happen is listed as refused, with the reason.
+ * A decision for the scenario: the head of fleet picks a tail and one of four actions, and adds it.
+ * Pricing, refusals and what it changes are the scenario builder's (calc/scenario.ts, calc/whatif.ts).
  */
-export function WhatIf({
-  choices,
-  proposals,
-  onProposals,
-  result,
-  extension,
-}: {
-  choices: TailChoices[];
-  proposals: Proposal[];
-  onProposals: (p: Proposal[]) => void;
-  result: WhatIfResult | null;
-  extension: ExtensionEffects | null;
-}) {
+export function DecisionPicker({ choices, extension, onAdd }: { choices: TailChoices[]; extension: ExtensionEffects | null; onAdd: (p: Proposal) => void }) {
   const [tail, setTail] = useState(choices[0]?.tail ?? '');
   const [kind, setKind] = useState<Proposal['kind']>('swap');
   const c = choices.find((x) => x.tail === tail);
@@ -58,41 +43,7 @@ export function WhatIf({
           ))}
         </select>
       </div>
-      {c && <Details key={`${c.tail}:${kind}`} c={c} kind={kind} extension={extension} onAdd={(p) => onProposals([...proposals, p])} />}
-
-      {proposals.length > 0 && (
-        <div className="mt-6 rounded-lg border border-slate-200 px-4 py-3">
-          <div className="flex items-baseline justify-between">
-            <span className="caps">Your changes</span>
-            <button className="link text-label" onClick={() => onProposals([])}>
-              Clear — back to today's plan
-            </button>
-          </div>
-          <ul className="mt-2 space-y-1">
-            {proposals.map((p, k) => {
-              const r = result?.proposals[k];
-              const instead = r && !r.refused && p.kind !== 'return' ? result!.changed.find((x) => x.tail === p.tail)?.from : undefined;
-              return (
-                <li key={k} className="flex gap-2">
-                  <button className="text-slate-400 hover:text-slate-900" aria-label="Remove this change" onClick={() => onProposals(proposals.filter((_, j) => j !== k))}>
-                    ×
-                  </button>
-                  <span>
-                    <span className="font-medium">{p.tail}</span> {r ? (r.refused ? r.asked : r.label) : '…'}
-                    {r?.refused && (
-                      <span className="block text-label font-medium">
-                        Refused: <ClauseText tail={p.tail} text={r.refused} />
-                      </span>
-                    )}
-                    {instead && <span className="block text-label text-slate-500">instead of {instead}</span>}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-          {result && <Difference result={result} />}
-        </div>
-      )}
+      {c && <Details key={`${c.tail}:${kind}`} c={c} kind={kind} extension={extension} onAdd={onAdd} />}
     </div>
   );
 }
@@ -208,52 +159,6 @@ function Details({ c, kind, extension, onAdd }: { c: TailChoices; kind: Proposal
                 .join('; ')}.`}
         </p>
       )}
-    </div>
-  );
-}
-
-/** Today's plan beside the plan with the changes: exposure, spend, all-in, and the tails whose action changes. */
-function Difference({ result }: { result: WhatIfResult }) {
-  if (result.applied === 0) return <p className="mt-3 text-label text-slate-500">Nothing applied: today's plan stands.</p>;
-  // Your own actions are listed above, with what each replaces; below, the tails that change as a result — a moved return date's included.
-  const knockOn = result.changed.filter((x) => !result.scenario.byTail[x.tail]?.proposed);
-  const rows = [
-    { label: 'Still owed at handback', d: result.owed },
-    { label: 'Maintenance spend', d: result.spend },
-    { label: 'All-in, with downtime', d: result.allIn },
-  ];
-  return (
-    <div className="mt-6">
-      <table className="w-full tabular-nums">
-        <thead className="caps">
-          <tr className="border-b border-slate-200">
-            <th className="pb-2 text-left font-medium">Against today's plan</th>
-            <th className="pb-2 text-right font-medium">Today</th>
-            <th className="pb-2 text-right font-medium">With yours</th>
-            <th className="pb-2 text-right font-medium">Change</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(({ label, d }) => (
-            <tr key={label} className="border-t border-slate-100 first:border-t-0">
-              <td className="py-2">{label}</td>
-              <td className="py-2 text-right text-slate-500">{money(d.before)}</td>
-              <td className="py-2 text-right">{money(d.after)}</td>
-              <td className={`py-2 text-right ${Math.abs(d.change) > 0.5 ? 'font-medium' : 'text-slate-500'}`}>{signed(d.change)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="mt-3 text-label text-slate-500">
-        {knockOn.length === 0 ? 'No other tail changes its action.' : `${knockOn.length} ${knockOn.length === 1 ? 'tail changes its' : 'tails change their'} action as a result:`}
-      </div>
-      <ul className="mt-1 space-y-1">
-        {knockOn.map((x) => (
-          <li key={x.tail}>
-            <span className="font-medium">{x.tail}</span> <span className="text-slate-500">{x.from}</span> → <span className="font-medium">{x.to}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

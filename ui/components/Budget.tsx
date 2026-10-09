@@ -1,46 +1,13 @@
 import type { BudgetPlan } from '../../calc/budget';
-import type { ExtensionEffects } from '../../calc/robustness';
-import type { Proposal } from '../../calc/types';
-import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { date, decideBy, money } from '../format';
-import { WhatIf } from './WhatIf';
 
-/**
- * What you can do: the head of fleet's own decisions, under the recommended actions and the
- * tails they rest on. A what-if of his own actions against today's plan, and this year's budget.
- */
-export function WhatYouCanDo({
-  extension,
-  choices,
-  proposals,
-  onProposals,
-  whatIf,
-  budget,
-  onBudget,
-  budgetPlan,
-  asOf,
-}: {
-  extension: ExtensionEffects | null;
-  choices: TailChoices[];
-  proposals: Proposal[];
-  onProposals: (p: Proposal[]) => void;
-  whatIf: WhatIfResult | null;
-  budget: number | null;
-  onBudget: (b: number | null) => void;
-  budgetPlan: BudgetPlan;
-  asOf: string;
-}) {
+/** This year's budget, as a section of its own on the Scenarios page: against today's plan. */
+export function BudgetSection({ budget, onBudget, plan, asOf }: { budget: number | null; onBudget: (b: number | null) => void; plan: BudgetPlan; asOf: string }) {
   return (
     <section>
-      <h2 className="caps mb-2">Your decisions</h2>
-      <p className="mb-6 text-slate-500">
-        Try your own actions — swap a part, send one to the shop, change a route, move a return date — and see what they change against today's plan. The plan on
-        the Overview stays as it is until you act.
-      </p>
-      <div className="grid gap-12 lg:grid-cols-2">
-        <WhatIf choices={choices} proposals={proposals} onProposals={onProposals} result={whatIf} extension={extension} />
-        <Budget budget={budget} onBudget={onBudget} plan={budgetPlan} asOf={asOf} />
-      </div>
+      <h2 className="caps mb-2">This year's budget</h2>
+      <p className="mb-3 text-slate-500">What a maintenance budget funds of today's plan, and what leaving the rest out would cost.</p>
+      <Budget budget={budget} onBudget={onBudget} plan={plan} asOf={asOf} />
     </section>
   );
 }

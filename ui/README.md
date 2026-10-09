@@ -47,13 +47,18 @@ a sample, and the screen says so. Other roles see the leases read-only.
 
 ### Scenarios (v2)
 
-`screens/Scenarios.tsx`, in two parts. **Your decisions** (`components/WhatYouCanDo.tsx`): the what-if —
-swap a part, send one to the shop, change a route, move a return date — priced against today's plan,
-and the maintenance budget. **The world** (`components/WhatThisAssumes.tsx`, now open): every
-assumption with its value, evidenced range, where the real number lives, whether it changes an
-answer, and an override that recomputes everything, the Overview included. Then **Confirm before you
-act** (`components/HowFirm.tsx`), with one sentence saying what it means; the same note on an action
-row reads "Confirm before you act: …".
+`screens/Scenarios.tsx` is one **scenario builder** (`components/ScenarioBuilder.tsx`, `calc/scenario.ts`):
+changes in the world — any of the seven assumptions, set inside its evidenced range, or one of three
+ready-made ones ("Shop costs up 10%", "Renegotiated maintenance contract: shop costs down 9%", "Fly 5%
+more than plan") — and decisions (swap, shop visit, route, return date, `components/WhatIf.tsx`) in one
+list. **The result** shows three totals side by side — today's plan; today's plan re-made for the
+scenario's world; and the scenario, world and decisions together — then the aircraft whose
+recommendation changes, from what to what, and why: the world, your decision, or a knock-on. A
+scenario never changes today's plan: the Overview is always at the default assumptions, and no control
+on any page overrides them. Under the builder, **Show the evidence** (`components/Evidence.tsx`) folds
+the assumptions table — what today's plan uses, the evidenced range, where the real number lives,
+whether it changes an answer; then **Confirm before you act**; then **This year's budget**
+(`components/Budget.tsx`), against today's plan.
 
 ### Return checklist (v2)
 

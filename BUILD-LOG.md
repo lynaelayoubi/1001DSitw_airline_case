@@ -1195,3 +1195,23 @@ React took it for a cleanup function and crashed on leaving a lease. The effect 
 · Rejected: only the one-line fix. · Because a blank screen in front of a room is the worst failure a
 demo can have: each page now sits behind an error boundary that says the page could not be shown and
 offers Reload or Reset demo and reload, with the header still there.
+
+## Step 25 · v2, one scenario builder — Friday 9 October
+
+**One scenario mixes changes in the world with the head of fleet's decisions; the result shows today's
+plan, today's plan re-made for that world, and the scenario, side by side, with the aircraft that
+change and why. A scenario never changes today's plan: the global assumption override is gone.** ·
+Rejected: decisions as a what-if against today's plan beside assumption overrides that replaced it.
+· Because the customer asked for the assumptions inside scenario planning — "what if our costs go up,
+what if we renegotiate maintenance contracts" — and two controls that worked on different plans could
+not answer "both at once". Computed by re-running the recommendation with the scenario's assumptions,
+then applying the decisions with the what-if, both against today's plan at the defaults (tested: an
+empty scenario is today's plan; a world change alone moves the second and third totals equally; the
+headline defaults hold). The renegotiated-contract button says "down 9%": × 0.91 is the floor of the
+evidence, so 10% would leave it. The evidence table is folded under "Show the evidence", read only.
+
+**The result shows all-in, still owed and maintenance spend — not "if nothing changes".** · Rejected:
+an "if nothing changes" row. · Because a decision that swaps an engine to the pool on a tail whose
+plan weighed no options (one with nothing to decide) makes that tail's do-nothing count the engine's
+life — life counted the same way in every option, applied to an option the plan never weighed — so the row would move with a
+decision, which it should not.

@@ -8,6 +8,7 @@ import type { MaintenanceRequest } from '../calc/assign';
 import type { Correction } from '../calc/corrections';
 import type { DocumentStatus } from '../calc/documents';
 import type { LeaseTerm } from '../calc/lease';
+import { EMPTY_SCENARIO, type Scenario } from '../calc/scenario';
 import { roleLabel, type Role } from './roles';
 import { usePersisted } from './store';
 
@@ -89,6 +90,9 @@ interface Demo {
   /** Redelivery documents moved on from where they started, by document id. */
   docs: Record<string, DocumentStatus>;
   setDoc: (id: string, status: DocumentStatus) => void;
+  /** The scenario being built on the Scenarios page. It never changes today's plan. */
+  scenario: Scenario;
+  setScenario: (s: Scenario) => void;
   reset: () => void;
 }
 
@@ -101,6 +105,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [reviews, setReviews] = usePersisted<Record<string, LeaseReview>>('reviews', {});
   const [added, setAdded] = usePersisted<AddedLease[]>('added-leases', []);
   const [docs, setDocs] = usePersisted<Record<string, DocumentStatus>>('documents', {});
+  const [scenario, setScenario] = usePersisted<Scenario>('scenario', EMPTY_SCENARIO);
   const corrections = useMemo<Correction[]>(
     () =>
       Object.entries(reviews).flatMap(([tail, r]) =>
@@ -165,7 +170,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       corrections,
       docs,
       setDoc: (id, status) => setDocs((d) => ({ ...d, [id]: status })),
+      scenario,
+      setScenario,
       reset: () => {
+        setScenario(EMPTY_SCENARIO);
         setAssignments({});
         setLog([]);
         setReviews({});
@@ -173,7 +181,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         setDocs({});
       },
     };
-  }, [role, setRole, assignments, setAssignments, log, setLog, reviews, setReviews, added, setAdded, corrections, docs, setDocs]);
+  }, [role, setRole, assignments, setAssignments, log, setLog, reviews, setReviews, added, setAdded, corrections, docs, setDocs, scenario, setScenario]);
   return <DemoContext.Provider value={demo}>{children}</DemoContext.Provider>;
 }
 
