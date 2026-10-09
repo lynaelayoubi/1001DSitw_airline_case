@@ -6,6 +6,8 @@ import type { LeverOption } from '../../calc/levers';
 import { actionOf, type TailPlan } from '../../calc/recommend';
 import { conditionAnchor } from '../../calc/lease';
 import type { ReadinessItem } from '../../calc/readiness';
+import type { AssignmentDraft } from '../../calc/assign';
+import { ActivityLog } from '../components/ActivityLog';
 import { Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
 import { TailReadiness } from '../components/Readiness';
@@ -36,12 +38,16 @@ export default function Overview({
   open,
   onOpen,
   flash,
+  drafts,
+  onAssign,
 }: Pick<ScreenProps, 'fleet' | 'plans' | 'atRest' | 'robustness' | 'budget' | 'budgetPlan' | 'closing' | 'readiness'> & {
   showAll: boolean;
   onShowAll: (v: boolean) => void;
   open: string | null;
   onOpen: (tail: string | null) => void;
   flash: string | null;
+  drafts: Record<string, AssignmentDraft>;
+  onAssign: (d: AssignmentDraft) => void;
 }) {
   const rows = useMemo(() => {
     // Ranked by the figure each row shows if nothing changes: on a forced tail, acting late.
@@ -61,7 +67,7 @@ export default function Overview({
         </p>
       </div>
 
-      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} />
+      <RecommendedActions closing={closing} totals={plans.totals} checks={robustness?.checks ?? []} asOf={fleet.asOf} drafts={drafts} onAssign={onAssign} />
       <Headline fleet={fleet} plans={plans} />
 
       <div className="mt-12 flex flex-wrap items-end justify-between gap-6">
@@ -114,6 +120,8 @@ export default function Overview({
           </tbody>
         </table>
       </div>
+
+      <ActivityLog />
     </>
   );
 }

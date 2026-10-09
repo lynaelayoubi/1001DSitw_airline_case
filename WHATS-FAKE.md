@@ -78,6 +78,16 @@ contractual money sits. **But it is a real gap**, and it cuts both ways: a condi
 removal is an *opportunity*, because the engine is in the shop anyway and the return-condition
 work then only costs the delta. That is on the "what I'd build next" list.
 
+## v2 previews — simulated, and labelled "Preview: nothing leaves the app" on screen
+
+- **Sending an action.** "Assign and notify" drafts a real message and a real maintenance request
+  from the recommendation, but nothing is sent: no email, no call to a maintenance system. The
+  action is marked Sent, Accepted and Done in this browser, and the activity log records who did what.
+- **Where that state lives.** Assignments, statuses and the activity log are kept in this browser's
+  local storage, nowhere else: another browser or another person sees none of it. Reset demo clears it.
+- **Roles.** "Viewing as" switches what is shown and who may change what; there is no login, and
+  nothing is enforced beyond the screen.
+
 ## Simplified rather than faked
 
 - **Reserves.** Modelled as a reclaimable percentage. Real agreements are far more specific

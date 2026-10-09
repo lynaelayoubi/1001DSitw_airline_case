@@ -1,7 +1,9 @@
+import { useDemo } from '../demo';
 import { PAGES, ROLES, canSee, type Page, type Role } from '../roles';
 
 /** The name, the pages this role can see, and who is looking. */
 export function Header({ page, role, onPage, onRole }: { page: Page; role: Role; onPage: (p: Page) => void; onRole: (r: Role) => void }) {
+  const demo = useDemo();
   return (
     <header className="mb-12">
       <div className="flex flex-wrap items-end justify-between gap-6">
@@ -16,6 +18,11 @@ export function Header({ page, role, onPage, onRole }: { page: Page; role: Role;
             ))}
           </select>
         </label>
+      </div>
+      <div className="mt-2 flex justify-end">
+        <button className="link text-label" onClick={demo.reset} title="Clear every assignment, review and status made in this browser, and start the demo again.">
+          Reset demo
+        </button>
       </div>
       <nav className="mt-6 flex gap-6 border-b border-slate-200">
         {PAGES.filter((p) => canSee(role, p.id)).map((p) => (

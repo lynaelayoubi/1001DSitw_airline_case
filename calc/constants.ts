@@ -263,6 +263,22 @@ export const READINESS_OWNERS = {
   leasing: 'Leasing team',
   records: 'Technical records',
   finance: 'Finance',
+  network: 'Network planning',
+} as const;
+
+/**
+ * Who a recommended action is assigned to by default, by its lever (calc/assign.ts): the work —
+ * a shop visit, a swap, a spare covering, an aircraft on the ground — to maintenance planning; a
+ * route change to network planning, the team that sets the schedule. Prefilled, never fixed: the
+ * head of fleet can pick another owner. A declared default, not from the customer.
+ */
+export const ASSIGN_OWNER_BY_LEVER = {
+  pay: READINESS_OWNERS.finance,
+  L1: READINESS_OWNERS.planning,
+  L2: READINESS_OWNERS.network,
+  L3: READINESS_OWNERS.planning,
+  L4: READINESS_OWNERS.planning,
+  ground: READINESS_OWNERS.planning,
 } as const;
 
 /**

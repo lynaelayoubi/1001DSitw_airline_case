@@ -1123,3 +1123,14 @@ showing every page to everyone. · Because it demonstrates the permissions the c
 without pretending to authenticate anyone. Head of fleet and Analyst see all four; the Leasing team
 Overview, Leases and the checklist; Maintenance planning Overview and the checklist. No calc change:
 the headline figures are as on `main`.
+
+## Step 20 · v2, every recommendation can be acted on — Friday 9 October
+
+**"Assign and notify" on every recommended action: owner, due date and a plain-English message
+prefilled from the recommendation, or the same thing as a structured maintenance request; then Open →
+Sent → Accepted → Done, and an activity log on the Overview.** · Rejected: a bare "mark as done", and
+a message written in the UI. · Because the customer said "there's no way I can actually act on
+anything"; the draft is a pure function in `calc/assign.ts`, tested, so every figure in a message is
+the recommendation's. Route changes go to Network planning by default — the customer's owner list has
+no routing team. Nothing is sent: labelled on screen and in WHATS-FAKE. State lives in this browser's
+local storage, so a reload keeps it and Reset demo clears it.

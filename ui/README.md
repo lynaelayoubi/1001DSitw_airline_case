@@ -21,6 +21,17 @@ button keeps it, with no routing library.
 - The lease slide-over still opens from any lessor name or clause reference, on any page, and "show
   ENG2's row" or "show 9H-ZUU" opens that aircraft on the Overview.
 
+### Acting on a recommendation (v2)
+
+Every recommended action carries its status: **Open** until it is assigned, then **Sent**, **Accepted**
+and **Done**, with its owner, channel, due date and when it last moved. **Assign and notify**
+(`components/AssignPanel.tsx`) slides in with the owner, due date and message prefilled from the
+recommendation (`calc/assign.ts`) — or, for a maintenance request, the structured request as the
+system would receive it. Sending is marked "Preview: nothing leaves the app". The **activity log**
+(`components/ActivityLog.tsx`) closes the Overview: who did what, when. The Head of fleet and the
+Analyst assign; the owner's role accepts and marks done. It lives in this browser (`demo.tsx`), and
+**Reset demo**, under the role switcher, clears it.
+
 ## How it looks
 
 Calm, sparse, aligned. Defined once, in `index.css`:

@@ -776,3 +776,14 @@ return date:
 Owners are roles (`READINESS_OWNERS`), named in the customer's terms: return conditions are owned
 by the leasing team; maintenance people are told return dates late.
 
+
+## 18 · Assigning a recommended action (v2, as built, `calc/assign.ts`)
+
+| Item | Value | Source |
+|---|---|---|
+| Owner, prefilled | a shop visit, a swap, a spare covering, an aircraft on the ground: **Maintenance planning**; a route change: **Network planning** (`ASSIGN_OWNER_BY_LEVER`) | declared, not from the customer: the team that books the work, and the team that sets the schedule. The head of fleet can pick another owner |
+| Due date, prefilled | the action's decide-by date; today for an action with no deadline (a route change: every month of waiting loses money) or a notice that no longer fits; the day the aircraft goes down for one on the ground | `calc/deadlines.ts` |
+| The message | what to do and by when; why, in dollars (against acting late where a part runs out, against paying at handback otherwise, and what each month of waiting loses); the return condition behind it, with its clause; the notice the lessor needs (12.3(b)), the replacement test (12.2) or the temporary-install clause (12.3(c)) where they apply | every figure from the recommendation; the person can edit it before sending |
+| The maintenance request | aircraft, component and serial, action, due date, reason, lease reference, owner | the same draft, as fields a maintenance system would take |
+| Sending | **nothing is sent**: the action is marked Sent with its owner, channel and date, and logged | a preview, labelled on screen; WHATS-FAKE.md |
+| Who can assign; who moves it on | the Head of fleet and the Analyst assign; the owner's role accepts and marks it done. Technical records and Network planning have no seat in the role switcher, so the Head of fleet records it on their behalf, and the log says so | v2 role switcher (`ui/roles.ts`) |

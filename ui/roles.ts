@@ -21,3 +21,14 @@ export const ROLES: { id: Role; label: string; pages: Page[] }[] = [
 export const roleLabel = (r: Role) => ROLES.find((x) => x.id === r)!.label;
 export const canSee = (r: Role, p: Page) => ROLES.find((x) => x.id === r)!.pages.includes(p);
 export const isPage = (s: string): s is Page => PAGES.some((p) => p.id === s);
+
+/** Who can assign a recommended action and notify its owner: the people who decide. */
+export const canAssign = (r: Role) => r === 'head' || r === 'analyst';
+
+const ROLE_FOR_OWNER: Record<string, Role> = { 'Maintenance planning': 'planning', 'Leasing team': 'leasing' };
+/**
+ * Who moves an assigned action to Accepted and Done: its owner. Technical records and Network
+ * planning have no seat in the switcher, so for them the head of fleet records it, on their behalf.
+ */
+export const canProgress = (r: Role, owner: string) => (ROLE_FOR_OWNER[owner] ? ROLE_FOR_OWNER[owner] === r : r === 'head');
+export const onBehalf = (r: Role, owner: string) => !ROLE_FOR_OWNER[owner] && r === 'head';

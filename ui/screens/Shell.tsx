@@ -9,11 +9,13 @@ import type { FleetRecommendation } from '../../calc/recommend';
 import type { ExtensionEffects, Robustness } from '../../calc/robustness';
 import type { Assumptions, Proposal } from '../../calc/types';
 import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
+import { draftAssignment, type AssignmentDraft } from '../../calc/assign';
+import { AssignPanel } from '../components/AssignPanel';
 import { Header } from '../components/Header';
 import { LeaseView } from '../components/LeaseView';
 import { LeaseLinksContext } from '../leaseLinks';
-import { canSee, isPage, type Page, type Role } from '../roles';
-import { usePersisted } from '../store';
+import { useDemo } from '../demo';
+import { canSee, isPage, type Page } from '../roles';
 import Checklist from './Checklist';
 import Leases from './Leases';
 import Overview from './Overview';
@@ -51,8 +53,8 @@ export interface ScreenProps {
  * the lease slide-over from a clause reference, and an aircraft on the Overview.
  */
 export default function Shell(props: ScreenProps) {
-  const { leaseOf } = props;
-  const [role, setRole] = usePersisted<Role>('role', 'head');
+  const { leaseOf, closing, plans, fleet } = props;
+  const { role, setRole } = useDemo();
   const [page, setPage] = useState<Page>(pageFromHash);
   useEffect(() => {
     const on = () => setPage(pageFromHash());
@@ -92,17 +94,31 @@ export default function Shell(props: ScreenProps) {
   const links = useMemo(() => ({ leaseOf, open: (tail: string, anchor?: string) => setLease({ tail, anchor }) }), [leaseOf]);
   const shown = lease ? leaseOf(lease.tail) : null;
 
+  // Each recommended action, drafted for assigning (calc/assign.ts), and the one being assigned.
+  const drafts = useMemo(() => {
+    const out: Record<string, AssignmentDraft> = {};
+    for (const x of closing.items) {
+      const t = fleet.returning.find((r) => r.tail === x.tail);
+      const l = leaseOf(x.tail);
+      const p = plans.byTail[x.tail];
+      if (t && l && p) out[x.tail] = draftAssignment(x, p, t, l, fleet.asOf);
+    }
+    return out;
+  }, [closing, plans, fleet, leaseOf]);
+  const [assigning, setAssigning] = useState<AssignmentDraft | null>(null);
+
   return (
     <LeaseLinksContext.Provider value={links}>
       <main className="mx-auto max-w-[1440px] px-4 py-12 md:px-8">
         <Header page={shownPage} role={role} onPage={go} onRole={setRole} />
         {shownPage === 'overview' && (
-          <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} />
+          <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={setAssigning} />
         )}
         {shownPage === 'leases' && <Leases fleet={props.fleet} leaseOf={leaseOf} onShowTail={showTail} />}
         {shownPage === 'scenarios' && <Scenarios {...props} />}
         {shownPage === 'checklist' && <Checklist readiness={props.readiness} onShowTail={showTail} />}
       </main>
+      {assigning && <AssignPanel draft={assigning} onClose={() => setAssigning(null)} />}
       {lease && shown && (
         <LeaseView
           lease={shown}

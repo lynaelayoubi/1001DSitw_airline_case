@@ -1,6 +1,9 @@
 import type { ClosingDecisions, Closing } from '../../calc/deadlines';
 import type { FleetRecommendation } from '../../calc/recommend';
 import type { CloseCall } from '../../calc/robustness';
+import type { AssignmentDraft } from '../../calc/assign';
+import { STATUS_WORD, moment, useDemo } from '../demo';
+import { canAssign, canProgress, onBehalf, roleLabel } from '../roles';
 import { checkNote } from './HowFirm';
 import { date, decideBy, money } from '../format';
 
@@ -27,11 +30,15 @@ export function RecommendedActions({
   totals: r,
   checks,
   asOf,
+  drafts,
+  onAssign,
 }: {
   closing: ClosingDecisions;
   totals: FleetRecommendation['totals'];
   checks: CloseCall[];
   asOf: string;
+  drafts: Record<string, AssignmentDraft>;
+  onAssign: (d: AssignmentDraft) => void;
 }) {
   return (
     <section className="grid gap-x-12 gap-y-12 lg:grid-cols-12">
@@ -50,6 +57,7 @@ export function RecommendedActions({
                     {checks.some((c) => c.tail === x.tail) && (
                       <div className="mt-1 text-label text-slate-500">Check before acting: {checkNote(checks.find((c) => c.tail === x.tail)!)}</div>
                     )}
+                    {drafts[x.tail] && <ActionStatus draft={drafts[x.tail]!} onAssign={onAssign} />}
                   </td>
                   <td className="py-2 pr-6 whitespace-nowrap">
                     {x.grounded ? (
@@ -94,5 +102,51 @@ export function RecommendedActions({
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * Where an action stands: Open until it is assigned, then Sent, Accepted and Done, with its owner and
+ * the date of the last step. Whoever decides can assign it; its owner moves it on.
+ */
+function ActionStatus({ draft, onAssign }: { draft: AssignmentDraft; onAssign: (d: AssignmentDraft) => void }) {
+  const demo = useDemo();
+  const a = demo.assignments[draft.id];
+  const step = (status: 'accepted' | 'done', verb: string) => () => {
+    demo.advance(draft.id, status);
+    demo.record(`${roleLabel(demo.role)} ${verb} ${draft.tail}: ${draft.action}${onBehalf(demo.role, a!.owner) ? `, on behalf of ${a!.owner}` : ''}.`);
+  };
+  if (!a)
+    return (
+      <div className="mt-1 flex flex-wrap items-baseline gap-3 text-label">
+        <span className="font-medium text-slate-500">{STATUS_WORD.open}</span>
+        {canAssign(demo.role) ? (
+          <button className="link" onClick={() => onAssign(draft)}>
+            Assign and notify
+          </button>
+        ) : (
+          <span className="text-slate-500">not yet assigned</span>
+        )}
+      </div>
+    );
+  const last = a.history[a.history.length - 1]!;
+  const mine = canProgress(demo.role, a.owner);
+  return (
+    <div className="mt-1 flex flex-wrap items-baseline gap-3 text-label">
+      <span className="font-medium">{STATUS_WORD[a.status]}</span>
+      <span className="text-slate-500">
+        {a.owner} · {a.channel === 'email' ? 'email' : 'maintenance request'} · due {date(a.due)} · {moment(last.at)}
+      </span>
+      {mine && a.status === 'sent' && (
+        <button className="link" onClick={step('accepted', 'accepted')}>
+          Accept{onBehalf(demo.role, a.owner) ? ` for ${a.owner}` : ''}
+        </button>
+      )}
+      {mine && a.status === 'accepted' && (
+        <button className="link" onClick={step('done', 'marked done')}>
+          Mark done{onBehalf(demo.role, a.owner) ? ` for ${a.owner}` : ''}
+        </button>
+      )}
+    </div>
   );
 }
