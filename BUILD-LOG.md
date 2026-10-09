@@ -1188,3 +1188,10 @@ file is dragged over, turns away anything that is not a PDF, and shows the file 
 filling bar.** · Rejected: the browser's bare file input, which did not look like somewhere to add a
 lease. · Because the flow is the point of the preview. Still labelled "Preview: nothing leaves the
 app"; the file is still not read.
+
+**Fixed a white screen on the Leases page, and put every page behind a guard.** A scroll-to-top
+effect was written as `() => window.scrollTo(…)`: current Chrome returns a promise from scrollTo, so
+React took it for a cleanup function and crashed on leaving a lease. The effect now returns nothing.
+· Rejected: only the one-line fix. · Because a blank screen in front of a room is the worst failure a
+demo can have: each page now sits behind an error boundary that says the page could not be shown and
+offers Reload or Reset demo and reload, with the header still there.

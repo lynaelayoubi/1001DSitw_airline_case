@@ -12,6 +12,7 @@ import type { TailChoices, WhatIf as WhatIfResult } from '../../calc/whatif';
 import { draftAssignment, type AssignmentDraft } from '../../calc/assign';
 import { AssignPanel } from '../components/AssignPanel';
 import { Header } from '../components/Header';
+import { PageGuard } from '../components/PageGuard';
 import { LeaseView } from '../components/LeaseView';
 import { LeaseLinksContext } from '../leaseLinks';
 import { useDemo } from '../demo';
@@ -113,12 +114,15 @@ export default function Shell(props: ScreenProps) {
     <LeaseLinksContext.Provider value={links}>
       <main className="mx-auto max-w-[1440px] px-4 py-12 md:px-8">
         <Header page={shownPage} role={role} onPage={go} onRole={setRole} />
-        {shownPage === 'overview' && (
-          <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={setAssigning} />
-        )}
-        {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
-        {shownPage === 'scenarios' && <Scenarios {...props} />}
-        {shownPage === 'checklist' && <Checklist fleet={props.fleet} readiness={props.readiness} onShowTail={showTail} />}
+        {/* Each page behind its own guard: a page that fails says so, and the header stays. */}
+        <PageGuard key={shownPage}>
+          {shownPage === 'overview' && (
+            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={setAssigning} />
+          )}
+          {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
+          {shownPage === 'scenarios' && <Scenarios {...props} />}
+          {shownPage === 'checklist' && <Checklist fleet={props.fleet} readiness={props.readiness} onShowTail={showTail} />}
+        </PageGuard>
       </main>
       {assigning && <AssignPanel draft={assigning} onClose={() => setAssigning(null)} />}
       {lease && shown && (

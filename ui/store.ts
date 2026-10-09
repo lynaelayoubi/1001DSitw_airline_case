@@ -26,7 +26,9 @@ function writeStored(key: string, value: unknown) {
 /** useState that survives a reload. */
 export function usePersisted<T>(key: string, initial: T): [T, (v: T | ((prev: T) => T)) => void] {
   const [value, setValue] = useState<T>(() => readStored(key, initial));
-  useEffect(() => writeStored(key, value), [key, value]);
+  useEffect(() => {
+    writeStored(key, value);
+  }, [key, value]);
   const set = useCallback((v: T | ((prev: T) => T)) => setValue(v), []);
   return [value, set];
 }

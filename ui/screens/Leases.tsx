@@ -28,7 +28,9 @@ export default function Leases({ fleet, leaseAsRead, onShowTail }: { fleet: Flee
   const [selected, setSelected] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   // A lease opens at its top, wherever the list was scrolled.
-  useEffect(() => window.scrollTo({ top: 0 }), [selected]);
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [selected]);
   // An in-service aircraft's lease stands in for an uploaded one in this preview.
   const sampleTail = fleet.tails.find((t) => t.status !== 'returning')?.tail ?? fleet.returning[0]!.tail;
   const rows = [
