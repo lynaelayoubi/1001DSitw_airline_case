@@ -33,13 +33,16 @@ export function ScenarioBuilder({
   result,
   pending,
   choices,
+  cleared,
   extension,
 }: {
   scenario: Scenario;
   onScenario: (s: Scenario) => void;
   result: ScenarioResult;
   pending: boolean;
+  /** The aircraft a decision can be taken on, and the cleared ones, shown but not offered. */
   choices: TailChoices[];
+  cleared: string[];
   extension: ExtensionEffects | null;
 }) {
   const [id, setId] = useState<AssumptionInputId>('maintenanceCost');
@@ -97,7 +100,7 @@ export function ScenarioBuilder({
 
         <div className="flex flex-wrap items-start gap-2">
           <span className="caps mt-1.5 mr-1">Your decisions</span>
-          <DecisionPicker choices={choices} extension={extension} onAdd={(p: Proposal) => onScenario({ ...scenario, decisions: [...scenario.decisions, p] })} />
+          <DecisionPicker choices={choices} cleared={cleared} extension={extension} onAdd={(p: Proposal) => onScenario({ ...scenario, decisions: [...scenario.decisions, p] })} />
         </div>
       </div>
 

@@ -51,7 +51,8 @@ a sample, and the screen says so. Other roles see the leases read-only.
 changes in the world — any of the seven assumptions, set inside its evidenced range, or one of three
 ready-made ones ("Shop costs up 10%", "Renegotiated maintenance contract: shop costs down 9%", "Fly 5%
 more than plan") — and decisions (swap, shop visit, route, return date, `components/WhatIf.tsx`) in one
-list. **The result** shows three totals side by side — today's plan; today's plan re-made for the
+list. Aircraft with nothing to decide are listed in the picker as "Cleared: nothing to decide" and not
+offered: a decision on one cannot be priced fairly yet (WHATS-FAKE.md). **The result** shows three totals side by side — today's plan; today's plan re-made for the
 scenario's world; and the scenario, world and decisions together — then the aircraft whose
 recommendation changes, from what to what, and why: the world, your decision, or a knock-on. A
 scenario never changes today's plan: the Overview is always at the default assumptions, and no control

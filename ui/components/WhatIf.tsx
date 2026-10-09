@@ -18,9 +18,21 @@ const select = 'rounded-md border border-slate-200 bg-white px-2 py-1';
 
 /**
  * A decision for the scenario: the head of fleet picks a tail and one of four actions, and adds it.
- * Pricing, refusals and what it changes are the scenario builder's (calc/scenario.ts, calc/whatif.ts).
+ * Aircraft with nothing to decide are shown, but not offered: "Cleared: nothing to decide"
+ * (calc/scenario.ts, decisionChoices). Pricing, refusals and what it changes are the scenario
+ * builder's (calc/scenario.ts, calc/whatif.ts).
  */
-export function DecisionPicker({ choices, extension, onAdd }: { choices: TailChoices[]; extension: ExtensionEffects | null; onAdd: (p: Proposal) => void }) {
+export function DecisionPicker({
+  choices,
+  cleared,
+  extension,
+  onAdd,
+}: {
+  choices: TailChoices[];
+  cleared: string[];
+  extension: ExtensionEffects | null;
+  onAdd: (p: Proposal) => void;
+}) {
   const [tail, setTail] = useState(choices[0]?.tail ?? '');
   const [kind, setKind] = useState<Proposal['kind']>('swap');
   const c = choices.find((x) => x.tail === tail);
@@ -34,6 +46,11 @@ export function DecisionPicker({ choices, extension, onAdd }: { choices: TailCho
               {x.tail} · {x.type}
             </option>
           ))}
+          {cleared.map((t) => (
+            <option key={t} value={`cleared:${t}`} disabled>
+              {t} · Cleared: nothing to decide
+            </option>
+          ))}
         </select>
         <select className={select} value={kind} onChange={(e) => setKind(e.target.value as Proposal['kind'])}>
           {KINDS.map((k) => (
@@ -44,6 +61,11 @@ export function DecisionPicker({ choices, extension, onAdd }: { choices: TailCho
         </select>
       </div>
       {c && <Details key={`${c.tail}:${kind}`} c={c} kind={kind} extension={extension} onAdd={onAdd} />}
+      {cleared.length > 0 && (
+        <p className="mt-2 text-label text-slate-500">
+          Not offered, cleared with nothing to decide: {cleared.join(', ')}. A decision on a cleared aircraft cannot be priced fairly yet.
+        </p>
+      )}
     </div>
   );
 }

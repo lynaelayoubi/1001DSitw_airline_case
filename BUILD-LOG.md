@@ -1215,3 +1215,11 @@ an "if nothing changes" row. · Because a decision that swaps an engine to the p
 plan weighed no options (one with nothing to decide) makes that tail's do-nothing count the engine's
 life — life counted the same way in every option, applied to an option the plan never weighed — so the row would move with a
 decision, which it should not.
+
+**No decision is offered on an aircraft with nothing to decide; the picker lists 9H-MMC, 9H-RYM and
+9H-PJS as "Cleared: nothing to decide", and the calculation refuses such a decision with that reason.**
+· Rejected: pricing it, and letting cleared aircraft weigh their options. · Because a decision on a
+cleared aircraft cannot be priced fairly yet: cleared aircraft never weigh their options, so a swap
+would be charged the spare's life and not credited the engine kept in the pool. Letting them weigh
+their options is the fix, left for the real build because it changes default figures, and no default
+figure may change here. Recorded in WHATS-FAKE as a known limitation; tested on the picker as drawn.

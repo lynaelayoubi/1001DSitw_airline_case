@@ -12,10 +12,11 @@
 import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, type AssumptionInputId } from './constants';
 import { assessFleet } from './exposure';
 import { usd } from './format';
+import { describeProposal } from './levers';
 import { compareRecommendations, recommendFleet, type FleetRecommendation, type ProposalResult } from './recommend';
 import { writeInput } from './robustness';
 import type { Assumptions, Dataset, Proposal } from './types';
-import { whatIf } from './whatif';
+import { whatIf, type TailChoices } from './whatif';
 
 export interface WorldChange {
   input: AssumptionInputId;
@@ -63,6 +64,25 @@ export interface ScenarioResult {
   trace: string;
 }
 
+/**
+ * Why a cleared aircraft takes no decision. Not yet priced fairly: an aircraft with nothing to decide
+ * never weighs its options, so its do-nothing never counts the life of an engine a swap would keep in
+ * the pool — the swap would be charged the spare's life and not credited the engine it keeps. Letting
+ * cleared aircraft weigh their options is the fix, left for the real build: it changes default figures.
+ */
+export const CLEARED_REFUSAL =
+  'Cleared: nothing to decide. A decision here cannot be priced fairly yet, because an aircraft with nothing to decide never weighs its options, so the engine a swap would keep in the pool would not be credited.';
+
+/** The aircraft today's plan has nothing to decide on: no decision is offered or priced on them. */
+export const clearedTails = (today: FleetRecommendation): Set<string> =>
+  new Set(today.plans.filter((p) => p.role === 'own' && p.recommendation.nothingToDecide).map((p) => p.tail));
+
+/** What the decision picker offers: every returning aircraft but the cleared ones, which it names. */
+export function decisionChoices(choices: TailChoices[], today: FleetRecommendation): { open: TailChoices[]; cleared: string[] } {
+  const cleared = clearedTails(today);
+  return { open: choices.filter((c) => !cleared.has(c.tail)), cleared: choices.filter((c) => cleared.has(c.tail)).map((c) => c.tail) };
+}
+
 const totals = (r: FleetRecommendation): PlanTotals => ({
   allIn: r.totals.after,
   doNothing: r.totals.doNothing,
@@ -80,9 +100,20 @@ export function runScenario(data: Dataset, today: FleetRecommendation, s: Scenar
   const assumptions = s.world.reduce((a, c) => writeInput(a, c.input, inEvidence(c)), DEFAULT_ASSUMPTIONS);
   // With no world change, the world is today's; with no decision, the scenario is the world.
   const worldPlan = s.world.length ? recommendFleet(data, assessFleet(data, assumptions), assumptions) : today;
-  const w = s.decisions.length ? whatIf(data, assumptions, worldPlan, s.decisions) : null;
+  // A decision on a cleared aircraft is refused with the reason, never priced (CLEARED_REFUSAL).
+  const cleared = clearedTails(today);
+  const priced = s.decisions.filter((d) => !cleared.has(d.tail));
+  const w = priced.length ? whatIf(data, assumptions, worldPlan, priced) : null;
   const scenarioPlan = w ? w.scenario : worldPlan;
-  const decided = new Set((w?.proposals ?? []).filter((r) => !r.refused).map((r) => r.proposal.tail));
+  const serial = (id: string | null) =>
+    id ? (data.pool.find((u) => u.id === id) ?? data.aircraft.flatMap((a) => a.components).find((u) => u.id === id))?.serial : undefined;
+  let next = 0;
+  const decisions: ProposalResult[] = s.decisions.map((d) => {
+    if (!cleared.has(d.tail)) return w!.proposals[next++]!;
+    const asked = describeProposal(d, d.kind === 'swap' ? serial(d.unit) : undefined);
+    return { proposal: d, asked, label: asked, refused: CLEARED_REFUSAL };
+  });
+  const decided = new Set(decisions.filter((r) => !r.refused).map((r) => r.proposal.tail));
   const byWorld = new Set(compareRecommendations(today, worldPlan).changed.map((c) => c.tail));
   const changed = compareRecommendations(today, scenarioPlan).changed.map(
     (c): ScenarioChange => ({ ...c, why: decided.has(c.tail) ? 'decision' : byWorld.has(c.tail) ? 'world' : 'knock-on' }),
@@ -97,5 +128,5 @@ export function runScenario(data: Dataset, today: FleetRecommendation, s: Scenar
       ? `The world changes — ${s.world.map((c) => `${ASSUMPTION_INPUTS.find((i) => i.id === c.input)!.label} ${inEvidence(c)}`).join(', ')} — and the recommendation, re-run for that world, comes to ${usd(wt.allIn)} (${signed(wt.allIn - t.allIn)}). `
       : 'No change to the world. ') +
     (w ? `With the decisions on top: ${usd(st.allIn)} (${signed(st.allIn - t.allIn)}).\n\n${w.trace}` : 'No decisions.');
-  return { assumptions, today: t, world: wt, scenario: st, worldPlan, scenarioPlan, decisions: w?.proposals ?? [], changed, trace };
+  return { assumptions, today: t, world: wt, scenario: st, worldPlan, scenarioPlan, decisions, changed, trace };
 }

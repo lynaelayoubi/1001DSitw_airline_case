@@ -7,12 +7,13 @@ import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, SCENARIO_PRESETS } from './cons
 import { assessFleet } from './exposure';
 import { recommendFleet } from './recommend';
 import { readInput } from './robustness';
-import { EMPTY_SCENARIO, runScenario } from './scenario';
+import { CLEARED_REFUSAL, EMPTY_SCENARIO, decisionChoices, runScenario } from './scenario';
 import type { Dataset, Proposal } from './types';
-import { whatIf } from './whatif';
+import { whatIf, whatIfChoices } from './whatif';
 
 const data = dataset as unknown as Dataset;
-const today = recommendFleet(data, assessFleet(data, DEFAULT_ASSUMPTIONS), DEFAULT_ASSUMPTIONS);
+const fleet = assessFleet(data, DEFAULT_ASSUMPTIONS);
+const today = recommendFleet(data, fleet, DEFAULT_ASSUMPTIONS);
 const spare = (serial: string) => data.pool.find((u) => u.serial === serial)!.id;
 
 describe('runScenario', () => {
@@ -41,20 +42,29 @@ describe('runScenario', () => {
   });
 
   it('combines a world change with decisions, and says why each aircraft changes', () => {
-    const decisions: Proposal[] = [
-      // ESN-6513 passes 12.2 on 9H-MMC (ESN-6512 would not).
-      { kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6513') },
-      { kind: 'route', tail: '9H-RYM', profile: 'short-dense' },
-    ];
+    // A6-DLL pays at handback today; swapping its gear for spare LG-6549 is the head of fleet's decision.
+    const decisions: Proposal[] = [{ kind: 'swap', tail: 'A6-DLL', position: 'MLG', unit: spare('LG-6549') }];
     const r = runScenario(data, today, { world: [{ input: 'utilisation', value: 1.05 }], decisions });
-    expect(r.decisions.filter((d) => !d.refused).map((d) => d.proposal.tail)).toEqual(['9H-MMC', '9H-RYM']);
+    expect(r.decisions.map((d) => [d.proposal.tail, d.refused])).toEqual([['A6-DLL', null]]);
     expect(r.scenario.allIn).not.toBeCloseTo(r.world.allIn, 0);
-    for (const t of ['9H-MMC', '9H-RYM']) expect(r.changed.find((c) => c.tail === t)?.why, t).toBe('decision');
+    expect(r.changed.find((c) => c.tail === 'A6-DLL')?.why).toBe('decision');
     // Five per cent more flying opens a shortfall on A6-MXM's ENG1: the world changes its recommendation.
     expect(r.changed.find((c) => c.tail === 'A6-MXM')?.why).toBe('world');
     for (const c of r.changed) expect(['world', 'decision', 'knock-on']).toContain(c.why);
     // The scenario never touches today's plan.
     expect(today.totals.after / 1e6).toBeCloseTo(31.35, 2);
+  });
+
+  it('offers no decision on a cleared aircraft, and refuses one with the reason rather than pricing it', () => {
+    // 9H-MMC, 9H-RYM and 9H-PJS have nothing to decide today: a decision on one cannot be priced fairly yet.
+    const offered = decisionChoices(whatIfChoices(data, fleet), today);
+    expect(offered.cleared.sort()).toEqual(['9H-MMC', '9H-PJS', '9H-RYM']);
+    expect(offered.open.map((c) => c.tail)).not.toContain('9H-MMC');
+    expect(offered.open).toHaveLength(7);
+    const r = runScenario(data, today, { world: [], decisions: [{ kind: 'swap', tail: '9H-MMC', position: 'ENG1', unit: spare('ESN-6513') }] });
+    expect(r.decisions[0]!.refused).toBe(CLEARED_REFUSAL);
+    expect(r.scenario).toEqual(r.today);
+    expect(r.changed).toEqual([]);
   });
 
   it('holds every world change inside its evidenced range, the ready-made ones included', () => {

@@ -817,3 +817,4 @@ by the leasing team; maintenance people are told return dates late.
 | A world change | any of the seven assumptions, held inside its evidenced range | §14 |
 | Ready-made | shop costs × 1.10; a renegotiated maintenance contract, shop costs × 0.91 — down 9%, not 10%, because × 0.91 is the floor of the evidence; flying × 1.05 (`SCENARIO_PRESETS`) | declared |
 | Why an aircraft changes | your decision on it; else the world, if it changes in the re-made plan; else a knock-on of another change | — |
+| Decisions on a cleared aircraft | not offered, and refused if asked: an aircraft with nothing to decide never weighs its options, so a swap's kept engine would not be credited | a known limitation, WHATS-FAKE.md; the fix changes default figures |

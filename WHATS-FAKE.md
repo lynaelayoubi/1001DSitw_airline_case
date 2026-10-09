@@ -104,6 +104,16 @@ work then only costs the delta. That is on the "what I'd build next" list.
   assignments. Corrections to thresholds and notice periods do change the calculation here; a
   corrected rule (replacement, what makes a shop visit count, reserves) is recorded only.
 
+## A known limitation, not hidden
+
+- **A decision on a cleared aircraft cannot be priced fairly yet, so the Scenarios page does not offer
+  one.** An aircraft with nothing to decide (9H-MMC, 9H-RYM and 9H-PJS today) never weighs its options,
+  so if you swapped one of its engines for a spare, the tool would charge the spare's life but not
+  credit the engine kept in the pool. The picker lists these aircraft as "Cleared: nothing to decide",
+  and the calculation refuses such a decision with that reason rather than pricing it. The fix —
+  letting cleared aircraft weigh their options — is left for the real build, because it changes
+  default figures.
+
 ## Simplified rather than faked
 
 - **Reserves.** Modelled as a reclaimable percentage. Real agreements are far more specific

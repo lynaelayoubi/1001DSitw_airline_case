@@ -1,6 +1,6 @@
 import { useDeferredValue, useMemo } from 'react';
 
-import { runScenario } from '../../calc/scenario';
+import { decisionChoices, runScenario } from '../../calc/scenario';
 import { BudgetSection } from '../components/Budget';
 import { Evidence } from '../components/Evidence';
 import { HowFirm } from '../components/HowFirm';
@@ -18,9 +18,19 @@ export default function Scenarios(props: ScreenProps) {
   const { scenario, setScenario } = useDemo();
   const shown = useDeferredValue(scenario);
   const result = useMemo(() => runScenario(data, plans, shown), [data, plans, shown]);
+  // No decision is offered on an aircraft with nothing to decide: it cannot be priced fairly yet.
+  const offered = useMemo(() => decisionChoices(choices, plans), [choices, plans]);
   return (
     <div className="space-y-12">
-      <ScenarioBuilder scenario={scenario} onScenario={setScenario} result={result} pending={shown !== scenario} choices={choices} extension={extension} />
+      <ScenarioBuilder
+        scenario={scenario}
+        onScenario={setScenario}
+        result={result}
+        pending={shown !== scenario}
+        choices={offered.open}
+        cleared={offered.cleared}
+        extension={extension}
+      />
       <Evidence robustness={robustness} pending={robustnessPending} />
       <HowFirm robustness={robustness} pending={robustnessPending} />
       <BudgetSection budget={budget} onBudget={onBudget} plan={budgetPlan} asOf={fleet.asOf} />
