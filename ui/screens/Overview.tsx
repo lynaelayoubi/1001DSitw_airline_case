@@ -115,15 +115,22 @@ export default function Overview({
                 <TailRow
                   t={t}
                   plan={plans.byTail[t.tail]}
-                  before={atRest.byTail[t.tail]}
-                  leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
-                  // The note sits on the action row where there is one; a tail that pays has none, so it sits here.
-                  check={closing.items.some((i) => i.tail === t.tail) ? undefined : robustness?.checks.find((c) => c.tail === t.tail)}
                   open={open === t.tail}
                   onToggle={() => onOpen(open === t.tail ? null : t.tail)}
                   onTry={onTry && tryable.has(t.tail) ? () => onTry(t.tail) : undefined}
                 />
-                {open === t.tail && <TailDetail t={t} plan={plans.byTail[t.tail]} flash={flash} ready={readiness.byTail[t.tail] ?? []} />}
+                {open === t.tail && (
+                  <TailDetail
+                    t={t}
+                    plan={plans.byTail[t.tail]}
+                    before={atRest.byTail[t.tail]}
+                    leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
+                    // The note sits on the action row where there is one; a tail that pays has none, so it sits here.
+                    check={closing.items.some((i) => i.tail === t.tail) ? undefined : robustness?.checks.find((c) => c.tail === t.tail)}
+                    flash={flash}
+                    ready={readiness.byTail[t.tail] ?? []}
+                  />
+                )}
               </Fragment>
             ))}
           </tbody>
@@ -146,18 +153,12 @@ function Th({ children, right, tip }: { children: React.ReactNode; right?: boole
 function TailRow({
   t,
   plan,
-  before,
-  leftOut,
-  check,
   open,
   onToggle,
   onTry,
 }: {
   t: TailResult;
   plan?: TailPlan;
-  before?: TailPlan;
-  leftOut: boolean;
-  check?: CloseCall;
   open: boolean;
   onToggle: () => void;
   onTry?: () => void;
@@ -214,7 +215,13 @@ function TailRow({
             )}
           </td>
           <td className="px-2 py-4 text-right">
-            {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} check={check} /> : <span className="text-slate-300">—</span>}
+            {plan ? (
+              <span className="whitespace-nowrap">
+                <span className="font-semibold tabular-nums">{money(plan.after)}</span> <span className="text-slate-500">· {shortAction(plan)}</span>
+              </span>
+            ) : (
+              <span className="text-slate-300">—</span>
+            )}
           </td>
         </>
       )}
@@ -257,47 +264,83 @@ function cappedRow(c: ComponentResult): string | null {
 }
 
 /** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
+/**
+ * The fleet table's "After recommendation" in a few words: "shop visit Sept 2027", "pay at handback".
+ * The full text is in the aircraft's detail (AfterRecommendation).
+ */
+function shortAction(plan: TailPlan): string {
+  if (plan.role !== 'own') return plan.label;
+  const rec = plan.recommendation;
+  if (!rec.call.stands) return 'too close to call';
+  const o = rec.recommended;
+  if (o.lever === 'pay') return 'pay at handback';
+  if (o.grounded) return 'on the ground';
+  if (o.covers) return `spare covers ${o.position}`;
+  if (o.move) return `swap ${o.move.position}`;
+  if (o.lever === 'L2') return 'route change';
+  if (o.spendDate && o.position) {
+    const visit = o.position.startsWith('ENG') ? 'shop visit' : o.position === 'APU' ? 'APU overhaul' : 'gear overhaul';
+    return `${visit} ${monthShort(o.spendDate)}`;
+  }
+  return plan.label;
+}
+const monthShort = (iso: string) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+/**
+ * The recommendation in full, at the top of the aircraft's detail: the action, what it comes to all-in
+ * and what it saves, what paying beats, the next best, and any note — left out of the budget, or a
+ * recommendation to confirm before acting.
+ */
 function AfterRecommendation({ plan, before, leftOut, check }: { plan: TailPlan; before?: TailPlan; leftOut: boolean; check?: CloseCall }) {
   const changed = before && actionOf(before) !== actionOf(plan);
-  const paying = plan.role === 'own' && plan.recommendation.call.stands && plan.recommendation.recommended.lever === 'pay';
-  const beats = plan.recommendation.payBeats;
+  const rec = plan.role === 'own' ? plan.recommendation : null;
+  const paying = !!rec && rec.call.stands && rec.recommended.lever === 'pay';
+  const beats = rec?.payBeats;
   return (
-    <div className="ml-auto max-w-[13rem]">
-      <span className="font-semibold tabular-nums">{money(plan.after)}</span> <span className="text-label text-slate-500">all-in</span>
-      {/* A forced tail's saving is against acting late, when its part runs out. */}
-      {plan.avoidable > 0.5 && (
-        <div className="mt-1 text-label text-slate-500 tabular-nums">
-          −{money(plan.avoidable)}
-          {plan.forced && ' vs acting late'}
-        </div>
-      )}
-      {plan.avoidable < -0.5 && (
-        <div className="mt-1 text-label font-medium tabular-nums">
-          +{money(-plan.avoidable)}
-          {plan.forced && ' vs acting late'}
-        </div>
-      )}
-      <div className={`text-label text-balance ${changed ? 'font-medium text-slate-900' : 'text-slate-500'}`}>
+    <div>
+      <div>
         {plan.forced && (
-          <span className="mr-1 cursor-help rounded bg-amber-50 px-1.5 py-px font-medium text-amber-800" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
+          <span className="mr-2 cursor-help rounded bg-amber-50 px-1.5 py-px text-label font-medium text-amber-800" title="A part runs out before the aircraft goes back, so it has to be dealt with.">
             required
           </span>
         )}
-        {paying ? `Pay at handback: ${money(plan.recommendation.recommended.newCompensation)} cheque` : plan.label}
+        <span className="font-semibold">{paying ? `Pay at handback: ${money(rec!.recommended.newCompensation)} cheque` : plan.label}</span>
+      </div>
+      <div className="mt-1 text-slate-500">
+        <span className="font-medium text-slate-900 tabular-nums">{money(plan.after)}</span> all-in
+        {/* A forced tail's saving is against acting late, when its part runs out. */}
+        {plan.avoidable > 0.5 && (
+          <span className="tabular-nums">
+            {' '}
+            · −{money(plan.avoidable)}
+            {plan.forced && ' vs acting late'}
+          </span>
+        )}
+        {plan.avoidable < -0.5 && (
+          <span className="font-medium text-slate-900 tabular-nums">
+            {' '}
+            · +{money(-plan.avoidable)}
+            {plan.forced && ' vs acting late'}
+          </span>
+        )}
+        {rec?.runnerUp && (
+          <span>
+            {' '}
+            · next best: {rec.runnerUp.label}, {money(rec.delta)} more
+          </span>
+        )}
       </div>
       {/* Measured against the best option on the part that owes most, not the cheapest anywhere. */}
       {paying && beats?.option && (
-        <div className="text-label text-balance text-slate-500">
+        <div className="text-slate-500">
           paying beats {beatsNoun(beats.option, beats.position)} by {money(beats.delta!)}
         </div>
       )}
-      {paying && beats && !beats.option && <div className="text-label text-balance text-slate-500">nothing can act on {beats.position} before handback</div>}
-      {plan.role === 'own' && !plan.recommendation.call.stands && (
-        <div className="text-label text-slate-500">{plan.recommendation.call.why}</div>
-      )}
-      {changed && <div className="text-label text-slate-400">was: {before!.label}</div>}
-      {leftOut && <div className="text-label font-medium">left out of the budget — pays at handback</div>}
-      {check && <div className="mt-1 text-label text-balance text-slate-500">Confirm before you act: {checkNote(check)}</div>}
+      {paying && beats && !beats.option && <div className="text-slate-500">nothing can act on {beats.position} before handback</div>}
+      {rec && !rec.call.stands && <div className="text-slate-500">{rec.call.why}</div>}
+      {changed && <div className="text-slate-400">was: {before!.label}</div>}
+      {leftOut && <div className="font-medium">left out of the budget — pays at handback</div>}
+      {check && <div className="mt-1 text-slate-500">Confirm before you act: {checkNote(check)}</div>}
     </div>
   );
 }
@@ -365,11 +408,17 @@ function LessorLink({ tail, name }: { tail: string; name: string }) {
 function TailDetail({
   t,
   plan,
+  before,
+  leftOut,
+  check,
   flash,
   ready,
 }: {
   t: TailResult;
   plan?: TailPlan;
+  before?: TailPlan;
+  leftOut: boolean;
+  check?: CloseCall;
   flash: string | null;
   ready: ReadinessItem[];
 }) {
@@ -382,15 +431,7 @@ function TailDetail({
           <TailFacts t={t} />
           {plan && !nothing && (
             <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-              <div>
-                <span className="font-semibold">{plan.label}</span>
-                {rec?.runnerUp && (
-                  <span className="text-slate-500">
-                    {' '}
-                    · next best: {rec.runnerUp.label}, {money(rec.delta)} more
-                  </span>
-                )}
-              </div>
+              <AfterRecommendation plan={plan} before={before} leftOut={leftOut} check={check} />
               <Working tail={t.tail} text={`${t.projection.trace}\n\n${plan.trace}`} />
             </div>
           )}

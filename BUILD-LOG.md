@@ -1319,3 +1319,9 @@ first lease correction or document update, which the log also records.
 keeping "Open" as the status of an action not yet assigned. · Because it read as a link that did
 nothing, and the code itself did not open anything. An unassigned action now shows only Assign and
 notify and Try a scenario; an assigned one shows Sent, Accepted or Done, as before.
+
+**The fleet table's "After recommendation" is one line: the figure and a short action ("$4.15M · shop
+visit Sept 2027").** · Rejected: the full text in the cell — saving, required badge, action, what paying
+beats, notes — up to eight lines. · Because the table is for scanning the fleet; the full text, unchanged,
+now sits at the top of the aircraft's detail, the "Confirm before you act" note for a tail that pays
+included. The month is written as everywhere else on screen ("Sept", en-GB).

@@ -147,7 +147,10 @@ Everything below justifies the list, and sits under it.
 - "After recommendation" is the tail's all-in figure under its recommended option (SPEC §2.7):
   the work, its downtime, and what is still owed at handback, with what it saves against doing
   nothing — or, in red, what it costs over a do-nothing figure that assumed a timed-out engine
-  could fly to handback. The option's name sits underneath; the tail's detail ranks all five.
+  could fly to handback. In the table it is one line, the figure and a short action — "$4.15M · shop
+  visit Sept 2027", "$677K · pay at handback". The full text — the action, what it saves, what paying
+  beats, the next best, and any note (left out of the budget, confirm before you act) — is at the top
+  of the aircraft's detail.
 - The headline counts forward-looking money only, and says what kind each number is. "If nothing
   changes" carries a stacked bar — cash out against engine life handed over (a spare fitted for good
   when a part runs out and nobody acted, or the aircraft's own engine where another option would keep
@@ -162,7 +165,7 @@ Everything below justifies the list, and sits under it.
   late, and a clock reset the lease does not count — are the tips on "If nothing changes" and on the
   clock-reset line.
 - **Sets the bill**, in the aircraft's detail, names the clock that decides what the tail pays at handback.
-  The figure after the recommendation is labelled **all-in**; a tail that pays says what the cheque
+  In the aircraft's detail, the figure after the recommendation is labelled **all-in**; a tail that pays says what the cheque
   is — "Pay at handback: $677K cheque" — and what paying beats is the best option on the part that
   owes most, not the cheapest anywhere: "paying beats a shop visit on ENG2 by $15.9M", not an APU
   overhaul on a part owing $13K.
