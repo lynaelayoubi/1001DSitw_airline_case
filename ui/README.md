@@ -71,12 +71,13 @@ The left column (`components/Questions.tsx`):
   possible", with the clause.
 
 The right column (`components/Answer.tsx`) keeps the tool's advice apart from your decisions, because
-mixing them misleads. The headline counts only the advice — "Your plan costs $1.97M less. No
-recommendation changes." or "The plan holds: no recommendation changes." — with today's total and the
+mixing them misleads. The headline counts only the market changes, and says so — "With these figures,
+today's plan costs $1.97M less. No recommendation changes." or "Today's plan holds: no recommendation
+changes." — never "your plan", since a decision of yours may be listed as not recommended — with today's total and the
 total with the changed figures; under it, one line for what each change does on its own: "The 9% cut
 in shop costs saves $1.97M." "Your A6-MXM shop visit costs $1.17M more than paying at handback." Then
 **the tool's advice changes**: the recommendations the changed figures alone change, each with its date,
-its money and Assign and notify — or one line saying the advice holds. A shop visit whose date to decide
+its money labelled ("+$1.17M on this aircraft compared with today's advice") and Assign and notify — or one line saying the advice holds. A shop visit whose date to decide
 by is today because of the slot lead time says "decide today to secure the February 2027 slot".
 **Show the calculation** (`Calculation`) folds the three-column totals and the evidence behind each
 figure. Assigning from here is logged "from Scenario planning".
@@ -165,8 +166,8 @@ Everything below justifies the list, and sits under it.
 - An opened tail never shows a compensation above the cap. Where the cost of the work caps it, the
   capped figure sits on the clock that sets the bill, "capped at the cost of the work", and the other
   rows read "—"; the uncapped figure is only in Show the calculation.
-- The budget's need is net of reserves reclaimed, and says so with the gross beside it: "$143K in
-  this window, net of reserves reclaimed ($17.1M gross)".
+- The budget's need, in plain words: "Today's plan needs $17.1M of shop work in this window. After
+  reserves are claimed back, $143K comes out of your budget."
 - The readiness checklist, opened, shows what comes from the recommendations and the lease and
   anything due in the next 90 days; each tail's standard items not yet due fold into one line — "4
   items standard for every return, the first due 6 Jan 2028" — in the list and in the tail's detail.

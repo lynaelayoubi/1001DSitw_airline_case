@@ -72,13 +72,13 @@ describe('the words', () => {
   });
 
   it('count only the tool\'s advice in the headline', () => {
-    expect(answerSentence(runScenario(data, today, EMPTY_SCENARIO), EMPTY_SCENARIO)).toBe('The plan holds: no recommendation changes.');
+    expect(answerSentence(runScenario(data, today, EMPTY_SCENARIO), EMPTY_SCENARIO)).toBe("Today's plan holds: no recommendation changes.");
     const decisionsOnly: Scenario = { world: [], decisions: [visit] };
-    expect(answerSentence(runScenario(data, today, decisionsOnly), decisionsOnly)).toBe('The plan holds: no recommendation changes.');
+    expect(answerSentence(runScenario(data, today, decisionsOnly), decisionsOnly)).toBe("Today's plan holds: no recommendation changes.");
     const example: Scenario = { world: [contract], decisions: [visit] };
-    expect(answerSentence(runScenario(data, today, example), example)).toBe('Your plan costs $1.97M less. No recommendation changes.');
+    expect(answerSentence(runScenario(data, today, example), example)).toBe("With these figures, today's plan costs $1.97M less. No recommendation changes.");
     const flying: Scenario = { world: [{ input: 'utilisation', value: 1.05 }], decisions: [] };
-    expect(answerSentence(runScenario(data, today, flying), flying)).toBe('Your plan costs $2.13M more. 1 recommendation changes.');
+    expect(answerSentence(runScenario(data, today, flying), flying)).toBe("With these figures, today's plan costs $2.13M more. 1 recommendation changes.");
   });
 });
 
@@ -99,7 +99,8 @@ describe('the page', () => {
     expect(html).toContain('Costs $1.17M more than paying at handback: not recommended.');
     expect(html).not.toContain('Assign and notify');
     const a = answer(s);
-    expect(a).toContain('Your plan costs $1.97M less. No recommendation changes.');
+    expect(a).toContain("With these figures, today's plan costs $1.97M less. No recommendation changes.");
+    expect(a).not.toContain('Your plan');
     expect(a).not.toContain('Assign and notify');
   });
 
@@ -109,6 +110,7 @@ describe('the page', () => {
     const a = answer(s);
     expect(a).toContain("The tool's advice changes");
     expect(a).toContain('A6-MXM');
+    expect(a.replace(/<[^>]+>/g, '')).toContain("+$1.17M on this aircraft compared with today's advice");
   });
 });
 

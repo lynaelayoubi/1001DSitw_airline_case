@@ -33,8 +33,8 @@ function Budget({ budget, onBudget, plan, asOf }: { budget: number | null; onBud
         </span>
       </div>
       <p className="mt-2 text-label text-slate-500">
-        Every recommended action needs {money(plan.needed)} in this window
-        {plan.reserves > 0 && <>, net of reserves reclaimed ({money(plan.needed + plan.reserves)} gross)</>}, {money(plan.forcedSpend)} of it required.
+        Today's plan needs {money(plan.needed + plan.reserves)} of shop work in this window.{' '}
+        {plan.reserves > 0 ? <>After reserves are claimed back, {money(plan.needed)} comes out of your budget.</> : 'All of it comes out of your budget.'}
       </p>
       {budget !== null && (
         <div className="mt-3 space-y-1">

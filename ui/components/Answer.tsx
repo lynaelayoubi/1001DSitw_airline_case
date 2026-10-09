@@ -10,14 +10,15 @@ import { Evidence } from './Evidence';
 const signed = (n: number) => (Math.abs(n) < 0.5 ? 'no change' : `${n > 0 ? '+' : '−'}${money(Math.abs(n))}`);
 
 /**
- * The headline counts only the tool's advice: what the changed figures do to the plan, and how many
- * recommendations they change. Your decisions never enter it; each is judged on its own below.
+ * The headline counts only the market changes: what the changed figures do to today's plan, and how
+ * many recommendations they change. It never says "your plan": your decisions never enter it, and one
+ * of them may be listed as not recommended. Each is judged on its own, where you added it.
  */
 export function answerSentence(r: ScenarioResult, s: Scenario): string {
   const n = r.advice.length;
   const d = r.world.allIn - r.today.allIn;
-  if (!s.world.length || (n === 0 && Math.abs(d) < 0.5)) return 'The plan holds: no recommendation changes.';
-  const cost = Math.abs(d) < 0.5 ? 'Your plan costs the same.' : `Your plan costs ${money(Math.abs(d))} ${d > 0 ? 'more' : 'less'}.`;
+  if (!s.world.length || (n === 0 && Math.abs(d) < 0.5)) return "Today's plan holds: no recommendation changes.";
+  const cost = Math.abs(d) < 0.5 ? "With these figures, today's plan costs the same." : `With these figures, today's plan costs ${money(Math.abs(d))} ${d > 0 ? 'more' : 'less'}.`;
   return `${cost} ${n === 0 ? 'No recommendation changes' : `${n} ${n === 1 ? 'recommendation changes' : 'recommendations change'}`}.`;
 }
 
@@ -99,7 +100,9 @@ export function Answer({
                   </div>
                   <div className="mt-1 flex flex-wrap items-baseline gap-x-4 text-label">
                     <span>{when(c, asOf)}</span>
-                    <span className="tabular-nums">{signed(c.difference)}</span>
+                    <span>
+                      <span className="tabular-nums">{signed(c.difference)}</span> on this aircraft compared with today's advice
+                    </span>
                     {adviceDrafts[c.tail] ? (
                       canAssign(role) && (
                         <button className="link" onClick={() => onAssign(adviceDrafts[c.tail]!)}>

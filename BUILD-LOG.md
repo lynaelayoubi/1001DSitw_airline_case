@@ -1292,3 +1292,14 @@ one long row of five fields, and a sentence of five dropdowns that reflowed with
 neither showed what had changed or read as a form. The always-showing sentence on cleared aircraft
 goes: the aircraft list already says "Cleared: nothing to decide". When the advice holds it is one
 line, not a heading over a sentence. No number and no verdict or effect wording changes.
+
+## Step 29 · v2, three wording fixes on Scenario planning — Friday 9 October
+
+**The headline says what it counts: "With these figures, today's plan costs $1.97M less."** · Rejected:
+"Your plan costs …". · Because the headline counts only the market changes, and calling it "your plan"
+beside a decision of yours listed as not recommended reads as if that decision were in it. **Each change
+in the tool's advice labels its money**: "+$1.17M on this aircraft compared with today's advice". **The
+budget line in plain words**: "Today's plan needs $17.1M of shop work in this window. After reserves are
+claimed back, $143K comes out of your budget." · Rejected: "net of reserves reclaimed ($17.1M gross),
+$143K of it required". · Because "net" and "gross" are the model's words; the required share still
+shows where it matters, when a budget is set and the required actions exceed it. No calculation changes.
