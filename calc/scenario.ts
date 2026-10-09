@@ -10,12 +10,13 @@
 // Both are measured against today's plan. A scenario never changes today's plan.
 
 import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, type AssumptionInputId } from './constants';
-import { assessFleet } from './exposure';
+import { closingDecisions } from './deadlines';
+import { assessFleet, type FleetExposure } from './exposure';
 import { usd } from './format';
 import { describeProposal } from './levers';
 import { compareRecommendations, recommendFleet, type FleetRecommendation, type ProposalResult } from './recommend';
 import { writeInput } from './robustness';
-import type { Assumptions, Dataset, Proposal } from './types';
+import type { Assumptions, Dataset, ISODate, Proposal } from './types';
 import { whatIf, type TailChoices } from './whatif';
 
 export interface WorldChange {
@@ -47,6 +48,12 @@ export interface ScenarioChange {
   to: string;
   /** Why it changes: the world, the head of fleet's decision on that tail, or a knock-on of another change. */
   why: 'world' | 'decision' | 'knock-on';
+  /** The new action's date to decide by, or the day the aircraft goes down; null when it has none. */
+  decideBy: ISODate | null;
+  /** The new action has no deadline: a route change, losing money each month it waits. */
+  noDeadline: boolean;
+  /** This aircraft's all-in after the plan, in the scenario less today. */
+  difference: number;
 }
 
 export interface ScenarioResult {
@@ -57,6 +64,10 @@ export interface ScenarioResult {
   scenario: PlanTotals;
   worldPlan: FleetRecommendation;
   scenarioPlan: FleetRecommendation;
+  /** The fleet the scenario's plan was priced on: the scenario's assumptions, and any moved return date. */
+  scenarioFleet: FleetExposure;
+  /** The scenario's all-in less today's. */
+  costChange: number;
   /** Each decision, in the order given: what it was priced as, or why it was refused. */
   decisions: ProposalResult[];
   /** Aircraft whose recommendation differs from today's plan, in the scenario. */
@@ -99,7 +110,8 @@ export function inEvidence(c: WorldChange): number {
 export function runScenario(data: Dataset, today: FleetRecommendation, s: Scenario): ScenarioResult {
   const assumptions = s.world.reduce((a, c) => writeInput(a, c.input, inEvidence(c)), DEFAULT_ASSUMPTIONS);
   // With no world change, the world is today's; with no decision, the scenario is the world.
-  const worldPlan = s.world.length ? recommendFleet(data, assessFleet(data, assumptions), assumptions) : today;
+  const worldFleet = assessFleet(data, assumptions);
+  const worldPlan = s.world.length ? recommendFleet(data, worldFleet, assumptions) : today;
   // A decision on a cleared aircraft is refused with the reason, never priced (CLEARED_REFUSAL).
   const cleared = clearedTails(today);
   const priced = s.decisions.filter((d) => !cleared.has(d.tail));
@@ -115,9 +127,17 @@ export function runScenario(data: Dataset, today: FleetRecommendation, s: Scenar
   });
   const decided = new Set(decisions.filter((r) => !r.refused).map((r) => r.proposal.tail));
   const byWorld = new Set(compareRecommendations(today, worldPlan).changed.map((c) => c.tail));
-  const changed = compareRecommendations(today, scenarioPlan).changed.map(
-    (c): ScenarioChange => ({ ...c, why: decided.has(c.tail) ? 'decision' : byWorld.has(c.tail) ? 'world' : 'knock-on' }),
-  );
+  const closing = closingDecisions(scenarioPlan, data.asOf).items;
+  const changed = compareRecommendations(today, scenarioPlan).changed.map((c): ScenarioChange => {
+    const item = closing.find((x) => x.tail === c.tail);
+    return {
+      ...c,
+      why: decided.has(c.tail) ? 'decision' : byWorld.has(c.tail) ? 'world' : 'knock-on',
+      decideBy: item ? (item.decideBy ?? item.grounded?.from ?? null) : null,
+      noDeadline: !!item?.startNow,
+      difference: scenarioPlan.byTail[c.tail]!.after - today.byTail[c.tail]!.after,
+    };
+  });
   const t = totals(today);
   const wt = totals(worldPlan);
   const st = totals(scenarioPlan);
@@ -128,5 +148,6 @@ export function runScenario(data: Dataset, today: FleetRecommendation, s: Scenar
       ? `The world changes — ${s.world.map((c) => `${ASSUMPTION_INPUTS.find((i) => i.id === c.input)!.label} ${inEvidence(c)}`).join(', ')} — and the recommendation, re-run for that world, comes to ${usd(wt.allIn)} (${signed(wt.allIn - t.allIn)}). `
       : 'No change to the world. ') +
     (w ? `With the decisions on top: ${usd(st.allIn)} (${signed(st.allIn - t.allIn)}).\n\n${w.trace}` : 'No decisions.');
-  return { assumptions, today: t, world: wt, scenario: st, worldPlan, scenarioPlan, decisions, changed, trace };
+  const scenarioFleet = w ? w.fleet : worldFleet;
+  return { assumptions, today: t, world: wt, scenario: st, worldPlan, scenarioPlan, scenarioFleet, costChange: st.allIn - t.allIn, decisions, changed, trace };
 }

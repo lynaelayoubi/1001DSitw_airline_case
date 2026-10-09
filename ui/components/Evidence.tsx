@@ -3,7 +3,7 @@ import { readInput, type Robustness } from '../../calc/robustness';
 import { inputValue } from '../format';
 
 /**
- * The evidence behind each assumption, folded under the scenario builder: the figure today's plan
+ * The evidence behind each figure the plan assumes, under "Show the calculation": the figure today's plan
  * uses, the range the evidence supports (why it stops there is in ASSUMPTIONS §14), where the real
  * number should come from, and whether moving it anywhere in that range changes any recommendation
  * (the robustness sweep). Read only: a different figure belongs to a scenario, never to today's plan.
@@ -13,10 +13,9 @@ export function Evidence({ robustness, pending }: { robustness: Robustness | nul
   const changing = new Set(robustness?.changing.map((x) => x.id));
   const moving = robustness?.changing.length ?? 0;
   return (
-    <details>
-      <summary className="cursor-pointer">
-        <span className="caps">Show the evidence</span>
-        <span className="ml-3 text-label text-slate-500">
+    <section>
+      <h3 className="caps">The evidence behind each figure</h3>
+      <p className="mt-1 text-label text-slate-500">
           {robustness ? (
             <span className={pending ? 'opacity-60' : ''}>
               {moving} of {ASSUMPTION_INPUTS.length} assumptions {moving === 1 ? 'moves' : 'move'} an answer inside the range its evidence supports
@@ -24,8 +23,7 @@ export function Evidence({ robustness, pending }: { robustness: Robustness | nul
           ) : (
             'checking which assumptions move an answer…'
           )}
-        </span>
-      </summary>
+      </p>
       <table className="mt-3 w-full">
         <thead className="caps">
           <tr className="border-b border-slate-200">
@@ -54,6 +52,6 @@ export function Evidence({ robustness, pending }: { robustness: Robustness | nul
           ))}
         </tbody>
       </table>
-    </details>
+    </section>
   );
 }

@@ -28,7 +28,9 @@ on screen and is listed in `WHATS-FAKE.md`. The calculation and its headline fig
 - **Leases, reviewed and corrected**: each term the tool read, with the clause it came from, for the
   leasing team to approve or correct with a reason; a corrected threshold or notice period changes
   the calculation at once. Adding a lease is shown end to end; the reading is a preview.
-- **Scenarios**: your decisions and the world's assumptions on one page, then Confirm before you act.
+- **What if**: plain-English questions — costs, flying, reserves, a day on the ground, a shop visit, a
+  swap, a return date, a route — answered in one sentence, with what you'd do differently, each ready
+  to assign.
 - **The documents a return needs**: a standard template per aircraft, each with an owner and a status.
 
 What you do in the demo — assignments, reviews, statuses — is kept in this browser; **Reset demo**,

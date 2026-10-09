@@ -812,9 +812,9 @@ by the leasing team; maintenance people are told return dates late.
 | Item | Value | Source |
 |---|---|---|
 | Today's plan | the recommendation at the default assumptions, on the leases as corrected: what the Overview shows. Nothing on any page changes the assumptions behind it | — |
-| If the world changes like this | the recommendation re-run with the scenario's assumptions: today's plan re-made for that world, so an aircraft's action may change in it | the customer: "what if our costs go up, what if we renegotiate maintenance contracts" |
+| Changed figures only | the recommendation re-run with the scenario's assumptions: today's plan re-made with the changed figures, so an aircraft's action may change in it | the customer: "what if our costs go up, what if we renegotiate maintenance contracts" |
 | This scenario | the scenario's decisions applied to that plan by the what-if (`calc/whatif.ts`) | — |
 | A world change | any of the seven assumptions, held inside its evidenced range | §14 |
-| Ready-made | shop costs × 1.10; a renegotiated maintenance contract, shop costs × 0.91 — down 9%, not 10%, because × 0.91 is the floor of the evidence; flying × 1.05 (`SCENARIO_PRESETS`) | declared |
-| Why an aircraft changes | your decision on it; else the world, if it changes in the re-made plan; else a knock-on of another change | — |
+| Where the questions start | shop costs up 10%; a renegotiated maintenance contract, shop costs down 9% — not 10%, because × 0.91 is the floor of the evidence; flying 5% more; reserves 90% claimed back; a day on the ground at today's figure (`WHAT_IF_STARTING_VALUES`). Each can be set anywhere inside its evidenced range, said in the question's own terms | declared |
+| Why an aircraft changes | your decision on it; else the changed figures, if it changes in the re-made plan; else a knock-on of another change | — |
 | Decisions on a cleared aircraft | not offered, and refused if asked: an aircraft with nothing to decide never weighs its options, so a swap's kept engine would not be credited | a known limitation, WHATS-FAKE.md; the fix changes default figures |

@@ -7,7 +7,7 @@ export type Role = 'head' | 'leasing' | 'planning' | 'analyst';
 export const PAGES: { id: Page; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'leases', label: 'Leases' },
-  { id: 'scenarios', label: 'Scenarios' },
+  { id: 'scenarios', label: 'What if' },
   { id: 'checklist', label: 'Return checklist' },
 ];
 

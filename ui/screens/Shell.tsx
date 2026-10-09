@@ -105,7 +105,7 @@ export default function Shell(props: ScreenProps) {
     }
     return out;
   }, [closing, plans, fleet, leaseOf]);
-  const [assigning, setAssigning] = useState<AssignmentDraft | null>(null);
+  const [assigning, setAssigning] = useState<{ draft: AssignmentDraft; source?: string } | null>(null);
 
   return (
     <LeaseLinksContext.Provider value={links}>
@@ -114,14 +114,14 @@ export default function Shell(props: ScreenProps) {
         {/* Each page behind its own guard: a page that fails says so, and the header stays. */}
         <PageGuard key={shownPage}>
           {shownPage === 'overview' && (
-            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={setAssigning} />
+            <Overview {...props} showAll={showAll} onShowAll={setShowAll} open={open} onOpen={setOpen} flash={flash} drafts={drafts} onAssign={(d) => setAssigning({ draft: d })} />
           )}
           {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
-          {shownPage === 'scenarios' && <Scenarios {...props} />}
+          {shownPage === 'scenarios' && <Scenarios {...props} onAssign={(d) => setAssigning({ draft: d, source: 'What if' })} />}
           {shownPage === 'checklist' && <Checklist fleet={props.fleet} readiness={props.readiness} onShowTail={showTail} />}
         </PageGuard>
       </main>
-      {assigning && <AssignPanel draft={assigning} onClose={() => setAssigning(null)} />}
+      {assigning && <AssignPanel draft={assigning.draft} source={assigning.source} onClose={() => setAssigning(null)} />}
       {lease && shown && (
         <LeaseView
           lease={shown}

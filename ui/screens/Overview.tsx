@@ -7,7 +7,9 @@ import { actionOf, type TailPlan } from '../../calc/recommend';
 import { conditionAnchor } from '../../calc/lease';
 import type { ReadinessItem } from '../../calc/readiness';
 import type { AssignmentDraft } from '../../calc/assign';
+import type { CloseCall } from '../../calc/robustness';
 import { ActivityLog } from '../components/ActivityLog';
+import { checkNote } from '../components/HowFirm';
 import { Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
 import { TailReadiness } from '../components/Readiness';
@@ -111,6 +113,8 @@ export default function Overview({
                   plan={plans.byTail[t.tail]}
                   before={atRest.byTail[t.tail]}
                   leftOut={budget !== null && budgetPlan.leftOut.some((x) => x.tail === t.tail)}
+                  // The note sits on the action row where there is one; a tail that pays has none, so it sits here.
+                  check={closing.items.some((i) => i.tail === t.tail) ? undefined : robustness?.checks.find((c) => c.tail === t.tail)}
                   open={open === t.tail}
                   onToggle={() => onOpen(open === t.tail ? null : t.tail)}
                 />
@@ -135,7 +139,23 @@ function Th({ children, right, tip }: { children: React.ReactNode; right?: boole
   );
 }
 
-function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; plan?: TailPlan; before?: TailPlan; leftOut: boolean; open: boolean; onToggle: () => void }) {
+function TailRow({
+  t,
+  plan,
+  before,
+  leftOut,
+  check,
+  open,
+  onToggle,
+}: {
+  t: TailResult;
+  plan?: TailPlan;
+  before?: TailPlan;
+  leftOut: boolean;
+  check?: CloseCall;
+  open: boolean;
+  onToggle: () => void;
+}) {
   const r = t.asRecorded;
   const beyond = !t.withinHorizon;
   // No exposure on either basis: the row says there is nothing to decide, and stops.
@@ -183,7 +203,7 @@ function TailRow({ t, plan, before, leftOut, open, onToggle }: { t: TailResult; 
             )}
           </td>
           <td className="px-2 py-4 text-right">
-            {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} /> : <span className="text-slate-300">—</span>}
+            {plan ? <AfterRecommendation plan={plan} before={before} leftOut={leftOut} check={check} /> : <span className="text-slate-300">—</span>}
           </td>
           <td className="px-2 py-4 whitespace-nowrap">
             <span className="font-medium">{t.binding.position}</span> · {unitLabel[t.binding.unit]}
@@ -238,7 +258,7 @@ function cappedRow(c: ComponentResult): string | null {
 }
 
 /** The plan's all-in figure, what it saves (or costs over the do-nothing figure), and what it is — and what it was, if the scenario changed it. */
-function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before?: TailPlan; leftOut: boolean }) {
+function AfterRecommendation({ plan, before, leftOut, check }: { plan: TailPlan; before?: TailPlan; leftOut: boolean; check?: CloseCall }) {
   const changed = before && actionOf(before) !== actionOf(plan);
   const paying = plan.role === 'own' && plan.recommendation.call.stands && plan.recommendation.recommended.lever === 'pay';
   const beats = plan.recommendation.payBeats;
@@ -278,6 +298,7 @@ function AfterRecommendation({ plan, before, leftOut }: { plan: TailPlan; before
       )}
       {changed && <div className="text-label text-slate-400">was: {before!.label}</div>}
       {leftOut && <div className="text-label font-medium">left out of the budget — pays at handback</div>}
+      {check && <div className="mt-1 text-label text-balance text-slate-500">Confirm before you act: {checkNote(check)}</div>}
     </div>
   );
 }

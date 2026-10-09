@@ -1223,3 +1223,19 @@ cleared aircraft cannot be priced fairly yet: cleared aircraft never weigh their
 would be charged the spare's life and not credited the engine kept in the pool. Letting them weigh
 their options is the fix, left for the real build because it changes default figures, and no default
 figure may change here. Recorded in WHATS-FAKE as a known limitation; tested on the picker as drawn.
+
+## Step 26 · v2, What if: one question, one answer, one action — Friday 9 October
+
+**The Scenarios page becomes "What if": a picker of plain-English questions, the answer in one
+sentence ("Your plan costs $X more. N recommendations change."), then what you'd do differently,
+aircraft by aircraft, each with Assign and notify.** · Rejected: ready-made buttons, "the world" and
+"your decisions", and a table of totals with nothing to act on. · Because those are the model's words,
+and the head of fleet's question is what changes in what he would do. The calculation is the scenario
+calculation, unchanged in every number; the three-column totals and the evidence are folded under
+"Show the calculation". A shop-cost question that replaces the other says so in the list; workscopes
+read "minimum shop visit (build-for-cash)" and "full shop visit (build-for-interval)". The lessor's
+markup and the slot lead time are not asked about: they stay in the evidence.
+
+**"Confirm before you act" leaves this page.** · Rejected: keeping it here. · Because it is about today's
+plan, and sits on the Overview beside the recommendation it concerns; a tail that pays at handback has
+no action row, so its note now sits on its row in the fleet table (A6-MXM).

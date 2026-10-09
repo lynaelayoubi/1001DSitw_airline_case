@@ -37,6 +37,8 @@ export interface WhatIf {
   applied: number;
   /** The plan with the applied proposals; the screen stays on today's. */
   scenario: FleetRecommendation;
+  /** The fleet it was priced on: as today, but with any moved return date. */
+  fleet: FleetExposure;
   /** Still owed at handback: compensation, and life already bought and handed over. */
   owed: Delta;
   /** Maintenance cash. */
@@ -71,7 +73,8 @@ export function whatIf(data: Dataset, a: Assumptions, today: FleetRecommendation
 
   const scenarioAssumptions = Object.keys(moved).length ? { ...a, leaseExtensionMonths: { ...a.leaseExtensionMonths, ...moved } } : a;
   const actions = proposals.filter((p): p is Exclude<Proposal, { kind: 'return' }> => p.kind !== 'return');
-  const scenario = recommendFleet(data, assessFleet(data, scenarioAssumptions), scenarioAssumptions, actions);
+  const fleet = assessFleet(data, scenarioAssumptions);
+  const scenario = recommendFleet(data, fleet, scenarioAssumptions, actions);
   let j = 0;
   const results = proposals.map((pr, k) => (pr.kind === 'return' ? returns.get(k)! : scenario.proposals[j++]!));
   const applied = results.filter((x) => !x.refused).length;
@@ -91,7 +94,7 @@ export function whatIf(data: Dataset, a: Assumptions, today: FleetRecommendation
     `${usd(spend.before)} → ${usd(spend.after)} (${signed(spend.change)}); all-in, with downtime, ${usd(allIn.before)} → ${usd(allIn.after)} ` +
     `(${signed(allIn.change)}).\n\n${comparison.trace}`;
 
-  return { proposals: results, applied, scenario, owed, spend, allIn, changed: comparison.changed, trace };
+  return { proposals: results, applied, scenario, fleet, owed, spend, allIn, changed: comparison.changed, trace };
 }
 
 /** What the customer can propose on one returning tail: the choices the what-if offers. */

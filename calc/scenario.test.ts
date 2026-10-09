@@ -3,7 +3,8 @@
 import { describe, expect, it } from 'vitest';
 
 import dataset from '../data/fleet.json';
-import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, SCENARIO_PRESETS } from './constants';
+import { ASSUMPTION_INPUTS, DEFAULT_ASSUMPTIONS, WHAT_IF_STARTING_VALUES } from './constants';
+import { closingDecisions } from './deadlines';
 import { assessFleet } from './exposure';
 import { recommendFleet } from './recommend';
 import { readInput } from './robustness';
@@ -67,14 +68,32 @@ describe('runScenario', () => {
     expect(r.changed).toEqual([]);
   });
 
-  it('holds every world change inside its evidenced range, the ready-made ones included', () => {
+  it('holds every world change inside its evidenced range, and every question starts inside it', () => {
     const shop = ASSUMPTION_INPUTS.find((i) => i.id === 'maintenanceCost')!;
     const r = runScenario(data, today, { world: [{ input: 'maintenanceCost', value: 0.5 }], decisions: [] });
     expect(readInput(r.assumptions, 'maintenanceCost')).toBe(shop.range.min);
-    for (const p of SCENARIO_PRESETS) {
-      const range = ASSUMPTION_INPUTS.find((i) => i.id === p.input)!.range;
-      expect(p.value, p.label).toBeGreaterThanOrEqual(range.min);
-      expect(p.value, p.label).toBeLessThanOrEqual(range.max);
+    const inRange = (id: (typeof ASSUMPTION_INPUTS)[number]['id'], v: number) => {
+      const range = ASSUMPTION_INPUTS.find((i) => i.id === id)!.range;
+      return v >= range.min - 1e-9 && v <= range.max + 1e-9;
+    };
+    const s = WHAT_IF_STARTING_VALUES;
+    expect(inRange('maintenanceCost', 1 + s.shopCostsUpPct / 100)).toBe(true);
+    expect(inRange('maintenanceCost', 1 - s.shopCostsDownPct / 100)).toBe(true);
+    expect(inRange('utilisation', 1 + s.flyingPct / 100)).toBe(true);
+    expect(inRange('reservesReclaim', s.reservesClaimedPct / 100)).toBe(true);
+  });
+
+  it("gives each aircraft that changes the scenario's own decide-by date and its money difference", () => {
+    const r = runScenario(data, today, { world: [{ input: 'utilisation', value: 1.05 }], decisions: [{ kind: 'swap', tail: 'A6-DLL', position: 'MLG', unit: spare('LG-6549') }] });
+    const items = closingDecisions(r.scenarioPlan, data.asOf).items;
+    expect(r.changed.length).toBeGreaterThan(0);
+    for (const c of r.changed) {
+      const item = items.find((i) => i.tail === c.tail);
+      expect(c.decideBy, c.tail).toBe(item ? (item.decideBy ?? item.grounded?.from ?? null) : null);
+      expect(c.difference, c.tail).toBeCloseTo(r.scenarioPlan.byTail[c.tail]!.after - today.byTail[c.tail]!.after, 6);
     }
+    expect(r.costChange).toBeCloseTo(r.scenario.allIn - r.today.allIn, 6);
+    // The fleet the scenario was priced on is the one its plan was made from.
+    expect(r.scenarioFleet.returning.map((t) => t.tail).sort()).toEqual(r.scenarioPlan.plans.map((p) => p.tail).sort());
   });
 });

@@ -45,21 +45,26 @@ swap from "decide today" to 8 Oct 2026. A corrected rule says "Applies on next r
 lease** (`components/AddLease.tsx`) takes a PDF and shows it being read; in this preview the terms are
 a sample, and the screen says so. Other roles see the leases read-only.
 
-### Scenarios (v2)
+### What if (v2)
 
-`screens/Scenarios.tsx` is one **scenario builder** (`components/ScenarioBuilder.tsx`, `calc/scenario.ts`):
-changes in the world — any of the seven assumptions, set inside its evidenced range, or one of three
-ready-made ones ("Shop costs up 10%", "Renegotiated maintenance contract: shop costs down 9%", "Fly 5%
-more than plan") — and decisions (swap, shop visit, route, return date, `components/WhatIf.tsx`) in one
-list. Aircraft with nothing to decide are listed in the picker as "Cleared: nothing to decide" and not
-offered: a decision on one cannot be priced fairly yet (WHATS-FAKE.md). **The result** shows three totals side by side — today's plan; today's plan re-made for the
-scenario's world; and the scenario, world and decisions together — then the aircraft whose
-recommendation changes, from what to what, and why: the world, your decision, or a knock-on. A
-scenario never changes today's plan: the Overview is always at the default assumptions, and no control
-on any page overrides them. Under the builder, **Show the evidence** (`components/Evidence.tsx`) folds
-the assumptions table — what today's plan uses, the evidenced range, where the real number lives,
-whether it changes an answer; then **Confirm before you act**; then **This year's budget**
-(`components/Budget.tsx`), against today's plan.
+`screens/Scenarios.tsx`, labelled **What if**: one question, one answer, one action, on the scenario
+calculation (`calc/scenario.ts`). **The questions** (`components/Questions.tsx`, `questions.ts`) are one
+picker in plain English — shop costs go up by [10]%, we renegotiate the maintenance contract: shop
+costs down by [9]%, our aircraft fly [5]% more or less than planned, we can only claim back [90]% of
+our reserves, a day on the ground costs [amount], we send / swap / move / change an aircraft's
+component, return date or route — each with its own values and one **Add**; a value outside the
+evidence is refused with one sentence saying the range. The list reads each back as the same sentence;
+a shop-cost question that replaces the other says so ("Replaced 'Shop costs go up by 10%'"). Aircraft
+with nothing to decide are listed as "Cleared: nothing to decide" and not offered. **The answer**
+(`components/Answer.tsx`) opens with one sentence — "Your plan costs $X more/less. N recommendations
+change." or "Your plan holds: no recommendation changes." — and today's total beside the scenario's;
+then **What you'd do differently**, one line per aircraft whose recommendation changes: today's action
+→ the new one, the date to decide by, the money, and **Assign and notify**, the Overview's panel
+prefilled with the new action (logged "from What if"); a question that cannot be taken says why, with
+its clause. **Show the calculation** folds the three-column totals and the evidence behind each figure;
+**This year's budget** closes the page. "Confirm before you act" is not here: it is about today's plan,
+and sits on the Overview beside the recommendation it concerns — on the action row, or, for a tail that
+pays at handback, on its row in the fleet table.
 
 ### Return checklist (v2)
 

@@ -12,7 +12,7 @@ import { Preview } from './Preview';
  * be changed before sending. Sending is a preview: it records the action and its status here, and
  * nothing leaves the app.
  */
-export function AssignPanel({ draft, onClose }: { draft: AssignmentDraft; onClose: () => void }) {
+export function AssignPanel({ draft, source, onClose }: { draft: AssignmentDraft; source?: string; onClose: () => void }) {
   const demo = useDemo();
   const [owner, setOwner] = useState<string>(draft.owner);
   const [due, setDue] = useState(draft.due);
@@ -27,7 +27,7 @@ export function AssignPanel({ draft, onClose }: { draft: AssignmentDraft; onClos
   const send = () => {
     demo.assign({ id: draft.id, tail: draft.tail, action: draft.action, owner, due, channel, message, request: channel === 'request' ? request : null });
     demo.record(
-      `${roleLabel(demo.role)} sent ${draft.tail}: ${draft.action} to ${owner} by ${channel === 'email' ? 'email' : 'maintenance request'}, due ${date(due)}.`,
+      `${roleLabel(demo.role)} sent ${draft.tail}: ${draft.action} to ${owner} by ${channel === 'email' ? 'email' : 'maintenance request'}, due ${date(due)}${source ? ` (from ${source})` : ''}.`,
     );
     onClose();
   };

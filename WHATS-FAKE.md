@@ -106,7 +106,7 @@ work then only costs the delta. That is on the "what I'd build next" list.
 
 ## A known limitation, not hidden
 
-- **A decision on a cleared aircraft cannot be priced fairly yet, so the Scenarios page does not offer
+- **A decision on a cleared aircraft cannot be priced fairly yet, so the What if page does not offer
   one.** An aircraft with nothing to decide (9H-MMC, 9H-RYM and 9H-PJS today) never weighs its options,
   so if you swapped one of its engines for a spare, the tool would charge the spare's life but not
   credit the engine kept in the pool. The picker lists these aircraft as "Cleared: nothing to decide",
