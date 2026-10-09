@@ -7,13 +7,9 @@ import { count, money } from '../format';
  * acting late — split in a bar into cash out and engine life handed over, with what it comes to after
  * the actions above as a second line. What acting now saves sits at the top beside the actions. No
  * disclosure: what each figure is made of is on screen, and the two definitions that are not sit in
- * tips — acting late on "If nothing changes", a reset the lease does not count on the clock-reset
- * line. Last, two plain lines: life already
- * over-delivered at past shop visits, which is sunk and in none of the totals, and the clock-reset
- * column of the table below.
+ * tips. Only the money: what is worth knowing beside it is below the fleet table (AlsoWorthKnowing).
  */
 export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
-  const t = fleet.totals;
   const r = plans.totals;
   return (
     <section className="mt-12 grid gap-x-12 lg:grid-cols-12">
@@ -44,28 +40,42 @@ export function Headline({ fleet, plans }: { fleet: FleetExposure; plans: FleetR
         <p className="mt-6 text-slate-500">
           {r.nothingToDecide} {r.nothingToDecide === 1 ? 'tail' : 'tails'} cleared · {r.paying} where paying beats fixing
         </p>
-
-        {/* Life bought at past shop visits: sunk, so beside the totals, not in them. */}
-        <p className="mt-6">
-          Already over-delivered at past shop visits: <span className="font-semibold tabular-nums">{money(r.pastOverDelivery)}</span>. Sunk on these{' '}
-          {count(plans.plans.length)}; preventable on the next {count(plans.plans.length)}.
-        </p>
-
-        {/* A one-line summary of the clock-reset column below: plain text, not a fourth total. */}
-        <p
-          className={`mt-2 ${t.qmeDelta > 0 ? 'cursor-help' : ''}`}
-          title={t.qmeDelta > 0 ? "A shop visit whose records don't meet the lease's definition of a qualifying event doesn't reset the clock under the lease." : undefined}
-        >
-          {t.qmeDelta > 0 ? (
-            <>
-              Clock reset: on {t.qmeTails} {t.qmeTails === 1 ? 'tail' : 'tails'} the lease doesn't count a shop visit —{' '}
-              <span className="font-semibold tabular-nums">{money(t.qmeDelta)}</span> more if lessors enforce the records clause.
-            </>
-          ) : (
-            "Clock reset: the lease counts every shop visit's records, so every clock reset counts."
-          )}
-        </p>
       </div>
+    </section>
+  );
+}
+
+/**
+ * Below the fleet table, two plain lines worth knowing but not part of the money above: life already
+ * over-delivered at past shop visits, which is sunk and in none of the totals, and what the clock-reset
+ * findings in the aircraft details come to.
+ */
+export function AlsoWorthKnowing({ fleet, plans }: { fleet: FleetExposure; plans: FleetRecommendation }) {
+  const t = fleet.totals;
+  const r = plans.totals;
+  return (
+    <section className="mt-12">
+      <h2 className="caps mb-3">Also worth knowing</h2>
+      {/* Life bought at past shop visits: sunk, so beside the totals, not in them. */}
+      <p>
+        Already over-delivered at past shop visits: <span className="font-semibold tabular-nums">{money(r.pastOverDelivery)}</span>. Sunk on these{' '}
+        {count(plans.plans.length)}; preventable on the next {count(plans.plans.length)}.
+      </p>
+
+      {/* The clock-reset findings in the aircraft details, summed: plain text, not a fourth total. */}
+      <p
+        className={`mt-2 ${t.qmeDelta > 0 ? 'cursor-help' : ''}`}
+        title={t.qmeDelta > 0 ? "A shop visit whose records don't meet the lease's definition of a qualifying event doesn't reset the clock under the lease." : undefined}
+      >
+        {t.qmeDelta > 0 ? (
+          <>
+            Clock reset: on {t.qmeTails} {t.qmeTails === 1 ? 'tail' : 'tails'} the lease doesn't count a shop visit —{' '}
+            <span className="font-semibold tabular-nums">{money(t.qmeDelta)}</span> more if lessors enforce the records clause.
+          </>
+        ) : (
+          "Clock reset: the lease counts every shop visit's records, so every clock reset counts."
+        )}
+      </p>
     </section>
   );
 }

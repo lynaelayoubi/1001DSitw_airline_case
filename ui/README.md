@@ -152,9 +152,10 @@ Everything below justifies the list, and sits under it.
   it in the pool — life counted the same way in every option; that is the segment's tip) — and, as
   a second line, "→ $X after the actions above" (SPEC §2.8: work, downtime and what's still owed).
   After recommendations is not a tile of its own.
-  Under them, two lines of plain text, not totals, so no box, fill or badge: life already
-  over-delivered at past shop visits on engines that stay on the aircraft whatever is done — "Sunk on
-  these ten; preventable on the next ten" — which is in none of the figures, and the sum of the clock-reset column of the table below. No disclosure under
+  "Also worth knowing", below the fleet table, holds two lines of plain text, not totals, so no box, fill
+  or badge: life already over-delivered at past shop visits — "Sunk on these ten; preventable on the next
+  ten" — which is in none of the figures, and the clock-reset findings of the aircraft details, summed. The
+  headline is only the money. No disclosure under
   the tiles: what each figure is made of is on screen, and the two definitions that are not — acting
   late, and a clock reset the lease does not count — are the tips on "If nothing changes" and on the
   clock-reset line.

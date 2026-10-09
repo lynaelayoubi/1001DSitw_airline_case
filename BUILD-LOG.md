@@ -1303,3 +1303,10 @@ budget line in plain words**: "Today's plan needs $17.1M of shop work in this wi
 claimed back, $143K comes out of your budget." · Rejected: "net of reserves reclaimed ($17.1M gross),
 $143K of it required". · Because "net" and "gross" are the model's words; the required share still
 shows where it matters, when a budget is set and the required actions exceed it. No calculation changes.
+
+## Step 30 · v2, the Overview shows only the money, the actions and the fleet — Friday 9 October
+
+**"Already over-delivered at past shop visits" and "Clock reset" move from the headline to "Also worth
+knowing", below the fleet table.** · Rejected: keeping them under the headline figures. · Because they
+are worth knowing but are not the money: one is sunk and in none of the totals, the other a finding of
+the aircraft details. Wording unchanged.

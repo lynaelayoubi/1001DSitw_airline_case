@@ -11,7 +11,7 @@ import type { CloseCall } from '../../calc/robustness';
 import { ActivityLog } from '../components/ActivityLog';
 import { checkNote } from '../components/HowFirm';
 import { slotMonthOf } from '../../calc/deadlines';
-import { Headline } from '../components/Headline';
+import { AlsoWorthKnowing, Headline } from '../components/Headline';
 import { RecommendedActions } from '../components/RecommendedActions';
 import { TailReadiness } from '../components/Readiness';
 import { Working } from '../components/Working';
@@ -126,6 +126,7 @@ export default function Overview({
           </tbody>
         </table>
       </div>
+      <AlsoWorthKnowing fleet={fleet} plans={plans} />
     </>
   );
 }
