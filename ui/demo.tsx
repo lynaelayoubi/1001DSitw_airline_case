@@ -6,6 +6,7 @@ import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import type { MaintenanceRequest } from '../calc/assign';
 import type { Correction } from '../calc/corrections';
+import type { DocumentStatus } from '../calc/documents';
 import type { LeaseTerm } from '../calc/lease';
 import { roleLabel, type Role } from './roles';
 import { usePersisted } from './store';
@@ -85,6 +86,9 @@ interface Demo {
   addLease: (fileName: string, sampleTail: string) => string;
   /** The corrections the calculation takes now: corrected numbers on the returning tails' leases. */
   corrections: Correction[];
+  /** Redelivery documents moved on from where they started, by document id. */
+  docs: Record<string, DocumentStatus>;
+  setDoc: (id: string, status: DocumentStatus) => void;
   reset: () => void;
 }
 
@@ -96,6 +100,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
   const [log, setLog] = usePersisted<LogEntry[]>('log', []);
   const [reviews, setReviews] = usePersisted<Record<string, LeaseReview>>('reviews', {});
   const [added, setAdded] = usePersisted<AddedLease[]>('added-leases', []);
+  const [docs, setDocs] = usePersisted<Record<string, DocumentStatus>>('documents', {});
   const corrections = useMemo<Correction[]>(
     () =>
       Object.entries(reviews).flatMap(([tail, r]) =>
@@ -158,14 +163,17 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         return id;
       },
       corrections,
+      docs,
+      setDoc: (id, status) => setDocs((d) => ({ ...d, [id]: status })),
       reset: () => {
         setAssignments({});
         setLog([]);
         setReviews({});
         setAdded([]);
+        setDocs({});
       },
     };
-  }, [role, setRole, assignments, setAssignments, log, setLog, reviews, setReviews, added, setAdded, corrections]);
+  }, [role, setRole, assignments, setAssignments, log, setLog, reviews, setReviews, added, setAdded, corrections, docs, setDocs]);
   return <DemoContext.Provider value={demo}>{children}</DemoContext.Provider>;
 }
 

@@ -55,6 +55,15 @@ answer, and an override that recomputes everything, the Overview included. Then 
 act** (`components/HowFirm.tsx`), with one sentence saying what it means; the same note on an action
 row reads "Confirm before you act: …".
 
+### Return checklist (v2)
+
+`screens/Checklist.tsx`: the readiness checklist, open, then **Documents for redelivery**
+(`components/Documents.tsx`, `calc/documents.ts`) — one line per returning aircraft, soonest return
+first, with how many documents are ready and missing; opened, each document with what it is for (the
+aircraft, or an engine, the APU or the gear by serial), its owner and its status (To do, In progress,
+Ready, Missing). Marked "Standard template, not read from a lease". The leasing team and maintenance
+planning change statuses, each change logged; other roles read.
+
 ## How it looks
 
 Calm, sparse, aligned. Defined once, in `index.css`:

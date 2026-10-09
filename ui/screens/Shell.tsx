@@ -118,7 +118,7 @@ export default function Shell(props: ScreenProps) {
         )}
         {shownPage === 'leases' && <Leases fleet={props.fleet} leaseAsRead={props.leaseAsRead} onShowTail={showTail} />}
         {shownPage === 'scenarios' && <Scenarios {...props} />}
-        {shownPage === 'checklist' && <Checklist readiness={props.readiness} onShowTail={showTail} />}
+        {shownPage === 'checklist' && <Checklist fleet={props.fleet} readiness={props.readiness} onShowTail={showTail} />}
       </main>
       {assigning && <AssignPanel draft={assigning} onClose={() => setAssigning(null)} />}
       {lease && shown && (

@@ -91,6 +91,10 @@ work then only costs the delta. That is on the "what I'd build next" list.
   read: the terms that appear are a sample from an existing lease in the data (an in-service
   aircraft's), labelled so on screen, and the added lease does not enter the calculation. Reading
   real leases is the MVP's work.
+- **The documents for redelivery.** A standard template of the records a return asks for, not read
+  from any lease, laid over each aircraft's own engines, APU and gear. Their statuses are set by hand
+  and kept in this browser; only "missing" on an engine whose last shop visit the lease does not count
+  comes from the data.
 - **Lease reviews.** Approvals, corrections and their history live in this browser, like the
   assignments. Corrections to thresholds and notice periods do change the calculation here; a
   corrected rule (replacement, what makes a shop visit count, reserves) is recorded only.

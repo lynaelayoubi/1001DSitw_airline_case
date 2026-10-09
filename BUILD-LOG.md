@@ -1163,3 +1163,13 @@ what it means.** · Rejected: the assumptions behind a disclosure under the tabl
 customer wanted them inside scenario planning — "what if our costs go up, what if we renegotiate
 maintenance contracts" — which is shop costs in "The world". The budget sits under "Your decisions":
 it is a decision. Text and layout only.
+
+## Step 23 · v2, the documents a return needs — Friday 9 October
+
+**A Documents section on the Return checklist: per returning aircraft, a standard template of the
+redelivery records laid over its own engines, APU and gear, each with an owner and a status, and
+marked "Standard template, not read from a lease".** · Rejected: one undifferentiated list per
+aircraft, and implying the list came from the leases. · Because the customer wanted "the mundane
+checklist too", and a back-to-birth trace is per engine, by serial. One status comes from the data:
+an engine whose last shop visit the lease does not count starts with its shop visit report missing —
+the evidence the QME chase is after.

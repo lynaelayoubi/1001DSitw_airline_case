@@ -267,6 +267,24 @@ export const READINESS_OWNERS = {
 } as const;
 
 /**
+ * The records a redelivery asks for, as a standard template — not read from these leases. Each is
+ * for the aircraft, or for each engine, the APU or the landing gear, with the team that owns it.
+ * ASSUMPTIONS §20. A declared list of the documents every return typically needs, from the customer's
+ * "the mundane checklist too"; the leases' own aircraft-documents schedules would replace it.
+ */
+export const REDELIVERY_DOCUMENTS: { id: string; title: string; per: 'aircraft' | 'engine' | 'apu' | 'landing-gear'; owner: string }[] = [
+  { id: 'coa', title: 'Certificate of airworthiness', per: 'aircraft', owner: READINESS_OWNERS.leasing },
+  { id: 'cor', title: 'Certificate of registration', per: 'aircraft', owner: READINESS_OWNERS.leasing },
+  { id: 'ad', title: 'Airworthiness directive status', per: 'aircraft', owner: READINESS_OWNERS.records },
+  { id: 'mods', title: 'Modification and service bulletin status', per: 'aircraft', owner: READINESS_OWNERS.records },
+  { id: 'amp', title: 'Maintenance programme compliance: last checks and tasks', per: 'aircraft', owner: READINESS_OWNERS.planning },
+  { id: 'llp', title: 'Back-to-birth traces for life-limited parts', per: 'engine', owner: READINESS_OWNERS.records },
+  { id: 'esv', title: 'Shop visit reports', per: 'engine', owner: READINESS_OWNERS.records },
+  { id: 'apu', title: 'Shop visit reports', per: 'apu', owner: READINESS_OWNERS.records },
+  { id: 'gear', title: 'Overhaul records and back-to-birth traces', per: 'landing-gear', owner: READINESS_OWNERS.records },
+];
+
+/**
  * Who a recommended action is assigned to by default, by its lever (calc/assign.ts): the work —
  * a shop visit, a swap, a spare covering, an aircraft on the ground — to maintenance planning; a
  * route change to network planning, the team that sets the schedule. Prefilled, never fixed: the

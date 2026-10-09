@@ -797,3 +797,12 @@ by the leasing team; maintenance people are told return dates late.
 | Corrections recorded only | the replacement rule, what makes a shop visit count, and reserve or no-reserve: they change how a lever works, not a number in it. Shown as "Applies on next recalculation" | the safer course for a preview |
 | A notice correction | applies to that aircraft's lease only, though the data holds notice per lessor: the aircraft gets its own copy of the lessor's terms | a side letter belongs to one lease |
 | The plan a correction is measured against | the leases as read: a row whose action a correction changes says what it was | — |
+
+## 20 · The documents a return needs (v2, as built, `calc/documents.ts`)
+
+| Item | Value | Source |
+|---|---|---|
+| The list | for the aircraft: certificate of airworthiness, certificate of registration, airworthiness directive status, modification and service bulletin status, maintenance programme compliance; for each engine: back-to-birth traces for life-limited parts, shop visit reports; for the APU: shop visit reports; for the landing gear: overhaul records and back-to-birth traces (`REDELIVERY_DOCUMENTS`) | a declared standard template of what a redelivery typically asks for — **not read from these leases**, and labelled so on screen. A lease's own aircraft-documents schedule would replace it |
+| Owners | the certificates: Leasing team; programme compliance: Maintenance planning; the rest: Technical records | the customer's roles (`READINESS_OWNERS`) |
+| Starting status | To do; except an engine whose last shop visit the lease does not count, whose shop visit report starts Missing | from the maintenance record (QME status), the evidence the QME chase is after |
+| Who updates a status | the Leasing team and Maintenance planning, who gather the documents; each change goes into the activity log | v2 role switcher |
