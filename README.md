@@ -12,6 +12,28 @@ inside 24 months, and every figure on screen is computed from that data — noth
 in. What is real, what is generated and what is faked on purpose is set out in
 `WHATS-FAKE.md`.
 
+## v2 — a preview of the MVP
+
+This branch, `v2-mvp-preview`, answers the customer's feedback on v1; `main` is the version demoed.
+It is a preview of the MVP, not the MVP: anything simulated says "Preview: nothing leaves the app"
+on screen and is listed in `WHATS-FAKE.md`. The calculation and its headline figures are as on `main`.
+
+- **Pages instead of one long screen**: Overview (the headline money, the recommended actions, the
+  fleet table), Leases, Scenarios, Return checklist, under a top navigation.
+- **Viewing as**: Head of fleet, Leasing team, Maintenance planning, Analyst — each sees only the
+  pages it needs, and only some can change things. No login.
+- **Every recommendation can be acted on**: Assign and notify, with the owner, due date and a
+  plain-English message prefilled from the recommendation, or the structured maintenance request;
+  then Open, Sent, Accepted, Done, and an activity log. Nothing is sent.
+- **Leases, reviewed and corrected**: each term the tool read, with the clause it came from, for the
+  leasing team to approve or correct with a reason; a corrected threshold or notice period changes
+  the calculation at once. Adding a lease is shown end to end; the reading is a preview.
+- **Scenarios**: your decisions and the world's assumptions on one page, then Confirm before you act.
+- **The documents a return needs**: a standard template per aircraft, each with an owner and a status.
+
+What you do in the demo — assignments, reviews, statuses — is kept in this browser; **Reset demo**,
+under the role switcher, clears it.
+
 ## Running it
 
 Developed on Node 24.

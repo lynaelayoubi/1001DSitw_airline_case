@@ -17,6 +17,10 @@ The one-sentence version:
 > gave. The calculation engine is real — every number on screen is computed, nothing is typed
 > in. The two things deliberately faked are the lease extraction and the component pool, and
 > the reasoning for both is below.
+>
+> v2 adds a preview of how the MVP would be used — acting on a recommendation, reviewing a lease,
+> the documents a return needs. What it simulates (sending, reading a PDF) says "Preview: nothing
+> leaves the app" on screen and is listed under "v2 previews" below.
 
 ---
 
@@ -84,7 +88,8 @@ work then only costs the delta. That is on the "what I'd build next" list.
   from the recommendation, but nothing is sent: no email, no call to a maintenance system. The
   action is marked Sent, Accepted and Done in this browser, and the activity log records who did what.
 - **Where that state lives.** Assignments, statuses and the activity log are kept in this browser's
-  local storage, nowhere else: another browser or another person sees none of it. Reset demo clears it.
+  local storage, nowhere else: another browser or another person sees none of it. Reset demo clears it. The
+  activity log stamps the real time of each click, while the data is as of 3 October 2026.
 - **Roles.** "Viewing as" switches what is shown and who may change what; there is no login, and
   nothing is enforced beyond the screen.
 - **Reading a lease PDF.** "Add a lease" takes a PDF and shows it being read, but the file is not

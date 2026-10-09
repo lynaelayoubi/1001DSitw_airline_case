@@ -1173,3 +1173,12 @@ aircraft, and implying the list came from the leases. · Because the customer wa
 checklist too", and a back-to-birth trace is per engine, by serial. One status comes from the data:
 an engine whose last shop visit the lease does not count starts with its shop visit report missing —
 the evidence the QME chase is after.
+
+## Step 24 · v2, clean-up — Friday 9 October
+
+README, WHATS-FAKE and the UI notes describe v2; `dist/` is rebuilt on this branch, so v2 can be
+deployed on its own while `main` stays the version demoed. The calculation is untouched in every
+number: the headline figures ($40.0M, $31.4M, $8.67M) are pinned in the tests and hold, and every
+test from v1 still passes. New in calc, all pure and tested: `assign.ts` (drafting an action for its
+owner), `corrections.ts` (the leasing team's corrections, none by default), `documents.ts` (the
+redelivery records), and `leaseTerms` in `lease.ts`.
